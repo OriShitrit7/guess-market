@@ -1,20 +1,20 @@
-package guessmarket.engine.model;
+package guessmarket.engine.api;
 
-public class Trade {
-    private final MarketOption option;
+public class TradeInfo {
+    private final String optionName;
     private final int quantity;
     private final double sharesCost;
     private final double commissionCost;
 
-    public Trade(MarketOption option, int quantity, double sharesCost, double commissionCost) {
-        this.option = option;
+    public TradeInfo(String optionName, int quantity, double sharesCost, double commissionCost) {
+        this.optionName = optionName;
         this.quantity = quantity;
         this.sharesCost = sharesCost;
         this.commissionCost = commissionCost;
     }
 
-    public MarketOption getOption() {
-        return option;
+    public String getOptionName() {
+        return optionName;
     }
 
     public int getQuantity() {

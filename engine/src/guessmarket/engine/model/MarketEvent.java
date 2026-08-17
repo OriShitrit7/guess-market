@@ -5,6 +5,8 @@ import guessmarket.engine.trading.TradingMethod;
 import java.util.List;
 
 public class MarketEvent {
+    public static final int REQUIRED_OPTION_COUNT = 2;
+
     private final int eventId;
     private final String eventName;
     private final String description;
@@ -13,17 +15,16 @@ public class MarketEvent {
     private final List<MarketOption> options;
     private MarketOption winningOption;
 
-    private final EventAccount account;
+    private final EventAccount account = new EventAccount();
     private final CommissionConfig commissionConfig;
     private final TradingMethod tradingMethod;
 
-    public MarketEvent(int eventId, String eventName, String description, List<MarketOption> options,
-                       EventAccount account, CommissionConfig commissionConfig, TradingMethod tradingMethod) {
+    public MarketEvent(int eventId, String eventName, String description, List<MarketOption> options
+            , CommissionConfig commissionConfig, TradingMethod tradingMethod) {
         this.eventId = eventId;
         this.eventName = eventName;
         this.description = description;
         this.options = List.copyOf(options);
-        this.account = account;
         this.commissionConfig = commissionConfig;
         this.tradingMethod = tradingMethod;
     }
@@ -62,6 +63,14 @@ public class MarketEvent {
 
     public TradingMethod getTradingMethod() {
         return tradingMethod;
+    }
+
+    public int getCommissionPercentage() {
+        return commissionConfig.getPercentage();
+    }
+
+    public int getOptionCount() {
+        return options.size();
     }
 
     public double[] getOptionsValues() {

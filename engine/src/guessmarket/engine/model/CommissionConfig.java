@@ -1,16 +1,19 @@
 package guessmarket.engine.model;
 
 public class CommissionConfig {
-    private final int commissionPercent;
+    public static final int MIN_COMMISSION_PERCENT = 0;
+    public static final int MAX_COMMISSION_PERCENT = 90;
+
+    private final int commissionPercentage;
     private final CommissionPolicy commissionPolicy;
 
     public CommissionConfig(int commissionPercent, CommissionPolicy commissionPolicy) {
-        this.commissionPercent = commissionPercent;
+        this.commissionPercentage = commissionPercent;
         this.commissionPolicy = commissionPolicy;
     }
 
-    public int getCommissionPercent() {
-        return commissionPercent;
+    public int getPercentage() {
+        return commissionPercentage;
     }
 
     public CommissionPolicy getCommissionPolicy() {

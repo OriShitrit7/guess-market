@@ -6,6 +6,7 @@ public class MarketOption {
 
     public MarketOption(String name) {
         this.name = name;
+        this.totalSharesBought = 0;
     }
 
     public String getName() {

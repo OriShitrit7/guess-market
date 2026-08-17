@@ -10,10 +10,6 @@ public class EventAccount {
     // initialised here, not in the constructor: a new account always starts with no history
     private final List<Trade> tradeHistory = new ArrayList<>();
 
-    public EventAccount(double balance) {
-        this.balance = balance;
-    }
-
     public double getBalance() {
         return balance;
     }
@@ -24,5 +20,9 @@ public class EventAccount {
 
     public List<Trade> getTradeHistory() {
         return Collections.unmodifiableList(tradeHistory);
+    }
+
+    private void deposit (double amount) {  // זמני
+        balance += amount;
     }
 }

@@ -3,7 +3,6 @@ package guessmarket.engine.xml;
 import guessmarket.engine.exception.*;
 import guessmarket.engine.model.CommissionConfig;
 import guessmarket.engine.model.CommissionPolicy;
-import guessmarket.engine.model.EventAccount;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.model.MarketOption;
 import guessmarket.engine.trading.LmsrTradingMethod;
@@ -36,23 +35,24 @@ public class EventXmlMapper {
         NodeList eventNodes = document.getElementsByTagName(EVENT_ELEMENT);
 
         for (int i = 0; i < eventNodes.getLength(); i++) {
-            mappedEvents.add(mapEvent((Element) eventNodes.item(i)));
+            mappedEvents.add(mapEvent((Element) eventNodes.item(i), i + 1));
         }
         return mappedEvents;
     }
 
-    private MarketEvent mapEvent(Element eventElement) throws InvalidFileException {
-        String eventName = getAttributeValue(eventElement, NAME_ATTRIBUTE);
+    private MarketEvent mapEvent(Element eventElement, int eventPosition) throws InvalidFileException {
+        String eventName = getAttributeValue(eventElement, NAME_ATTRIBUTE, eventPosition);
         int eventId = getElementNumber(eventElement, ID_ELEMENT, eventName);
         String description = getElementText(eventElement, DESCRIPTION_ELEMENT, eventName);
 
         return new MarketEvent(eventId, eventName, description, mapOptions(eventElement),
-                mapCommission(eventElement, eventName), mapTradingMethod(eventElement, eventName));
+                mapCommission(eventElement, eventName, eventPosition), mapTradingMethod(eventElement, eventName));
     }
 
-    private CommissionConfig mapCommission(Element eventElement, String eventName) throws InvalidFileException {
+    private CommissionConfig mapCommission(Element eventElement, String eventName, int eventPosition)
+            throws InvalidFileException {
         Element commissionElement = getSingleElement(eventElement, COMMISSION_ELEMENT, eventName);
-        String policyValue = getAttributeValue(commissionElement, TYPE_ATTRIBUTE);
+        String policyValue = getAttributeValue(commissionElement, TYPE_ATTRIBUTE, eventPosition);
 
         CommissionPolicy policy = switch (policyValue) {
             case ON_PURCHASE_VALUE -> CommissionPolicy.ON_PURCHASE;
@@ -114,11 +114,12 @@ public class EventXmlMapper {
         return element.getTextContent().trim();
     }
 
-    private String getAttributeValue(Element element, String attributeName) throws MissingAttributeException {
+    private String getAttributeValue(Element element, String attributeName, int eventPosition)
+            throws MissingAttributeException {
         String value = element.getAttribute(attributeName).trim();
 
         if (value.isEmpty()) {
-            throw new MissingAttributeException(element.getTagName(), attributeName);
+            throw new MissingAttributeException(eventPosition, element.getTagName(), attributeName);
         }
         return value;
     }

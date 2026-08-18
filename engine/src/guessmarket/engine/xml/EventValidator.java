@@ -7,9 +7,9 @@ import guessmarket.engine.exception.WrongOptionCountException;
 import guessmarket.engine.model.CommissionConfig;
 import guessmarket.engine.model.MarketEvent;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public class EventValidator {
 
@@ -23,11 +23,13 @@ public class EventValidator {
     }
 
     private void validateUniqueEventIds(List<MarketEvent> events) throws DuplicateEventIdException {
-        HashSet<Object> seenIds = new HashSet<>();
+        Map<Integer, String> namesById = new HashMap<>();
 
         for (MarketEvent event : events) {
-            if (!seenIds.add(event.getEventId())) {
-                throw new DuplicateEventIdException(event.getEventName(), event.getEventId());
+            String existingName = namesById.putIfAbsent(event.getEventId(), event.getEventName());
+
+            if (existingName != null) {
+                throw new DuplicateEventIdException(event.getEventName(), existingName, event.getEventId());
             }
         }
     }

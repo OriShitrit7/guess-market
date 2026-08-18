@@ -1,8 +1,14 @@
 package guessmarket.engine.api;
 
-import guessmarket.engine.exception.InvalidFileException;
+import guessmarket.dto.CommissionPolicyDto;
+import guessmarket.dto.EventSummaryDto;
+import guessmarket.dto.EventStatusDto;
+import guessmarket.dto.EventTradingStateDto;
+import guessmarket.dto.OptionStateDto;
+import guessmarket.dto.PurchaseResultDto;
+import guessmarket.dto.TradeDto;
+import guessmarket.engine.exception.*;
 import guessmarket.engine.model.*;
-import guessmarket.engine.trading.LmsrTradingMethod;
 import guessmarket.engine.xml.SystemFileLoader;
 
 import java.util.ArrayList;
@@ -16,32 +22,34 @@ public class MarketManagerImpl implements MarketManager {
     private Map<Integer, MarketEvent> events = new LinkedHashMap<>();
     private final SystemFileLoader loader = new SystemFileLoader();
 
-    public MarketManagerImpl() {
-        seedHardcodedEvents();
+    private MarketEvent getEventById(int eventId) {
+        MarketEvent event = events.get(eventId);
+
+        if (event == null) {
+            throw new EventNotFoundException(eventId);
+        }
+        return event;
     }
 
-    // TEMPORARY scaffolding so command 2 can be run before the XML loader exists.
-    // Delete this method and the constructor once loading from file works.
-    private void seedHardcodedEvents() {
-        MarketEvent first = new MarketEvent(1, "Mujtaba is Dead",
-                "This event gambles if Mujtaba is a live or not. it will be determined if he will be shown in public until 31.8.26",
-                List.of(new MarketOption("Hell Yea !"), new MarketOption("No way !")),
-                new CommissionConfig(5, CommissionPolicy.ON_PURCHASE),
-                new LmsrTradingMethod(100));
+    private MarketEvent getActiveEventById(int eventId) {
+        MarketEvent event = getEventById(eventId);
 
-        MarketEvent second = new MarketEvent(2, "World Cap Winner",
-                "Who do you think will win the world cap ?",
-                List.of(new MarketOption("Argentina"), new MarketOption("Spain")),
-                new CommissionConfig(15, CommissionPolicy.ON_CLOSE),
-                new LmsrTradingMethod(50));
-
-        events.put(first.getEventId(), first);
-        events.put(second.getEventId(), second);
+        if (event.getStatus() != EventStatus.ACTIVE) {
+            throw new EventClosedException(event.getEventName());
+        }
+        return event;
     }
-    //////////////////
 
-    private MarketEvent getEventById(int id) {
-        return events.get(id);
+    private void validateOptionIndex(MarketEvent event, int optionIndex) {
+        if (optionIndex < 0 || optionIndex >= event.getOptionCount()) {
+            throw new OptionNotFoundException(event.getEventName(), optionIndex, event.getOptionCount());
+        }
+    }
+
+    private void validateQuantity(int quantity) {
+        if (quantity <= 0) {
+            throw new NonPositiveQuantityException(quantity);
+        }
     }
 
     @Override
@@ -53,14 +61,14 @@ public class MarketManagerImpl implements MarketManager {
     }
 
     @Override
-    public List<EventSummary> getEventSummaries() {
+    public List<EventSummaryDto> getEventSummaries() {
         return events.values().stream()
                 .map(this::createEventSummary)
                 .toList();
     }
     // MarketManagerImpl
     @Override
-    public List<EventSummary> getActiveEventSummaries() {
+    public List<EventSummaryDto> getActiveEventSummaries() {
         return events.values().stream()
                 .filter(event -> event.getStatus() == EventStatus.ACTIVE)
                 .map(this::createEventSummary)
@@ -68,68 +76,92 @@ public class MarketManagerImpl implements MarketManager {
     }
 
     @Override
-    public EventTradingState getEventTradingState(int eventId) {
+    public EventTradingStateDto getEventTradingState(int eventId) {
         return createEventTradingState(getEventById(eventId));
     }
 
     @Override
-    public TradeInfo buyShares(int eventId, int optionIndex, int quantity) {
-        Trade trade = getEventById(eventId).buyShares(optionIndex, quantity);
+    public PurchaseResultDto buyShares(int eventId, int optionIndex, int quantity) {
+        MarketEvent event = getActiveEventById(eventId);
 
-        return createTradeInfo(trade);
+        validateOptionIndex(event, optionIndex);
+        validateQuantity(quantity);
+
+        Trade trade = event.buyShares(optionIndex, quantity);
+
+        return new PurchaseResultDto(createTradeDto(trade), createEventTradingState(event));
     }
 
     @Override
-    public void closeEvent(int eventId, int winningOptionIndex) {
-        getEventById(eventId).close(winningOptionIndex);
+    public EventTradingStateDto closeEvent(int eventId, int winningOptionIndex) {
+        MarketEvent event = getActiveEventById(eventId);
+
+        validateOptionIndex(event, winningOptionIndex);
+        event.close(winningOptionIndex);
+
+        return createEventTradingState(event);
     }
 
-    private EventSummary createEventSummary(MarketEvent event) {
+    private EventSummaryDto createEventSummary(MarketEvent event) {
         List<String> optionNames = new ArrayList<>();
 
         for (MarketOption option : event.getOptions()) {
             optionNames.add(option.getName());
         }
 
-        return new EventSummary(event.getEventId(), event.getEventName(), event.getDescription(),
-                event.getCommissionPercentage(), event.getCommissionPolicy(),
-                optionNames, event.getStatus());
+        return new EventSummaryDto(event.getEventId(), event.getEventName(), event.getDescription(),
+                event.getCommissionPercentage(), toDto(event.getCommissionPolicy()),
+                optionNames, toDto(event.getStatus()));
     }
 
-    private EventTradingState createEventTradingState(MarketEvent event) {
+    private EventTradingStateDto createEventTradingState(MarketEvent event) {
         MarketOption winner = event.getWinningOption();
 
-        return new EventTradingState(createEventSummary(event), createOptionInfos(event),
+        return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
                 event.getAccount().getBalance(), event.getAccount().getTotalCommissionCollected(), createTradeInfos(event),
                 winner == null ? null : winner.getName());
     }
 
-    private List<OptionTradingInfo> createOptionInfos(MarketEvent event) {
-        List<OptionTradingInfo> infos = new ArrayList<>();
+    private List<OptionStateDto> createOptionStates(MarketEvent event) {
+        List<OptionStateDto> states = new ArrayList<>();
 
         List<MarketOption> options = event.getOptions();
         double[] values = event.getOptionsValues();
 
         for (int i = 0; i < options.size(); i++) {
-            infos.add(new OptionTradingInfo(options.get(i).getName(), values[i],
+            states.add(new OptionStateDto(options.get(i).getName(), values[i],
                     options.get(i).getTotalSharesBought()));
         }
-        return infos;
+        return states;
     }
 
-    private List<TradeInfo> createTradeInfos(MarketEvent event) {
-        List<TradeInfo> infos = new ArrayList<>();
+    private List<TradeDto> createTradeInfos(MarketEvent event) {
+        List<TradeDto> infos = new ArrayList<>();
 
         for (Trade trade : event.getAccount().getTradeHistory()) {
-            infos.add(createTradeInfo(trade));
+            infos.add(createTradeDto(trade));
         }
         Collections.reverse(infos);
         return infos;
     }
 
-    private TradeInfo createTradeInfo(Trade trade) {
-        return new TradeInfo(trade.getOption().getName(), trade.getQuantity(),
+    private TradeDto createTradeDto(Trade trade) {
+        return new TradeDto(trade.getOption().getName(), trade.getQuantity(),
                 trade.getSharesCost(), trade.getCommissionCost());
+    }
+
+    private CommissionPolicyDto toDto(CommissionPolicy policy) {
+        return switch (policy) {
+            case ON_PURCHASE -> CommissionPolicyDto.ON_PURCHASE;
+            case ON_CLOSE -> CommissionPolicyDto.ON_CLOSE;
+        };
+    }
+
+    private EventStatusDto toDto(EventStatus status) {
+        return switch (status) {
+            case ACTIVE -> EventStatusDto.ACTIVE;
+            case CLOSED -> EventStatusDto.CLOSED;
+        };
     }
 
     private void processInitialSubsidies(List<MarketEvent> loadedEvents) {

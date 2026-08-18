@@ -1,18 +1,18 @@
-package guessmarket.engine.api;
+package guessmarket.dto;
 
 import java.util.List;
 
-public class EventTradingState {
-    private final EventSummary summary;
-    private final List<OptionTradingInfo> options;
+public final class EventTradingStateDto {
+    private final EventSummaryDto summary;
+    private final List<OptionStateDto> options;
     private final double accountBalance;
     private final double totalCommissionCollected;
-    private final List<TradeInfo> tradeHistory;
+    private final List<TradeDto> tradeHistory;
     private final String winningOptionName;
 
-    public EventTradingState(EventSummary summary, List<OptionTradingInfo> options,
-                             double accountBalance, double totalCommissionCollected,
-                             List<TradeInfo> tradeHistory, String winningOptionName) {
+    public EventTradingStateDto(EventSummaryDto summary, List<OptionStateDto> options,
+                                double accountBalance, double totalCommissionCollected,
+                                List<TradeDto> tradeHistory, String winningOptionName) {
         this.summary = summary;
         this.options = List.copyOf(options);
         this.accountBalance = accountBalance;
@@ -21,11 +21,11 @@ public class EventTradingState {
         this.winningOptionName = winningOptionName;
     }
 
-    public EventSummary getSummary() {
+    public EventSummaryDto getSummary() {
         return summary;
     }
 
-    public List<OptionTradingInfo> getOptions() {
+    public List<OptionStateDto> getOptions() {
         return options;
     }
 
@@ -37,7 +37,7 @@ public class EventTradingState {
         return totalCommissionCollected;
     }
 
-    public List<TradeInfo> getTradeHistory() {
+    public List<TradeDto> getTradeHistory() {
         return tradeHistory;
     }
 

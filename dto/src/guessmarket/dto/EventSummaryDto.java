@@ -1,21 +1,18 @@
-package guessmarket.engine.api;
-
-import guessmarket.engine.model.CommissionPolicy;
-import guessmarket.engine.model.EventStatus;
+package guessmarket.dto;
 
 import java.util.List;
 
-public class EventSummary {
+public final class EventSummaryDto {
     private final int eventId;
     private final String eventName;
     private final String description;
     private final int commissionPercent;
-    private final CommissionPolicy commissionPolicy;
+    private final CommissionPolicyDto commissionPolicy;
     private final List<String> optionNames;
-    private final EventStatus status;
+    private final EventStatusDto status;
 
-    public EventSummary(int eventId, String eventName, String description, int commissionPercent,
-                        CommissionPolicy commissionPolicy, List<String> optionNames, EventStatus status) {
+    public EventSummaryDto(int eventId, String eventName, String description, int commissionPercent,
+                           CommissionPolicyDto commissionPolicy, List<String> optionNames, EventStatusDto status) {
         this.eventId = eventId;
         this.eventName = eventName;
         this.description = description;
@@ -41,7 +38,7 @@ public class EventSummary {
         return commissionPercent;
     }
 
-    public CommissionPolicy getCommissionPolicy() {
+    public CommissionPolicyDto getCommissionPolicy() {
         return commissionPolicy;
     }
 
@@ -49,7 +46,7 @@ public class EventSummary {
         return optionNames;
     }
 
-    public EventStatus getStatus() {
+    public EventStatusDto getStatus() {
         return status;
     }
 }

@@ -1,11 +1,11 @@
-package guessmarket.engine.api;
+package guessmarket.dto;
 
-public class OptionTradingInfo {
+public final class OptionStateDto {
     private final String optionName;
     private final double currentValue;
     private final int totalSharesBought;
 
-    public OptionTradingInfo(String optionName, double currentValue, int totalSharesBought) {
+    public OptionStateDto(String optionName, double currentValue, int totalSharesBought) {
         this.optionName = optionName;
         this.currentValue = currentValue;
         this.totalSharesBought = totalSharesBought;

@@ -16,7 +16,8 @@ import java.util.stream.IntStream;
 
 public class ConsolePrinter {
     private static final int OUTPUT_WIDTH = 80;
-    private static final int TABLE_COLUMN_WIDTH = 19;
+    private static final int TABLE_COLUMN_WIDTH = 17;
+    private static final int VALUE_ROW_WIDTH = 40;
 
     private static final String HEADER_SEPARATOR = "=".repeat(OUTPUT_WIDTH);
     private static final String SECTION_SEPARATOR = "-".repeat(OUTPUT_WIDTH);
@@ -80,7 +81,7 @@ public class ConsolePrinter {
 
     public void printEvents(List<EventSummaryDto> events) {
         String eventCards = events.isEmpty() ? "No events are available." : buildEventCards(events);
-        String output = String.join(NEW_LINE, "", buildHeader("MARKET BOARD"), "", eventCards,
+        String output = String.join(NEW_LINE, "", buildHeader("EVENTS OVERVIEW"), "", eventCards,
                 HEADER_SEPARATOR, "");
         System.out.print(output);
     }
@@ -115,8 +116,8 @@ public class ConsolePrinter {
 
     private String buildEventTradingState(EventTradingStateDto state) {
         String sections = String.join(NEW_LINE + NEW_LINE, buildHeader("EVENT TRADING STATE"),
-                buildEventSummary(state.getSummary()), buildCurrentMarket(state.getOptions()),
-                buildEventAccount(state), buildTradeHistory(state.getTradeHistory()));
+                buildEventSummary(state.getSummary()), buildEventAccount(state),
+                buildCurrentMarket(state.getOptions()), buildTradeHistory(state.getTradeHistory()));
         String finalResult = state.getWinningOptionName() == null ? ""
                 : NEW_LINE + buildFinalResult(state.getWinningOptionName()) + NEW_LINE;
 
@@ -242,7 +243,7 @@ public class ConsolePrinter {
     }
 
     private String formatRightAlignedValue(String label, String value) {
-        int spaceCount = Math.max(1, OUTPUT_WIDTH - label.length() - value.length());
+        int spaceCount = Math.max(1, VALUE_ROW_WIDTH - label.length() - value.length());
         return label + " ".repeat(spaceCount) + value;
     }
 

@@ -57,16 +57,16 @@ public class MarketEvent {
         return account;
     }
 
-    public CommissionConfig getCommissionConfig() {
-        return commissionConfig;
-    }
-
-    public TradingMethod getTradingMethod() {
-        return tradingMethod;
+    public CommissionPolicy getCommissionPolicy() {
+        return commissionConfig.getCommissionPolicy();
     }
 
     public int getCommissionPercentage() {
         return commissionConfig.getPercentage();
+    }
+
+    public TradingMethod getTradingMethod() {
+        return tradingMethod;
     }
 
     public int getOptionCount() {
@@ -74,10 +74,62 @@ public class MarketEvent {
     }
 
     public double[] getOptionsValues() {
-        int[] quantities = new int[options.size()];
-        for (int i = 0; i < options.size(); i++) {
-            quantities[i] = options.get(i).getTotalSharesBought();
-        }
-        return tradingMethod.calcOptionsValues(quantities);
+        return tradingMethod.calcOptionsValues(getSharesCountPerOption());
     }
+
+    private int[] getSharesCountPerOption() {
+        return options.stream()
+                .mapToInt(MarketOption::getTotalSharesBought)
+                .toArray();
+    }
+
+    public void processInitialSubsidy() {
+        account.recordSubsidy(tradingMethod.calcInitialSubsidy(options.size()));
+    }
+
+    public Trade buyShares(int optionIndex, int quantity) {
+        MarketOption option = options.get(optionIndex);
+
+        double sharesCost = calcSharesCost(optionIndex, quantity);
+        double commissionCost = calcPurchaseCommission(sharesCost);
+
+        option.addShares(quantity);
+        Trade trade = new Trade(option, quantity, sharesCost, commissionCost);
+        account.recordPurchase(trade);
+
+        return trade;
+    }
+
+    public void close(int winningOptionIndex) {
+        MarketOption winner = options.get(winningOptionIndex);
+
+        double commissionCost = commissionConfig.calcCloseCommission(calcInvestedIn(winner));
+        double payout = calcPayout(winner, commissionCost);
+
+        account.recordClose(commissionCost, payout);
+
+        winningOption = winner;
+        status = EventStatus.CLOSED;
+    }
+
+    private double calcPayout(MarketOption winner, double commissionCost) {
+        return tradingMethod.calcWinningPayout(winner.getTotalSharesBought()) - commissionCost;
+    }
+
+    private double calcInvestedIn(MarketOption option) {
+        return account.getTradeHistory().stream()
+                .filter(trade -> trade.getOption() == option)
+                .mapToDouble(Trade::getSharesCost)
+                .sum();
+    }
+
+    public double calcSharesCost(int optionIndex, int sharesToBuy) {
+        return tradingMethod.calcSharesCost(getSharesCountPerOption(), optionIndex, sharesToBuy);
+    }
+
+    public double calcPurchaseCommission(double sharesCost) {
+        return commissionConfig.calcPurchaseCommission(sharesCost);
+    }
+
+
 }

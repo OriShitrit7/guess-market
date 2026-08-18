@@ -22,7 +22,27 @@ public class EventAccount {
         return Collections.unmodifiableList(tradeHistory);
     }
 
-    private void deposit (double amount) {  // זמני
+    void recordSubsidy(double amount) {
+        deposit(amount);
+    }
+
+    void recordPurchase(Trade trade) {
+        deposit(trade.getSharesCost() + trade.getCommissionCost());
+        updateTotalCommission(trade.getCommissionCost());
+        tradeHistory.add(trade);
+    }
+
+    private void deposit(double amount) {
         balance += amount;
     }
+
+    private void updateTotalCommission(double commission) {
+        totalCommissionCollected += commission;
+    }
+
+    void recordClose(double commissionCost, double payout) {
+        totalCommissionCollected += commissionCost;
+        balance -= payout;
+    }
+
 }

@@ -8,7 +8,8 @@ public interface MarketManager {
 
     void loadSystemFile(String path) throws InvalidFileException;
     List<EventSummary> getEventSummaries();
+    List<EventSummary> getActiveEventSummaries();
     EventTradingState getEventTradingState(int eventId);
-    void buyShares(int eventId, int optionIndex);
-
+    TradeInfo buyShares(int eventId, int optionIndex, int quantity);
+    void closeEvent(int eventId, int winningOptionIndex);
 }

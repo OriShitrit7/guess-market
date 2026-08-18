@@ -1,11 +1,7 @@
 package guessmarket.engine.api;
 
 import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.model.CommissionConfig;
-import guessmarket.engine.model.CommissionPolicy;
-import guessmarket.engine.model.MarketEvent;
-import guessmarket.engine.model.MarketOption;
-import guessmarket.engine.model.Trade;
+import guessmarket.engine.model.*;
 import guessmarket.engine.trading.LmsrTradingMethod;
 import guessmarket.engine.xml.SystemFileLoader;
 
@@ -44,40 +40,48 @@ public class MarketManagerImpl implements MarketManager {
     }
     //////////////////
 
+    private MarketEvent getEventById(int id) {
+        return events.get(id);
+    }
 
     @Override
     public void loadSystemFile(String path) throws InvalidFileException {
         List<MarketEvent> loadedEvents = loader.load(path);
-        Map<Integer, MarketEvent> loadedMap = new LinkedHashMap<>();
 
-        for (MarketEvent event : loadedEvents) {
-            loadedMap.put(event.getEventId(), event);
-        }
-        events = loadedMap;
+        processInitialSubsidies(loadedEvents);
+        events = buildEventMap(loadedEvents);
     }
 
     @Override
     public List<EventSummary> getEventSummaries() {
-        List<EventSummary> summaries = new ArrayList<>();
-
-        for (MarketEvent event : events.values()) {
-            summaries.add(createEventSummary(event));
-        }
-        return summaries;
+        return events.values().stream()
+                .map(this::createEventSummary)
+                .toList();
+    }
+    // MarketManagerImpl
+    @Override
+    public List<EventSummary> getActiveEventSummaries() {
+        return events.values().stream()
+                .filter(event -> event.getStatus() == EventStatus.ACTIVE)
+                .map(this::createEventSummary)
+                .toList();
     }
 
     @Override
     public EventTradingState getEventTradingState(int eventId) {
-        return createEventTradingState(getEvent(eventId));
+        return createEventTradingState(getEventById(eventId));
     }
 
     @Override
-    public void buyShares(int eventId, int optionIndex) {
+    public TradeInfo buyShares(int eventId, int optionIndex, int quantity) {
+        Trade trade = getEventById(eventId).buyShares(optionIndex, quantity);
 
+        return createTradeInfo(trade);
     }
 
-    private MarketEvent getEvent(int id) {
-        return events.get(id);
+    @Override
+    public void closeEvent(int eventId, int winningOptionIndex) {
+        getEventById(eventId).close(winningOptionIndex);
     }
 
     private EventSummary createEventSummary(MarketEvent event) {
@@ -88,7 +92,7 @@ public class MarketManagerImpl implements MarketManager {
         }
 
         return new EventSummary(event.getEventId(), event.getEventName(), event.getDescription(),
-                event.getCommissionConfig().getPercentage(), event.getCommissionConfig().getCommissionPolicy(),
+                event.getCommissionPercentage(), event.getCommissionPolicy(),
                 optionNames, event.getStatus());
     }
 
@@ -117,10 +121,27 @@ public class MarketManagerImpl implements MarketManager {
         List<TradeInfo> infos = new ArrayList<>();
 
         for (Trade trade : event.getAccount().getTradeHistory()) {
-            infos.add(new TradeInfo(trade.getOption().getName(), trade.getQuantity(),
-                    trade.getSharesCost(), trade.getCommissionCost()));
+            infos.add(createTradeInfo(trade));
         }
         Collections.reverse(infos);
         return infos;
+    }
+
+    private TradeInfo createTradeInfo(Trade trade) {
+        return new TradeInfo(trade.getOption().getName(), trade.getQuantity(),
+                trade.getSharesCost(), trade.getCommissionCost());
+    }
+
+    private void processInitialSubsidies(List<MarketEvent> loadedEvents) {
+        loadedEvents.forEach(MarketEvent::processInitialSubsidy);
+    }
+
+    private Map<Integer, MarketEvent> buildEventMap(List<MarketEvent> loadedEvents) {
+        Map<Integer, MarketEvent> eventMap = new LinkedHashMap<>();
+
+        for (MarketEvent event : loadedEvents) {
+            eventMap.put(event.getEventId(), event);
+        }
+        return eventMap;
     }
 }

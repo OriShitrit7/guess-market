@@ -19,4 +19,16 @@ public class CommissionConfig {
     public CommissionPolicy getCommissionPolicy() {
         return commissionPolicy;
     }
+
+    private double calcCommission(double amount) {
+        return amount * commissionPercentage / 100.0;
+    }
+
+    public double calcPurchaseCommission(double sharesCost) {
+        return commissionPolicy == CommissionPolicy.ON_PURCHASE ? calcCommission(sharesCost) : 0;
+    }
+
+    public double calcCloseCommission(double winningInvestment) {
+        return commissionPolicy == CommissionPolicy.ON_CLOSE ? calcCommission(winningInvestment) : 0;
+    }
 }

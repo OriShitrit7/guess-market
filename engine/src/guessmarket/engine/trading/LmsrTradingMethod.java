@@ -2,6 +2,8 @@ package guessmarket.engine.trading;
 
 public class LmsrTradingMethod extends TradingMethod {
 
+    private static final double WINNING_SHARE_VALUE = 1.0;
+
     private final int b;
 
     public LmsrTradingMethod(int b) {
@@ -11,10 +13,12 @@ public class LmsrTradingMethod extends TradingMethod {
         this.b = b;
     }
 
+    @Override
     public double calcInitialSubsidy(int optionCount) {
         return calcCost(new int[optionCount]);
     }
 
+    @Override
     public double[] calcOptionsValues(int[] quantities) {
         double maximumExponent = findMaximumExponent(quantities);
         double[] values = calcExponents(quantities, maximumExponent);
@@ -33,11 +37,17 @@ public class LmsrTradingMethod extends TradingMethod {
         return b * (maximumExponent + Math.log(sumOf(exponents)));
     }
 
+    @Override
     public double calcSharesCost(int[] quantitiesBefore, int optionIndex, int sharesToBuy) {
         int[] quantitiesAfter = quantitiesBefore.clone();
         quantitiesAfter[optionIndex] += sharesToBuy;
 
         return calcCost(quantitiesAfter) - calcCost(quantitiesBefore);
+    }
+
+    @Override
+    public double calcWinningPayout(int winningShares) {
+        return winningShares * WINNING_SHARE_VALUE;
     }
 
     private double[] calcExponents(int[] quantities, double maximumExponent) {

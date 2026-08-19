@@ -10,6 +10,7 @@ import guessmarket.ui.console.exception.InvalidInputException;
 import java.util.List;
 import java.util.Optional;
 
+// Controls the console application flow and connects user actions to the market engine.
 public class GuessMarketUI {
     private final MarketManager engine;
     private final ConsolePrinter consolePrinter;
@@ -22,10 +23,12 @@ public class GuessMarketUI {
         consoleInput = new ConsoleInput();
         fileLoaded = false;
     }
+    // Starts the console application.
     public static void main(String[] args) {
         new GuessMarketUI().run();
     }
 
+    // Repeats the main menu until the user selects the exit command.
     private void run() {
         MenuCommand command;
         do {
@@ -35,6 +38,7 @@ public class GuessMarketUI {
         } while (command != MenuCommand.EXIT);
     }
 
+    // Keeps requesting a command until the user enters a valid menu number.
     private MenuCommand requestMenuCommand() {
         while (true) {
             consolePrinter.printMenuPrompt();
@@ -48,6 +52,7 @@ public class GuessMarketUI {
         }
     }
 
+    // Blocks commands that require data, then sends the selected command to its handler.
     private void executeCommand(MenuCommand command) {
         if (command.requiresLoadedFile() && !fileLoaded) {
             consolePrinter.printNoFileLoadedError();
@@ -70,6 +75,7 @@ public class GuessMarketUI {
         }
     }
 
+    // Loads a system file without discarding the current state when validation fails.
     private void loadSystemFile() {
         String path = requestFilePath();
 
@@ -82,6 +88,7 @@ public class GuessMarketUI {
         }
     }
 
+    // Keeps requesting a path until the user enters a non-empty value.
     private String requestFilePath() {
         while (true) {
             consolePrinter.printFilePathPrompt();
@@ -98,6 +105,7 @@ public class GuessMarketUI {
         consolePrinter.printEvents(engine.getEventSummaries());
     }
 
+    // Lets the user choose any loaded event and displays its current state.
     private void showEventTradingState() {
         List<EventSummaryDto> events = engine.getEventSummaries();
         consolePrinter.printEvents(events);
@@ -106,6 +114,7 @@ public class GuessMarketUI {
 
     }
 
+    // Guides the user through selecting an active event, option and purchase quantity.
     private void participateInEvent() {
         List<EventSummaryDto> activeEvents = engine.getActiveEventSummaries();
         if (activeEvents.isEmpty()) {
@@ -124,6 +133,7 @@ public class GuessMarketUI {
         consolePrinter.printPurchaseResult(engine.buyShares(event.getEventId(), optionIndex, quantity));
     }
 
+    // Guides the user through selecting an active event and its winning option.
     private void closeEvent() {
         List<EventSummaryDto> activeEvents = engine.getActiveEventSummaries();
 
@@ -145,6 +155,7 @@ public class GuessMarketUI {
     }
 
 
+    // Accepts only an event ID that appears in the list currently shown to the user.
     private EventSummaryDto requestEvent(List<EventSummaryDto> events) {
         while (true) {
             consolePrinter.printEventChoicePrompt();
@@ -169,6 +180,7 @@ public class GuessMarketUI {
                 .findFirst();
     }
 
+    // Converts the user's one-based option number to the zero-based index used by the engine.
     private int requestOptionIndex(EventSummaryDto event) {
         consolePrinter.printOptions(event.getOptionNames());
 
@@ -183,6 +195,7 @@ public class GuessMarketUI {
         }
     }
 
+    // Keeps requesting a quantity until the user enters a positive whole number.
     private int requestQuantity() {
         while (true) {
             consolePrinter.printQuantityPrompt();

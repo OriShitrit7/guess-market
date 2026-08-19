@@ -2,6 +2,7 @@ package guessmarket.engine.exception;
 
 import java.nio.file.Path;
 
+// Reports malformed XML and includes parser location details when they are available.
 public class MalformedXmlException extends InvalidFileException {
     private static final String MSG_FORMAT =
             "The file '%s' is not a well-formed XML document.";

@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
+// Loads market events from an XML file and coordinates file checks, mapping and validation.
 public class SystemFileLoader {
     private static final String JAXB_GENERATED_PACKAGE = "guessmarket.engine.xml.generated";
     private static final String XML_EXTENSION = ".xml";
@@ -29,6 +30,7 @@ public class SystemFileLoader {
     private final EventXmlMapper mapper = new EventXmlMapper();
     private final EventValidator validator = new EventValidator();
 
+    // Returns model events only after the file and all mapped event data pass validation.
     public List<MarketEvent> load(String rawPath) throws InvalidFileException {
         Path path = validateFile(rawPath);
         GuessMarket xmlRoot = deserializeFrom(path);
@@ -38,6 +40,7 @@ public class SystemFileLoader {
         return events;
     }
 
+    // Uses JAXB to convert the XML document into the generated object structure.
     private GuessMarket deserializeFrom(Path path) throws InvalidFileException {
         try {
             JAXBContext context = JAXBContext.newInstance(JAXB_GENERATED_PACKAGE);
@@ -56,6 +59,7 @@ public class SystemFileLoader {
         }
     }
 
+    // Converts JAXB failures into file exceptions that provide useful details to the user.
     private InvalidFileException translateUnmarshalFailure(Path path, UnmarshalException e) {
         Throwable cause = e.getLinkedException();
 
@@ -69,6 +73,7 @@ public class SystemFileLoader {
         return new MalformedXmlException(path);
     }
 
+    // Validates the path, file type and XML extension before attempting to read the document.
     private Path validateFile(String rawPath) throws InvalidFileException {
         String pathText = rawPath.trim();
         Path path;

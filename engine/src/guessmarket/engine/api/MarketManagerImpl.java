@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+// Manages loaded market events and exposes their operations through data transfer objects.
 public class MarketManagerImpl implements MarketManager {
 
     private Map<Integer, MarketEvent> events = new LinkedHashMap<>();
@@ -52,6 +53,7 @@ public class MarketManagerImpl implements MarketManager {
         }
     }
 
+    // Loads all candidate events before replacing the current state, so a failed load leaves it unchanged.
     @Override
     public void loadSystemFile(String path) throws InvalidFileException {
         List<MarketEvent> loadedEvents = loader.load(path);
@@ -60,13 +62,15 @@ public class MarketManagerImpl implements MarketManager {
         events = buildEventMap(loadedEvents);
     }
 
+    // Creates a summary for every event in its original file order.
     @Override
     public List<EventSummaryDto> getEventSummaries() {
         return events.values().stream()
                 .map(this::createEventSummary)
                 .toList();
     }
-    // MarketManagerImpl
+
+    // Creates summaries only for events that can still accept purchases or be closed.
     @Override
     public List<EventSummaryDto> getActiveEventSummaries() {
         return events.values().stream()
@@ -75,11 +79,13 @@ public class MarketManagerImpl implements MarketManager {
                 .toList();
     }
 
+    // Creates a complete snapshot of the requested event, including closed events.
     @Override
     public EventTradingStateDto getEventTradingState(int eventId) {
         return createEventTradingState(getEventById(eventId));
     }
 
+    // Validates and performs a purchase, then returns both the trade and the updated event state.
     @Override
     public PurchaseResultDto buyShares(int eventId, int optionIndex, int quantity) {
         MarketEvent event = getActiveEventById(eventId);
@@ -92,6 +98,7 @@ public class MarketManagerImpl implements MarketManager {
         return new PurchaseResultDto(createTradeDto(trade), createEventTradingState(event));
     }
 
+    // Validates and closes an active event, then returns its final state.
     @Override
     public EventTradingStateDto closeEvent(int eventId, int winningOptionIndex) {
         MarketEvent event = getActiveEventById(eventId);
@@ -118,7 +125,9 @@ public class MarketManagerImpl implements MarketManager {
         MarketOption winner = event.getWinningOption();
 
         return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
-                event.getAccount().getBalance(), event.getAccount().getTotalCommissionCollected(), createTradeInfos(event),
+                event.getAccount().getBalance(),
+                event.getAccount().getTotalCommissionCollected(),
+                createTradeInfos(event),
                 winner == null ? null : winner.getName());
     }
 
@@ -135,6 +144,7 @@ public class MarketManagerImpl implements MarketManager {
         return states;
     }
 
+    // Converts trade history to DTOs in reverse order so the newest purchases appear first.
     private List<TradeDto> createTradeInfos(MarketEvent event) {
         List<TradeDto> infos = new ArrayList<>();
 

@@ -14,7 +14,9 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+// Formats and prints all text displayed by the console application.
 public class ConsolePrinter {
+    // Fixed widths keep headers and table columns aligned throughout the UI.
     private static final int OUTPUT_WIDTH = 80;
     private static final int TABLE_COLUMN_WIDTH = 17;
     private static final int VALUE_ROW_WIDTH = 40;
@@ -25,60 +27,73 @@ public class ConsolePrinter {
     private static final String CURRENT_MARKET_ROW_FORMAT = "%-" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s";
     private static final String TRADE_ROW_FORMAT = "%-" + TABLE_COLUMN_WIDTH + "s %-" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s";
 
+    // Prints the main menu and its available commands.
     public void showMenu() {
         String menu = String.join(NEW_LINE, "", buildHeader("GUESS MARKET"), "", "MAIN MENU",
                 SECTION_SEPARATOR, buildMenuOptions(), HEADER_SEPARATOR, "");
         System.out.print(menu);
     }
 
+    // Prompts the user to select a menu command.
     public void printMenuPrompt() {
         System.out.printf("Please choose an option (1-%d): ", MenuCommand.values().length);
     }
 
+    // Prompts the user for the full path of a system file.
     public void printFilePathPrompt() {
         System.out.print("Please enter the full path to the system XML file: ");
     }
 
+    // Confirms a successful file load and displays the number of available events.
     public void printLoadSuccessMessage(int eventCount) {
         System.out.printf(
                 "The file is valid and was loaded successfully. %d events are now available.%n", eventCount);
     }
 
+    // Prints an error message supplied by the input or engine layers.
     public void printErrorMessage(String message) {
         System.out.println(message);
     }
 
+    // Explains that the requested command requires a loaded system file.
     public void printNoFileLoadedError() {
         System.out.println("No system file has been loaded yet. Please use option 1 first.");
     }
 
+    // Reports that no active event is available for the requested operation.
     public void printNoActiveEventsMessage() {
         String message = String.join(NEW_LINE, "", HEADER_SEPARATOR, "EVENTS", HEADER_SEPARATOR, "",
                 "No active events are currently available.", "", HEADER_SEPARATOR, "");
         System.out.print(message);
     }
 
+    // Prompts the user to select an event by its ID.
     public void printEventChoicePrompt() {
         System.out.print("Please enter the ID of the event you want to choose: ");
     }
 
+    // Reports that the entered event ID does not appear in the displayed list.
     public void printUnknownEventIdError(int eventId) {
         System.out.printf(
                 "Invalid input: no event with ID %d appears in the list above. Please try again.%n", eventId);
     }
 
+    // Prompts the user to select an option from the displayed range.
     public void printOptionChoicePrompt(int optionCount) {
         System.out.printf("Please choose an option (1-%d): ", optionCount);
     }
 
+    // Prompts the user for the number of shares to purchase.
     public void printQuantityPrompt() {
         System.out.print("Please enter the number of shares to buy: ");
     }
 
+    // Prints the message shown when the application exits.
     public void printGoodbyeMessage() {
         System.out.println("Goodbye!");
     }
 
+    // Prints summary cards for the supplied events.
     public void printEvents(List<EventSummaryDto> events) {
         String eventCards = events.isEmpty() ? "No events are available." : buildEventCards(events);
         String output = String.join(NEW_LINE, "", buildHeader("EVENTS OVERVIEW"), "", eventCards,
@@ -86,23 +101,28 @@ public class ConsolePrinter {
         System.out.print(output);
     }
 
+    // Prints the complete trading, account and history state of an event.
     public void printEventTradingState(EventTradingStateDto state) {
         System.out.print(buildEventTradingState(state));
     }
 
+    // Prints the current values and purchased shares of the supplied options.
     public void printOptionStates(List<OptionStateDto> options) {
         System.out.print(NEW_LINE + buildCurrentMarket(options) + NEW_LINE);
     }
 
+    // Prints a purchase receipt followed by the updated event state.
     public void printPurchaseResult(PurchaseResultDto result) {
         System.out.print(buildPurchaseReceipt(result) + buildEventTradingState(result.getStateAfterPurchase()));
     }
 
+    // Prints a numbered option list for user selection.
     public void printOptions(List<String> optionNames) {
         System.out.print(String.join(NEW_LINE, "", "OPTIONS", SECTION_SEPARATOR,
                 buildOptionRows(optionNames), SECTION_SEPARATOR, ""));
     }
 
+    // Prints the heading used before choosing the winning option.
     public void printWinningOptionHeader() {
         System.out.print(String.join(NEW_LINE, "", "SELECT THE WINNING OPTION", ""));
     }
@@ -114,6 +134,7 @@ public class ConsolePrinter {
         return String.join(NEW_LINE, menuOptions);
     }
 
+    // Combines all event state sections and includes the final result only after closing.
     private String buildEventTradingState(EventTradingStateDto state) {
         String sections = String.join(NEW_LINE + NEW_LINE, buildHeader("EVENT TRADING STATE"),
                 buildEventSummary(state.getSummary()), buildEventAccount(state),
@@ -124,6 +145,7 @@ public class ConsolePrinter {
         return NEW_LINE + sections + NEW_LINE + finalResult + HEADER_SEPARATOR + NEW_LINE;
     }
 
+    // Builds a receipt that separates share cost, commission and total payment.
     private String buildPurchaseReceipt(PurchaseResultDto result) {
         TradeDto trade = result.getTrade();
         EventSummaryDto event = result.getStateAfterPurchase().getSummary();
@@ -165,6 +187,7 @@ public class ConsolePrinter {
         return formatTitleRow(event.getEventName(), event);
     }
 
+    // Places the event status at the right edge while keeping the event title on the left.
     private String formatTitleRow(String eventDetails, EventSummaryDto event) {
         String status = "[" + toDisplayText(event.getStatus()) + "]";
         int spaceCount = Math.max(1, OUTPUT_WIDTH - eventDetails.length() - status.length());
@@ -205,6 +228,7 @@ public class ConsolePrinter {
                 formatRightAlignedValue("Commission collected", formatMoney(state.getTotalCommissionCollected())));
     }
 
+    // Builds the history in the order received from the engine, which is newest first.
     private String buildTradeHistory(List<TradeDto> trades) {
         if (trades.isEmpty()) {
             return String.join(NEW_LINE, "TRADE HISTORY - NEWEST FIRST", SECTION_SEPARATOR,
@@ -242,6 +266,7 @@ public class ConsolePrinter {
         return String.join(NEW_LINE, HEADER_SEPARATOR, " ".repeat(leftPadding) + title, HEADER_SEPARATOR);
     }
 
+    // Aligns a value to a fixed column while keeping its label on the left.
     private String formatRightAlignedValue(String label, String value) {
         int spaceCount = Math.max(1, VALUE_ROW_WIDTH - label.length() - value.length());
         return label + " ".repeat(spaceCount) + value;

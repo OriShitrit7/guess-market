@@ -11,8 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Validates business rules that loaded market events must satisfy before they enter the system.
 public class EventValidator {
 
+    // Checks event ID uniqueness, commission limits and the required number of options.
     public void validate(List<MarketEvent> candidateEvents) throws InvalidFileException {
         validateUniqueEventIds(candidateEvents);
 
@@ -33,6 +35,7 @@ public class EventValidator {
             }
         }
     }
+
     private void validateCommission(MarketEvent event) throws CommissionOutOfRangeException {
         int commissionPercentage = event.getCommissionPercentage();
         if (commissionPercentage < CommissionConfig.MIN_COMMISSION_PERCENT
@@ -45,6 +48,5 @@ public class EventValidator {
         if (event.getOptionCount() != MarketEvent.REQUIRED_OPTION_COUNT) {
             throw new WrongOptionCountException(event.getEventName(), event.getOptionCount());
         }
-
     }
 }

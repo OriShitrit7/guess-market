@@ -2,6 +2,7 @@ package guessmarket.dto;
 
 import java.util.List;
 
+// Carries the general details of a market event from the engine to its clients.
 public final class EventSummaryDto {
     private final int eventId;
     private final String eventName;

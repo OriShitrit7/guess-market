@@ -18,6 +18,8 @@ import guessmarket.engine.xml.generated.GuessMarket;
 import java.util.ArrayList;
 import java.util.List;
 
+// Converts JAXB-generated XML objects into the market engine's model objects.
+// Reports missing or unsupported XML data through detailed file exceptions.
 public class EventXmlMapper {
     public static final String EVENT_ELEMENT = "GM-event";
     private static final String DESCRIPTION_ELEMENT = "description";
@@ -32,6 +34,7 @@ public class EventXmlMapper {
     private static final String ON_PURCHASE_VALUE = "on-purchase";
     private static final String ON_CLOSE_VALUE = "on-close";
 
+    // Maps every XML event to a model event while preserving its position in the source file.
     public List<MarketEvent> mapEvents(GuessMarket xmlRoot) throws InvalidFileException {
         List<MarketEvent> mappedEvents = new ArrayList<>();
         List<GMEvent> xmlEvents = extractEvents(xmlRoot);
@@ -51,9 +54,11 @@ public class EventXmlMapper {
         return eventsElement.getGMEvent();
     }
 
+    // Builds one complete market event after checking its required XML data.
     private MarketEvent mapEvent(GMEvent source, int eventPosition) throws InvalidFileException {
         String eventName = mapEventName(source, eventPosition);
 
+        // JAXB may use zero when a primitive integer value is missing or invalid.
         if (source.getId() <= 0) {
             throw new InvalidEventIdException(eventPosition);
         }
@@ -72,9 +77,11 @@ public class EventXmlMapper {
         if (nameTokens == null || nameTokens.isEmpty()) {
             throw new MissingAttributeException(eventPosition, EVENT_ELEMENT, NAME_ATTRIBUTE);
         }
+        // JAXB represents the XML list attribute as separate tokens that form one event name.
         return String.join(" ", nameTokens);
     }
 
+    // Maps the XML commission value and policy to the engine's commission configuration.
     private CommissionConfig mapCommission(GMEvent source, String eventName, int eventPosition)
             throws InvalidFileException {
         Comision commissionElement = source.getComision();
@@ -110,6 +117,7 @@ public class EventXmlMapper {
                 .toList();
     }
 
+    // Creates the configured trading method and reports an invalid liquidity value as a file error.
     private TradingMethod mapTradingMethod(GMEvent source, String eventName) throws InvalidFileException {
         GMMethod methodElement = source.getGMMethod();
 

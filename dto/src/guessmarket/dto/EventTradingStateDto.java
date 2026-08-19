@@ -2,12 +2,16 @@ package guessmarket.dto;
 
 import java.util.List;
 
+// Carries a complete snapshot of an event's current trading and account state.
 public final class EventTradingStateDto {
     private final EventSummaryDto summary;
     private final List<OptionStateDto> options;
+    // Current event account balance in dollars.
     private final double accountBalance;
+    // Total commission collected by the event account in dollars.
     private final double totalCommissionCollected;
     private final List<TradeDto> tradeHistory;
+    // Remains null until the event is closed.
     private final String winningOptionName;
 
     public EventTradingStateDto(EventSummaryDto summary, List<OptionStateDto> options,

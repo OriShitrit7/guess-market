@@ -1,7 +1,9 @@
 package guessmarket.dto;
 
+// Carries the current value and purchased share total of one market option.
 public final class OptionStateDto {
     private final String optionName;
+    // Current market value between zero and one.
     private final double currentValue;
     private final int totalSharesBought;
 

@@ -2,6 +2,7 @@ package guessmarket.ui.console;
 
 import java.util.Arrays;
 
+// Represents a console menu command and whether it requires a loaded system file.
 public enum MenuCommand {
     LOAD_SYSTEM_FILE(1, "Load system file", false),
     SHOW_EVENTS(2, "Show events", true),
@@ -14,25 +15,18 @@ public enum MenuCommand {
     private final String label;
     private final boolean requiresLoadedFile;
 
-    private MenuCommand(int number, String label, boolean requiresLoadedFile) {
+     MenuCommand(int number, String label, boolean requiresLoadedFile) {
         this.number = number;
         this.label = label;
         this.requiresLoadedFile = requiresLoadedFile;
     }
 
+    // Finds the command assigned to a displayed menu number.
     public static MenuCommand getCommandFromNumber(int number) {
         return Arrays.stream(values())
                 .filter(command -> command.number == number)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No menu command with number " + number));
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
-    public String getLabel() {
-        return label;
     }
 
     public boolean requiresLoadedFile() {
@@ -44,4 +38,3 @@ public enum MenuCommand {
         return number + ". " + label;
     }
 }
-

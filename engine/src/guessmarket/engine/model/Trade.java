@@ -1,5 +1,6 @@
 package guessmarket.engine.model;
 
+// Represents a completed share purchase, including its share cost and commission.
 public class Trade {
     private final MarketOption option;
     private final int quantity;

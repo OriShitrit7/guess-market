@@ -1,5 +1,6 @@
 package guessmarket.dto;
 
+// Groups a completed trade with the updated event state returned after a purchase.
 public final class PurchaseResultDto {
     private final TradeDto trade;
     private final EventTradingStateDto stateAfterPurchase;

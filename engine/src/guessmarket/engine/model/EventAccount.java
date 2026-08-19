@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+// Tracks the balance, collected commission and trade history of a market event.
 public class EventAccount {
     private double balance;
     private double totalCommissionCollected;
-    // initialised here, not in the constructor: a new account always starts with no history
     private final List<Trade> tradeHistory = new ArrayList<>();
 
     public double getBalance() {
@@ -22,10 +22,12 @@ public class EventAccount {
         return Collections.unmodifiableList(tradeHistory);
     }
 
+    // Adds the initial market subsidy to the event balance.
     void recordSubsidy(double amount) {
         deposit(amount);
     }
 
+    // Records the payment, commission and history entry created by a completed purchase.
     void recordPurchase(Trade trade) {
         deposit(trade.getSharesCost() + trade.getCommissionCost());
         updateTotalCommission(trade.getCommissionCost());
@@ -40,6 +42,7 @@ public class EventAccount {
         totalCommissionCollected += commission;
     }
 
+    // Records the commission and payout applied when the event is closed.
     void recordClose(double commissionCost, double payout) {
         totalCommissionCollected += commissionCost;
         balance -= payout;

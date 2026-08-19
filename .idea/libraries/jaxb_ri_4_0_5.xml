@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="jaxb-ri-4.0.5">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../חומרי עזר/JAXB/jaxb-ri-4.0.5/mod/angus-activation.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../חומרי עזר/JAXB/jaxb-ri-4.0.5/mod/jakarta.activation-api.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../חומרי עזר/JAXB/jaxb-ri-4.0.5/mod/jakarta.xml.bind-api.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../חומרי עזר/JAXB/jaxb-ri-4.0.5/mod/jaxb-core.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../חומרי עזר/JAXB/jaxb-ri-4.0.5/mod/jaxb-impl.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

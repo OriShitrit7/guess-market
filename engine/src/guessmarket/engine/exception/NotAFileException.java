@@ -15,5 +15,4 @@ public class NotAFileException extends InvalidFileException {
     public String getMessage() {
         return String.format(MSG_FORMAT, path);
     }
-
 }

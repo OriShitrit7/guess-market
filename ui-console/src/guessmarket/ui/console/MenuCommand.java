@@ -15,7 +15,7 @@ public enum MenuCommand {
     private final String label;
     private final boolean requiresLoadedFile;
 
-     MenuCommand(int number, String label, boolean requiresLoadedFile) {
+    MenuCommand(int number, String label, boolean requiresLoadedFile) {
         this.number = number;
         this.label = label;
         this.requiresLoadedFile = requiresLoadedFile;

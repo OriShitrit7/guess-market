@@ -7,6 +7,7 @@ import guessmarket.engine.exception.MalformedPathException;
 import guessmarket.engine.exception.MalformedXmlException;
 import guessmarket.engine.exception.NotAFileException;
 import guessmarket.engine.exception.NotXmlFileException;
+import guessmarket.engine.exception.UnexpectedXmlStructureException;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.xml.generated.GuessMarket;
 import jakarta.xml.bind.JAXBContext;
@@ -48,7 +49,7 @@ public class SystemFileLoader {
             Object root = unmarshaller.unmarshal(path.toFile());
 
             if (!(root instanceof GuessMarket guessMarket)) {
-                throw new MalformedXmlException(path);
+                throw new UnexpectedXmlStructureException(path);
             }
             return guessMarket;
 
@@ -60,6 +61,7 @@ public class SystemFileLoader {
     }
 
     // Converts JAXB failures into file exceptions that provide useful details to the user.
+    // A missing linked exception means the document parsed but did not match the expected elements.
     private InvalidFileException translateUnmarshalFailure(Path path, UnmarshalException e) {
         Throwable cause = e.getLinkedException();
 
@@ -70,7 +72,7 @@ public class SystemFileLoader {
         if (cause instanceof IOException) {
             return new FileReadFailedException(path);
         }
-        return new MalformedXmlException(path);
+        return new UnexpectedXmlStructureException(path, e.getMessage());
     }
 
     // Validates the path, file type and XML extension before attempting to read the document.

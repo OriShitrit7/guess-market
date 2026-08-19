@@ -37,10 +37,11 @@ public class EventValidator {
     }
 
     private void validateCommission(MarketEvent event) throws CommissionOutOfRangeException {
-        int commissionPercentage = event.getCommissionPercentage();
-        if (commissionPercentage < CommissionConfig.MIN_COMMISSION_PERCENT
-                || commissionPercentage > CommissionConfig.MAX_COMMISSION_PERCENT) {
-            throw new CommissionOutOfRangeException(event.getEventName(), commissionPercentage);
+        int commissionPercent = event.getCommissionPercent();
+
+        if (commissionPercent < CommissionConfig.MIN_COMMISSION_PERCENT
+                || commissionPercent > CommissionConfig.MAX_COMMISSION_PERCENT) {
+            throw new CommissionOutOfRangeException(event.getEventName(), commissionPercent);
         }
     }
 

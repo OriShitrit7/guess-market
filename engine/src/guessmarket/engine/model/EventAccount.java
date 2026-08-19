@@ -34,18 +34,21 @@ public class EventAccount {
         tradeHistory.add(trade);
     }
 
+    // Records the commission and payout applied when the event is closed.
+    void recordClose(double commissionCost, double payout) {
+        updateTotalCommission(commissionCost);
+        withdraw(payout);
+    }
+
     private void deposit(double amount) {
         balance += amount;
+    }
+
+    private void withdraw(double amount) {
+        balance -= amount;
     }
 
     private void updateTotalCommission(double commission) {
         totalCommissionCollected += commission;
     }
-
-    // Records the commission and payout applied when the event is closed.
-    void recordClose(double commissionCost, double payout) {
-        totalCommissionCollected += commissionCost;
-        balance -= payout;
-    }
-
 }

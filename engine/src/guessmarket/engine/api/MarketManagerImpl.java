@@ -1,18 +1,25 @@
 package guessmarket.engine.api;
 
 import guessmarket.dto.CommissionPolicyDto;
-import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventStatusDto;
+import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.OptionStateDto;
 import guessmarket.dto.PurchaseResultDto;
 import guessmarket.dto.TradeDto;
-import guessmarket.engine.exception.*;
-import guessmarket.engine.model.*;
+import guessmarket.engine.exception.EventClosedException;
+import guessmarket.engine.exception.EventNotFoundException;
+import guessmarket.engine.exception.InvalidFileException;
+import guessmarket.engine.exception.NonPositiveQuantityException;
+import guessmarket.engine.exception.OptionNotFoundException;
+import guessmarket.engine.model.CommissionPolicy;
+import guessmarket.engine.model.EventStatus;
+import guessmarket.engine.model.MarketEvent;
+import guessmarket.engine.model.MarketOption;
+import guessmarket.engine.model.Trade;
 import guessmarket.engine.xml.SystemFileLoader;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,36 +29,6 @@ public class MarketManagerImpl implements MarketManager {
 
     private Map<Integer, MarketEvent> events = new LinkedHashMap<>();
     private final SystemFileLoader loader = new SystemFileLoader();
-
-    private MarketEvent getEventById(int eventId) {
-        MarketEvent event = events.get(eventId);
-
-        if (event == null) {
-            throw new EventNotFoundException(eventId);
-        }
-        return event;
-    }
-
-    private MarketEvent getActiveEventById(int eventId) {
-        MarketEvent event = getEventById(eventId);
-
-        if (event.getStatus() != EventStatus.ACTIVE) {
-            throw new EventClosedException(event.getEventName());
-        }
-        return event;
-    }
-
-    private void validateOptionIndex(MarketEvent event, int optionIndex) {
-        if (optionIndex < 0 || optionIndex >= event.getOptionCount()) {
-            throw new OptionNotFoundException(event.getEventName(), optionIndex, event.getOptionCount());
-        }
-    }
-
-    private void validateQuantity(int quantity) {
-        if (quantity <= 0) {
-            throw new NonPositiveQuantityException(quantity);
-        }
-    }
 
     // Loads all candidate events before replacing the current state, so a failed load leaves it unchanged.
     @Override
@@ -109,15 +86,43 @@ public class MarketManagerImpl implements MarketManager {
         return createEventTradingState(event);
     }
 
-    private EventSummaryDto createEventSummary(MarketEvent event) {
-        List<String> optionNames = new ArrayList<>();
+    private MarketEvent getEventById(int eventId) {
+        MarketEvent event = events.get(eventId);
 
-        for (MarketOption option : event.getOptions()) {
-            optionNames.add(option.getName());
+        if (event == null) {
+            throw new EventNotFoundException(eventId);
         }
+        return event;
+    }
+
+    private MarketEvent getActiveEventById(int eventId) {
+        MarketEvent event = getEventById(eventId);
+
+        if (event.getStatus() != EventStatus.ACTIVE) {
+            throw new EventClosedException(event.getEventName());
+        }
+        return event;
+    }
+
+    private void validateOptionIndex(MarketEvent event, int optionIndex) {
+        if (optionIndex < 0 || optionIndex >= event.getOptionCount()) {
+            throw new OptionNotFoundException(event.getEventName(), optionIndex, event.getOptionCount());
+        }
+    }
+
+    private void validateQuantity(int quantity) {
+        if (quantity <= 0) {
+            throw new NonPositiveQuantityException(quantity);
+        }
+    }
+
+    private EventSummaryDto createEventSummary(MarketEvent event) {
+        List<String> optionNames = event.getOptions().stream()
+                .map(MarketOption::getName)
+                .toList();
 
         return new EventSummaryDto(event.getEventId(), event.getEventName(), event.getDescription(),
-                event.getCommissionPercentage(), toDto(event.getCommissionPolicy()),
+                event.getCommissionPercent(), toDto(event.getCommissionPolicy()),
                 optionNames, toDto(event.getStatus()));
     }
 
@@ -127,7 +132,7 @@ public class MarketManagerImpl implements MarketManager {
         return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
                 event.getAccount().getBalance(),
                 event.getAccount().getTotalCommissionCollected(),
-                createTradeInfos(event),
+                createTradeDtos(event),
                 winner == null ? null : winner.getName());
     }
 
@@ -145,14 +150,14 @@ public class MarketManagerImpl implements MarketManager {
     }
 
     // Converts trade history to DTOs in reverse order so the newest purchases appear first.
-    private List<TradeDto> createTradeInfos(MarketEvent event) {
-        List<TradeDto> infos = new ArrayList<>();
+    private List<TradeDto> createTradeDtos(MarketEvent event) {
+        List<Trade> trades = event.getAccount().getTradeHistory();
+        List<TradeDto> tradeDtos = new ArrayList<>();
 
-        for (Trade trade : event.getAccount().getTradeHistory()) {
-            infos.add(createTradeDto(trade));
+        for (int i = trades.size() - 1; i >= 0; i--) {
+            tradeDtos.add(createTradeDto(trades.get(i)));
         }
-        Collections.reverse(infos);
-        return infos;
+        return tradeDtos;
     }
 
     private TradeDto createTradeDto(Trade trade) {

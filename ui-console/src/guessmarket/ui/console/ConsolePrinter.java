@@ -11,21 +11,29 @@ import guessmarket.dto.TradeDto;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 // Formats and prints all text displayed by the console application.
 public class ConsolePrinter {
-    // Fixed widths keep headers and table columns aligned throughout the UI.
+    // Fixed widths keep headers, table columns and labelled values aligned throughout the UI.
     private static final int OUTPUT_WIDTH = 80;
     private static final int TABLE_COLUMN_WIDTH = 17;
     private static final int VALUE_ROW_WIDTH = 40;
+    private static final int LABEL_WIDTH = 12;
 
     private static final String HEADER_SEPARATOR = "=".repeat(OUTPUT_WIDTH);
     private static final String SECTION_SEPARATOR = "-".repeat(OUTPUT_WIDTH);
+    private static final String ERROR_TITLE = "ERROR";
     private static final String NEW_LINE = System.lineSeparator();
-    private static final String CURRENT_MARKET_ROW_FORMAT = "%-" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s";
-    private static final String TRADE_ROW_FORMAT = "%-" + TABLE_COLUMN_WIDTH + "s %-" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s %" + TABLE_COLUMN_WIDTH + "s";
+
+    private static final String COLUMN_SEPARATOR = " ";
+    private static final String LEFT_COLUMN = "%-" + TABLE_COLUMN_WIDTH + "s";
+    private static final String RIGHT_COLUMN = "%" + TABLE_COLUMN_WIDTH + "s";
+    private static final String CURRENT_MARKET_ROW_FORMAT =
+            String.join(COLUMN_SEPARATOR, LEFT_COLUMN, RIGHT_COLUMN, RIGHT_COLUMN);
+    private static final String TRADE_ROW_FORMAT =
+            String.join(COLUMN_SEPARATOR, LEFT_COLUMN, LEFT_COLUMN, RIGHT_COLUMN, RIGHT_COLUMN);
+    private static final String LABEL_AND_VALUE_FORMAT = "%-" + LABEL_WIDTH + "s: %s";
 
     // Prints the main menu and its available commands.
     public void showMenu() {
@@ -52,12 +60,12 @@ public class ConsolePrinter {
 
     // Prints an error message supplied by the input or engine layers.
     public void printErrorMessage(String message) {
-        System.out.println(message);
+        System.out.println(buildErrorBlock(message));
     }
 
     // Explains that the requested command requires a loaded system file.
     public void printNoFileLoadedError() {
-        System.out.println("No system file has been loaded yet. Please use option 1 first.");
+        System.out.println(buildErrorBlock("No system file has been loaded yet. Please use option 1 first."));
     }
 
     // Reports that no active event is available for the requested operation.
@@ -70,12 +78,6 @@ public class ConsolePrinter {
     // Prompts the user to select an event by its ID.
     public void printEventChoicePrompt() {
         System.out.print("Please enter the ID of the event you want to choose: ");
-    }
-
-    // Reports that the entered event ID does not appear in the displayed list.
-    public void printUnknownEventIdError(int eventId) {
-        System.out.printf(
-                "Invalid input: no event with ID %d appears in the list above. Please try again.%n", eventId);
     }
 
     // Prompts the user to select an option from the displayed range.
@@ -127,10 +129,16 @@ public class ConsolePrinter {
         System.out.print(String.join(NEW_LINE, "", "SELECT THE WINNING OPTION", ""));
     }
 
+    // Frames every error the same way, so it stands out between two menu screens.
+    private String buildErrorBlock(String message) {
+        return String.join(NEW_LINE, "", ERROR_TITLE, SECTION_SEPARATOR, message, SECTION_SEPARATOR);
+    }
+
     private String buildMenuOptions() {
         List<String> menuOptions = Arrays.stream(MenuCommand.values())
                 .map(MenuCommand::toString)
-                .collect(Collectors.toList());
+                .toList();
+
         return String.join(NEW_LINE, menuOptions);
     }
 
@@ -165,39 +173,53 @@ public class ConsolePrinter {
     private String buildEventCards(List<EventSummaryDto> events) {
         List<String> eventCards = events.stream()
                 .map(this::buildEventSummary)
-                .collect(Collectors.toList());
+                .toList();
 
         return String.join(NEW_LINE + NEW_LINE, eventCards);
     }
 
     private String buildEventSummary(EventSummaryDto event) {
-        return buildEventDetails(formatEventTitle(event), event);
-    }
-
-    private String buildEventDetails(String title, EventSummaryDto event) {
         String eventId = String.format("Event ID   : %d", event.getEventId());
         String commission = String.format("Commission : %d%% (%s)", event.getCommissionPercent(),
                 toDisplayText(event.getCommissionPolicy()));
 
-        return String.join(NEW_LINE, title, SECTION_SEPARATOR, event.getDescription(), "",
-                "OPTIONS", buildOptionRows(event.getOptionNames()), "", eventId, commission);
+        return String.join(NEW_LINE, formatTitleRow(event), SECTION_SEPARATOR,
+                wrapToWidth(event.getDescription()), "", "OPTIONS", buildOptionRows(event.getOptionNames()),
+                "", eventId, commission);
     }
 
-    private String formatEventTitle(EventSummaryDto event) {
-        return formatTitleRow(event.getEventName(), event);
+    // Breaks a long text into lines that fit the display width, without splitting words.
+    private String wrapToWidth(String text) {
+        StringBuilder wrapped = new StringBuilder();
+        int lineLength = 0;
+
+        for (String word : text.trim().split("\\s+")) {
+            if (lineLength > 0 && lineLength + 1 + word.length() > OUTPUT_WIDTH) {
+                wrapped.append(NEW_LINE);
+                lineLength = 0;
+            } else if (lineLength > 0) {
+                wrapped.append(" ");
+                lineLength++;
+            }
+            wrapped.append(word);
+            lineLength += word.length();
+        }
+        return wrapped.toString();
     }
 
-    // Places the event status at the right edge while keeping the event title on the left.
-    private String formatTitleRow(String eventDetails, EventSummaryDto event) {
+    // Places the event status at the right edge while keeping the event name on the left.
+    private String formatTitleRow(EventSummaryDto event) {
+        String eventName = event.getEventName();
         String status = "[" + toDisplayText(event.getStatus()) + "]";
-        int spaceCount = Math.max(1, OUTPUT_WIDTH - eventDetails.length() - status.length());
-        return eventDetails + " ".repeat(spaceCount) + status;
+        int spaceCount = Math.max(1, OUTPUT_WIDTH - eventName.length() - status.length());
+
+        return eventName + " ".repeat(spaceCount) + status;
     }
 
     private String buildOptionRows(List<String> optionNames) {
         List<String> rows = IntStream.range(0, optionNames.size())
                 .mapToObj(index -> String.format("  [%d] %s", index + 1, optionNames.get(index)))
-                .collect(Collectors.toList());
+                .toList();
 
         return String.join(NEW_LINE, rows);
     }
@@ -210,11 +232,15 @@ public class ConsolePrinter {
 
     private String buildCurrentMarketRows(List<OptionStateDto> options) {
         List<String> rows = IntStream.range(0, options.size())
-                .mapToObj(index -> { OptionStateDto option = options.get(index);
-            String optionName = String.format("[%d] %s", index + 1, option.getOptionName());
-            return formatCurrentMarketRow(optionName, formatDecimal(option.getCurrentValue()),
-                    String.valueOf(option.getTotalSharesBought()));
-        }).collect(Collectors.toList());
+                .mapToObj(index -> {
+                    OptionStateDto option = options.get(index);
+                    String optionName = String.format("[%d] %s", index + 1, option.getOptionName());
+
+                    return formatCurrentMarketRow(optionName, formatDecimal(option.getCurrentValue()),
+                            String.valueOf(option.getTotalSharesBought()));
+                })
+                .toList();
+
         return String.join(NEW_LINE, rows);
     }
 
@@ -241,14 +267,17 @@ public class ConsolePrinter {
     }
 
     private String buildTradeRows(List<TradeDto> trades) {
-        List<String> rows = IntStream.range(0, trades.size()).mapToObj(index -> {
-            TradeDto trade = trades.get(index);
-            double totalPaid = trade.getSharesCost() + trade.getCommissionCost();
-            String tradeNumber = String.format("%d.", index + 1);
+        List<String> rows = IntStream.range(0, trades.size())
+                .mapToObj(index -> {
+                    TradeDto trade = trades.get(index);
+                    double totalPaid = trade.getSharesCost() + trade.getCommissionCost();
+                    String tradeNumber = String.format("%d.", index + 1);
 
-            return formatTradeRow(tradeNumber, trade.getOptionName(), String.valueOf(trade.getQuantity()),
-                    formatMoney(totalPaid));
-        }).collect(Collectors.toList());
+                    return formatTradeRow(tradeNumber, trade.getOptionName(),
+                            String.valueOf(trade.getQuantity()), formatMoney(totalPaid));
+                })
+                .toList();
+
         return String.join(NEW_LINE, rows);
     }
 
@@ -263,17 +292,19 @@ public class ConsolePrinter {
 
     private String buildHeader(String title) {
         int leftPadding = Math.max(0, (OUTPUT_WIDTH - title.length()) / 2);
+
         return String.join(NEW_LINE, HEADER_SEPARATOR, " ".repeat(leftPadding) + title, HEADER_SEPARATOR);
     }
 
     // Aligns a value to a fixed column while keeping its label on the left.
     private String formatRightAlignedValue(String label, String value) {
         int spaceCount = Math.max(1, VALUE_ROW_WIDTH - label.length() - value.length());
+
         return label + " ".repeat(spaceCount) + value;
     }
 
     private String formatLabelAndValue(String label, String value) {
-        return String.format("%-12s: %s", label, value);
+        return String.format(LABEL_AND_VALUE_FORMAT, label, value);
     }
 
     private String formatDecimal(double value) {

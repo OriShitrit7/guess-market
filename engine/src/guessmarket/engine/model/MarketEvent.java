@@ -62,8 +62,8 @@ public class MarketEvent {
         return commissionConfig.getCommissionPolicy();
     }
 
-    public int getCommissionPercentage() {
-        return commissionConfig.getPercentage();
+    public int getCommissionPercent() {
+        return commissionConfig.getCommissionPercent();
     }
 
     public int getOptionCount() {
@@ -73,12 +73,6 @@ public class MarketEvent {
     // Calculates the current value of each option from the number of shares purchased.
     public double[] getOptionsValues() {
         return tradingMethod.calcOptionsValues(getSharesCountPerOption());
-    }
-
-    private int[] getSharesCountPerOption() {
-        return options.stream()
-                .mapToInt(MarketOption::getTotalSharesBought)
-                .toArray();
     }
 
     // Calculates and deposits the initial subsidy required by the trading method.
@@ -91,7 +85,7 @@ public class MarketEvent {
         MarketOption option = options.get(optionIndex);
 
         double sharesCost = calcSharesCost(optionIndex, quantity);
-        double commissionCost = calcPurchaseCommission(sharesCost);
+        double commissionCost = commissionConfig.calcPurchaseCommission(sharesCost);
 
         option.addShares(quantity);
         Trade trade = new Trade(option, quantity, sharesCost, commissionCost);
@@ -113,6 +107,11 @@ public class MarketEvent {
         status = EventStatus.CLOSED;
     }
 
+    // Calculates the price of a purchase without changing the current event state.
+    private double calcSharesCost(int optionIndex, int sharesToBuy) {
+        return tradingMethod.calcSharesCost(getSharesCountPerOption(), optionIndex, sharesToBuy);
+    }
+
     private double calcPayout(MarketOption winner, double commissionCost) {
         return tradingMethod.calcWinningPayout(winner.getTotalSharesBought()) - commissionCost;
     }
@@ -125,14 +124,9 @@ public class MarketEvent {
                 .sum();
     }
 
-    // Calculates the price of a purchase without changing the current event state.
-    public double calcSharesCost(int optionIndex, int sharesToBuy) {
-        return tradingMethod.calcSharesCost(getSharesCountPerOption(), optionIndex, sharesToBuy);
+    private int[] getSharesCountPerOption() {
+        return options.stream()
+                .mapToInt(MarketOption::getTotalSharesBought)
+                .toArray();
     }
-
-    // Calculates the purchase commission according to this event's commission policy.
-    public double calcPurchaseCommission(double sharesCost) {
-        return commissionConfig.calcPurchaseCommission(sharesCost);
-    }
-
 }

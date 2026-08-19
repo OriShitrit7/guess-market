@@ -5,24 +5,22 @@ public class CommissionConfig {
     public static final int MIN_COMMISSION_PERCENT = 0;
     public static final int MAX_COMMISSION_PERCENT = 90;
 
-    private final int commissionPercentage;
+    private static final double PERCENT_DIVISOR = 100.0;
+
+    private final int commissionPercent;
     private final CommissionPolicy commissionPolicy;
 
     public CommissionConfig(int commissionPercent, CommissionPolicy commissionPolicy) {
-        this.commissionPercentage = commissionPercent;
+        this.commissionPercent = commissionPercent;
         this.commissionPolicy = commissionPolicy;
     }
 
-    public int getPercentage() {
-        return commissionPercentage;
+    public int getCommissionPercent() {
+        return commissionPercent;
     }
 
     public CommissionPolicy getCommissionPolicy() {
         return commissionPolicy;
-    }
-
-    private double calcCommission(double amount) {
-        return amount * commissionPercentage / 100.0;
     }
 
     // Calculates the commission charged during a purchase when the policy requires it.
@@ -33,5 +31,9 @@ public class CommissionConfig {
     // Calculates the commission charged when an event closes when the policy requires it.
     public double calcCloseCommission(double winningInvestment) {
         return commissionPolicy == CommissionPolicy.ON_CLOSE ? calcCommission(winningInvestment) : 0;
+    }
+
+    private double calcCommission(double amount) {
+        return amount * commissionPercent / PERCENT_DIVISOR;
     }
 }

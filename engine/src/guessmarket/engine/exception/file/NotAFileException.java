@@ -1,4 +1,6 @@
-package guessmarket.engine.exception;
+package guessmarket.engine.exception.file;
+
+import guessmarket.engine.exception.InvalidFileException;
 
 import java.nio.file.Path;
 

@@ -7,16 +7,18 @@ import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.OptionStateDto;
 import guessmarket.dto.PurchaseResultDto;
 import guessmarket.dto.TradeDto;
-import guessmarket.engine.exception.EventClosedException;
-import guessmarket.engine.exception.EventNotFoundException;
+import guessmarket.dto.TradingMethodTypeDto;
+import guessmarket.engine.exception.request.EventClosedException;
+import guessmarket.engine.exception.request.EventNotFoundException;
 import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.NonPositiveQuantityException;
-import guessmarket.engine.exception.OptionNotFoundException;
+import guessmarket.engine.exception.request.NonPositiveQuantityException;
+import guessmarket.engine.exception.request.OptionNotFoundException;
 import guessmarket.engine.model.CommissionPolicy;
 import guessmarket.engine.model.EventStatus;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.model.MarketOption;
 import guessmarket.engine.model.Trade;
+import guessmarket.engine.trading.TradingMethodType;
 import guessmarket.engine.xml.SystemFileLoader;
 
 import java.util.ArrayList;
@@ -122,15 +124,14 @@ public class MarketManagerImpl implements MarketManager {
                 .toList();
 
         return new EventSummaryDto(event.getEventId(), event.getEventName(), event.getDescription(),
-                event.getCommissionPercent(), toDto(event.getCommissionPolicy()),
-                optionNames, toDto(event.getStatus()));
+                event.getCommissionPercent(), toDto(event.getCommissionPolicy()), optionNames,
+                toDto(event.getStatus()), toDto(event.getMethodType()), event.getAccount().getBalance());
     }
 
     private EventTradingStateDto createEventTradingState(MarketEvent event) {
         MarketOption winner = event.getWinningOption();
 
         return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
-                event.getAccount().getBalance(),
                 event.getAccount().getTotalCommissionCollected(),
                 createTradeDtos(event),
                 winner == null ? null : winner.getName());
@@ -172,8 +173,16 @@ public class MarketManagerImpl implements MarketManager {
         };
     }
 
+    private TradingMethodTypeDto toDto(TradingMethodType type) {
+        return switch (type) {
+            case LMSR -> TradingMethodTypeDto.LMSR;
+            case ORDER_BOOK -> TradingMethodTypeDto.ORDER_BOOK;
+        };
+    }
+
     private EventStatusDto toDto(EventStatus status) {
         return switch (status) {
+            case NOT_STARTED -> EventStatusDto.NOT_STARTED;
             case ACTIVE -> EventStatusDto.ACTIVE;
             case CLOSED -> EventStatusDto.CLOSED;
         };

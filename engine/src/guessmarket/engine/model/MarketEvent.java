@@ -1,6 +1,7 @@
 package guessmarket.engine.model;
 
 import guessmarket.engine.trading.TradingMethod;
+import guessmarket.engine.trading.TradingMethodType;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ public class MarketEvent {
     private final String eventName;
     private final String description;
     private EventStatus status = EventStatus.ACTIVE;
+
+    private User marketMaker;
 
     private final List<MarketOption> options;
     private MarketOption winningOption;
@@ -46,6 +49,14 @@ public class MarketEvent {
         return status;
     }
 
+    public User getMarketMaker() {
+        return marketMaker;
+    }
+
+    public void setMarketMaker(User marketMaker) {
+        this.marketMaker = marketMaker;
+    }
+    
     public List<MarketOption> getOptions() {
         return options;
     }
@@ -56,6 +67,10 @@ public class MarketEvent {
 
     public EventAccount getAccount() {
         return account;
+    }
+
+    public TradingMethodType getMethodType() {
+        return tradingMethod.getType();
     }
 
     public CommissionPolicy getCommissionPolicy() {

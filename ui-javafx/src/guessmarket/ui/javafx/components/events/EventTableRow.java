@@ -1,0 +1,96 @@
+package guessmarket.ui.javafx.components.events;
+
+import guessmarket.dto.CommissionPolicyDto;
+import guessmarket.dto.EventStatusDto;
+import guessmarket.dto.EventSummaryDto;
+import guessmarket.dto.TradingMethodTypeDto;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+
+public class EventTableRow {
+    private final int eventId;
+
+    private final SimpleStringProperty name;
+    private final SimpleStringProperty status;
+    private final SimpleStringProperty methodType;
+    private final SimpleIntegerProperty commissionPercent;
+    private final SimpleStringProperty commissionPolicy;
+    private final SimpleDoubleProperty accountBalance;
+
+    public EventTableRow(EventSummaryDto summary) {
+        this.eventId = summary.getEventId();
+        this.name = new SimpleStringProperty(summary.getEventName());
+        this.status = new SimpleStringProperty(toDisplayText(summary.getStatus()));
+        this.methodType = new SimpleStringProperty(toDisplayText(summary.getMethodType()));
+        this.commissionPercent = new SimpleIntegerProperty(summary.getCommissionPercent());
+        this.commissionPolicy = new SimpleStringProperty(toDisplayText(summary.getCommissionPolicy()));
+        this.accountBalance = new SimpleDoubleProperty(summary.getAccountBalance());
+    }
+
+    public int getEventId() {
+        return eventId;
+    }
+
+    public String getName() {
+        return name.get();
+    }
+
+    public String getMethodType() {
+        return methodType.get();
+    }
+
+    public String getStatus() {
+        return status.get();
+    }
+
+    public SimpleStringProperty statusProperty() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status.set(status);
+    }
+
+    public int getCommissionPercent() {
+        return commissionPercent.get();
+    }
+
+    public String getCommissionPolicy() {
+        return commissionPolicy.get();
+    }
+
+    public double getAccountBalance() {
+        return accountBalance.get();
+    }
+
+    public SimpleDoubleProperty accountBalanceProperty() {
+        return accountBalance;
+    }
+
+    public void setAccountBalance(double accountBalance) {
+        this.accountBalance.set(accountBalance);
+    }
+
+    private static String toDisplayText(TradingMethodTypeDto methodType) {
+        return switch (methodType) {
+            case LMSR -> "LMSR";
+            case ORDER_BOOK -> "Order Book";
+        };
+    }
+
+    private static String toDisplayText(EventStatusDto status) {
+        return switch (status) {
+            case NOT_STARTED -> "Not Started";
+            case ACTIVE -> "Active";
+            case CLOSED -> "Closed";
+        };
+    }
+
+    private static String toDisplayText(CommissionPolicyDto policy) {
+        return switch (policy) {
+            case ON_CLOSE -> "On Close";
+            case ON_PURCHASE -> "On Purchase";
+        };
+    }
+}

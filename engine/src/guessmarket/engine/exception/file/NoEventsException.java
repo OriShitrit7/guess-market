@@ -1,4 +1,6 @@
-package guessmarket.engine.exception;
+package guessmarket.engine.exception.file;
+
+import guessmarket.engine.exception.InvalidFileException;
 
 public class NoEventsException extends InvalidFileException {
     private static final String EVENT_ELEMENT = "GM-event";

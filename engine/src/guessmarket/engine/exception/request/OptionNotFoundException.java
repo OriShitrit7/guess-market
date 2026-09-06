@@ -1,4 +1,6 @@
-package guessmarket.engine.exception;
+package guessmarket.engine.exception.request;
+
+import guessmarket.engine.exception.InvalidRequestException;
 
 public class OptionNotFoundException extends InvalidRequestException {
     private static final String MSG_FORMAT =

@@ -38,6 +38,10 @@ public class MainController {
         this.marketManager = marketManager;
     }
 
+    public MarketManager getMarketManager() {
+        return marketManager;
+    }
+
     @FXML
     public void loadFileButtonAction() {
         FileChooser fileChooser = new FileChooser();
@@ -64,6 +68,7 @@ public class MainController {
 
         if (task.getValue()) {
             filePathLabel.setText(absolutePath);
+            eventsComponentController.refreshEvents();
             return;
         }
 

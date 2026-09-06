@@ -1,9 +1,9 @@
 package guessmarket.engine.xml;
 
-import guessmarket.engine.exception.CommissionOutOfRangeException;
-import guessmarket.engine.exception.DuplicateEventIdException;
+import guessmarket.engine.exception.file.CommissionOutOfRangeException;
+import guessmarket.engine.exception.file.DuplicateEventIdException;
 import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.WrongOptionCountException;
+import guessmarket.engine.exception.file.WrongOptionCountException;
 import guessmarket.engine.model.CommissionConfig;
 import guessmarket.engine.model.MarketEvent;
 

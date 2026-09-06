@@ -250,7 +250,7 @@ public class ConsolePrinter {
 
     private String buildEventAccount(EventTradingStateDto state) {
         return String.join(NEW_LINE, "EVENT ACCOUNT", SECTION_SEPARATOR,
-                formatRightAlignedValue("Balance", formatMoney(state.getAccountBalance())),
+                formatRightAlignedValue("Balance", formatMoney(state.getSummary().getAccountBalance())),
                 formatRightAlignedValue("Commission collected", formatMoney(state.getTotalCommissionCollected())));
     }
 
@@ -324,6 +324,7 @@ public class ConsolePrinter {
 
     private String toDisplayText(EventStatusDto status) {
         return switch (status) {
+            case NOT_STARTED -> "NOT STARTED";
             case ACTIVE -> "ACTIVE";
             case CLOSED -> "CLOSED";
         };

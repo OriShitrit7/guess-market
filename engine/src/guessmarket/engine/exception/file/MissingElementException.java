@@ -1,4 +1,6 @@
-package guessmarket.engine.exception;
+package guessmarket.engine.exception.file;
+
+import guessmarket.engine.exception.InvalidFileException;
 
 public class MissingElementException extends InvalidFileException {
     private static final String MSG_FORMAT = "Event '%s': the <%s> element is missing or empty.";

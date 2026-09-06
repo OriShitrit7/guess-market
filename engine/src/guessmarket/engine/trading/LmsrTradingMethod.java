@@ -17,6 +17,11 @@ public class LmsrTradingMethod extends TradingMethod {
         this.b = b;
     }
 
+    @Override
+    public TradingMethodType getType() {
+        return TradingMethodType.LMSR;
+    }
+
     // Calculates the initial subsidy C(0) = b * ln(optionCount).
     @Override
     public double calcInitialSubsidy(int optionCount) {

@@ -6,6 +6,7 @@ public class Trade {
     private final int quantity;
     private final double sharesCost;
     private final double commissionCost;
+    // TODO : add - private final User buyer - field
 
     public Trade(MarketOption option, int quantity, double sharesCost, double commissionCost) {
         this.option = option;

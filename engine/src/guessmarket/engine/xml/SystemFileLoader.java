@@ -1,13 +1,13 @@
 package guessmarket.engine.xml;
 
-import guessmarket.engine.exception.FileDoesNotExistException;
-import guessmarket.engine.exception.FileReadFailedException;
+import guessmarket.engine.exception.file.FileDoesNotExistException;
+import guessmarket.engine.exception.file.FileReadFailedException;
 import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.MalformedPathException;
-import guessmarket.engine.exception.MalformedXmlException;
-import guessmarket.engine.exception.NotAFileException;
-import guessmarket.engine.exception.NotXmlFileException;
-import guessmarket.engine.exception.UnexpectedXmlStructureException;
+import guessmarket.engine.exception.file.MalformedPathException;
+import guessmarket.engine.exception.file.MalformedXmlException;
+import guessmarket.engine.exception.file.NotAFileException;
+import guessmarket.engine.exception.file.NotXmlFileException;
+import guessmarket.engine.exception.file.UnexpectedXmlStructureException;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.xml.generated.GuessMarket;
 import jakarta.xml.bind.JAXBContext;

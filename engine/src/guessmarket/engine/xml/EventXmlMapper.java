@@ -1,12 +1,12 @@
 package guessmarket.engine.xml;
 
-import guessmarket.engine.exception.InvalidEventIdException;
+import guessmarket.engine.exception.file.InvalidEventIdException;
 import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.InvalidLiquidityException;
-import guessmarket.engine.exception.MissingAttributeException;
-import guessmarket.engine.exception.MissingElementException;
-import guessmarket.engine.exception.NoEventsException;
-import guessmarket.engine.exception.UnknownCommissionTypeException;
+import guessmarket.engine.exception.file.InvalidLiquidityException;
+import guessmarket.engine.exception.file.MissingAttributeException;
+import guessmarket.engine.exception.file.MissingElementException;
+import guessmarket.engine.exception.file.NoEventsException;
+import guessmarket.engine.exception.file.UnknownCommissionTypeException;
 import guessmarket.engine.model.CommissionConfig;
 import guessmarket.engine.model.CommissionPolicy;
 import guessmarket.engine.model.MarketEvent;
@@ -64,32 +64,32 @@ public class EventXmlMapper {
     }
 
     // Builds one complete market event after checking its required XML data.
-    private MarketEvent mapEvent(GMEvent source, int eventPosition) throws InvalidFileException {
-        String eventName = mapEventName(source, eventPosition);
+    private MarketEvent mapEvent(GMEvent source, int eventNumber) throws InvalidFileException {
+        String eventName = mapEventName(source, eventNumber);
 
         // JAXB may use zero when a primitive integer value is missing or invalid.
         if (source.getId() <= 0) {
-            throw new InvalidEventIdException(eventPosition);
+            throw new InvalidEventIdException(eventNumber);
         }
 
         return new MarketEvent(source.getId(), eventName,
                 requireValue(source.getDescription(), eventName, DESCRIPTION_ELEMENT),
-                mapOptions(source, eventName), mapCommission(source, eventName, eventPosition),
+                mapOptions(source, eventName), mapCommission(source, eventName, eventNumber),
                 mapTradingMethod(source, eventName));
     }
 
-    private String mapEventName(GMEvent source, int eventPosition) throws MissingAttributeException {
+    private String mapEventName(GMEvent source, int eventNumber) throws MissingAttributeException {
         List<String> nameTokens = source.getName();
 
         if (nameTokens == null || nameTokens.isEmpty()) {
-            throw new MissingAttributeException(eventPosition, EVENT_ELEMENT, NAME_ATTRIBUTE);
+            throw new MissingAttributeException(eventNumber, EVENT_ELEMENT, NAME_ATTRIBUTE);
         }
         // JAXB represents the XML list attribute as separate tokens that form one event name.
         return String.join(NAME_TOKEN_SEPARATOR, nameTokens);
     }
 
     // Maps the XML commission value and policy to the engine's commission configuration.
-    private CommissionConfig mapCommission(GMEvent source, String eventName, int eventPosition)
+    private CommissionConfig mapCommission(GMEvent source, String eventName, int eventNumber)
             throws InvalidFileException {
         Comision commissionElement = source.getComision();
 
@@ -97,7 +97,7 @@ public class EventXmlMapper {
             throw new MissingElementException(eventName, COMMISSION_ELEMENT);
         }
         if (commissionElement.getType() == null) {
-            throw new MissingAttributeException(eventPosition, COMMISSION_ELEMENT, TYPE_ATTRIBUTE);
+            throw new MissingAttributeException(eventNumber, COMMISSION_ELEMENT, TYPE_ATTRIBUTE);
         }
 
         String policyValue = commissionElement.getType().trim();

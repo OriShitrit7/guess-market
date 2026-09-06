@@ -13,4 +13,7 @@ public abstract class TradingMethod {
 
     // Calculates the amount paid for the winning shares when an event closes.
     public abstract double calcWinningPayout(int winningShares);
+
+    // Identifies which trading method this implementation provides.
+    public abstract TradingMethodType getType();
 }

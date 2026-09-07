@@ -9,6 +9,8 @@ import guessmarket.engine.exception.file.NotAFileException;
 import guessmarket.engine.exception.file.NotXmlFileException;
 import guessmarket.engine.exception.file.UnexpectedXmlStructureException;
 import guessmarket.engine.model.MarketEvent;
+import guessmarket.engine.model.User;
+import guessmarket.engine.model.UsersRegistry;
 import guessmarket.engine.xml.generated.GuessMarket;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
@@ -29,16 +31,29 @@ public class SystemFileLoader {
     private static final String XML_EXTENSION = ".xml";
 
     private final EventXmlMapper mapper = new EventXmlMapper();
-    private final EventValidator validator = new EventValidator();
+    private final UserXmlMapper userMapper = new UserXmlMapper();
+    private final MarketValidator validator = new MarketValidator();
 
-    // Returns model events only after the file and all mapped event data pass validation.
-    public List<MarketEvent> load(String rawPath) throws InvalidFileException {
+    // Returns the loaded events and users only after the file and all mapped data pass validation.
+    public LoadedSystemData load(String rawPath) throws InvalidFileException {
         Path path = validateFile(rawPath);
         GuessMarket xmlRoot = deserializeFrom(path);
         List<MarketEvent> events = mapper.mapEvents(xmlRoot);
-        validator.validate(events);
+        UsersRegistry users = buildRegistry(userMapper.mapUsers(xmlRoot, events));
 
-        return events;
+        validator.validate(events, users);
+
+        return new LoadedSystemData(events, users);
+    }
+
+    // Rejects duplicate names while collecting the mapped users into the registry.
+    private UsersRegistry buildRegistry(List<User> mappedUsers) throws InvalidFileException {
+        UsersRegistry registry = new UsersRegistry();
+
+        for (User user : mappedUsers) {
+            registry.addUser(user);
+        }
+        return registry;
     }
 
     // Uses JAXB to convert the XML document into the generated object structure.

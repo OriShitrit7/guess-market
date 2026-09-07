@@ -12,36 +12,31 @@ import guessmarket.engine.model.CommissionPolicy;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.model.MarketOption;
 import guessmarket.engine.trading.LmsrTradingMethod;
+import guessmarket.engine.trading.OrderBookTradingMethod;
 import guessmarket.engine.trading.TradingMethod;
-import guessmarket.engine.xml.generated.Comision;
-import guessmarket.engine.xml.generated.GMEvent;
-import guessmarket.engine.xml.generated.GMEvents;
-import guessmarket.engine.xml.generated.GMLMSR;
-import guessmarket.engine.xml.generated.GMMethod;
-import guessmarket.engine.xml.generated.GMOptions;
-import guessmarket.engine.xml.generated.GuessMarket;
+import guessmarket.engine.xml.generated.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // Converts JAXB-generated XML objects into the market engine's model objects.
-// Reports missing, empty or unsupported XML data through detailed file exceptions.
+// Reports missing,empty or unsupported XML data through detailed file exceptions.
 public class EventXmlMapper {
+    private static final String EVENT_ENTITY = "Event";
     private static final String EVENT_ELEMENT = "GM-event";
     private static final String DESCRIPTION_ELEMENT = "description";
-    private static final String COMMISSION_ELEMENT = "comision";
+    private static final String COMMISSION_ELEMENT = "commission";
     private static final String OPTIONS_ELEMENT = "GM-options";
     private static final String OPTION_ELEMENT = "GM-option";
     private static final String METHOD_ELEMENT = "GM-method";
     private static final String LMSR_ELEMENT = "GM-LMSR";
+    private static final String TRADING_METHOD_ELEMENTS = "GM-LMSR> or <GM-order-book";
 
     private static final String NAME_ATTRIBUTE = "name";
     private static final String TYPE_ATTRIBUTE = "type";
 
     private static final String ON_PURCHASE_VALUE = "on-purchase";
     private static final String ON_CLOSE_VALUE = "on-close";
-
-    private static final String NAME_TOKEN_SEPARATOR = " ";
 
     // Maps every XML event to a model event while preserving its position in the source file.
     public List<MarketEvent> mapEvents(GuessMarket xmlRoot) throws InvalidFileException {
@@ -79,25 +74,25 @@ public class EventXmlMapper {
     }
 
     private String mapEventName(GMEvent source, int eventNumber) throws MissingAttributeException {
-        List<String> nameTokens = source.getName();
+        String eventName = source.getName();
 
-        if (nameTokens == null || nameTokens.isEmpty()) {
-            throw new MissingAttributeException(eventNumber, EVENT_ELEMENT, NAME_ATTRIBUTE);
+        if (eventName == null || eventName.isBlank()) {
+            throw new MissingAttributeException(EVENT_ENTITY, eventNumber, EVENT_ELEMENT, NAME_ATTRIBUTE);
         }
-        // JAXB represents the XML list attribute as separate tokens that form one event name.
-        return String.join(NAME_TOKEN_SEPARATOR, nameTokens);
+        return eventName.trim();
     }
 
     // Maps the XML commission value and policy to the engine's commission configuration.
     private CommissionConfig mapCommission(GMEvent source, String eventName, int eventNumber)
             throws InvalidFileException {
-        Comision commissionElement = source.getComision();
+        Commission commissionElement = source.getCommission();
 
         if (commissionElement == null) {
             throw new MissingElementException(eventName, COMMISSION_ELEMENT);
         }
         if (commissionElement.getType() == null) {
-            throw new MissingAttributeException(eventNumber, COMMISSION_ELEMENT, TYPE_ATTRIBUTE);
+            throw new MissingAttributeException(EVENT_ENTITY, eventNumber, COMMISSION_ELEMENT,
+                    TYPE_ATTRIBUTE);
         }
 
         String policyValue = commissionElement.getType().trim();
@@ -136,15 +131,29 @@ public class EventXmlMapper {
 
         GMLMSR lmsrElement = methodElement.getGMLMSR();
 
-        if (lmsrElement == null) {
-            throw new MissingElementException(eventName, LMSR_ELEMENT);
+        if (lmsrElement != null) {
+            return mapLmsrMethod(lmsrElement, eventName);
         }
 
+        GMOrderBook orderBookElement = methodElement.getGMOrderBook();
+
+        if (orderBookElement != null) {
+            return mapOrderBookMethod(orderBookElement);
+        }
+        throw new MissingElementException(eventName, TRADING_METHOD_ELEMENTS);
+    }
+
+    private TradingMethod mapLmsrMethod(GMLMSR lmsrElement, String eventName) throws InvalidLiquidityException {
         try {
             return new LmsrTradingMethod(lmsrElement.getB());
         } catch (IllegalArgumentException e) {
             throw new InvalidLiquidityException(eventName, lmsrElement.getB());
         }
+    }
+
+    private TradingMethod mapOrderBookMethod(GMOrderBook orderBookElement) {
+        return new OrderBookTradingMethod(orderBookElement.getD(),
+                Boolean.parseBoolean(orderBookElement.getAllowMint()), orderBookElement.getInitial());
     }
 
     // Rejects an element that is absent from the file or carries no readable text.

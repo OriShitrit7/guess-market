@@ -6,10 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.controlsfx.control.SegmentedButton;
 
@@ -46,6 +43,7 @@ public class EventsController {
 
     @FXML
     private void initialize() {
+        eventsTable.setPlaceholder(new Label("Load a file to view events"));
         clearFilterToggles();
         initEventsTable();
         initFilterListeners();
@@ -76,7 +74,6 @@ public class EventsController {
         eventCommissionTypeColumn.setCellValueFactory(new PropertyValueFactory<>("commissionPolicy"));
         eventBalanceColumn.setCellValueFactory(new PropertyValueFactory<>("accountBalance"));
 
-        /// ++++
         eventBalanceColumn.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(Number value, boolean empty) {

@@ -28,6 +28,15 @@ public class DtoMapper {
                 winner == null ? null : winner.getName());
     }
 
+    public UserSummaryDto createUserSummary(User user) {
+        return new UserSummaryDto(user.getName(), user.getBalance(), user.isBlocked());
+    }
+
+    EventParticipationDto createEventParticipation(MarketEvent event, User user) {
+        return new EventParticipationDto(createEventSummary(event), event.getMarketMaker() == user,
+                user.getPositions().containsKey(event.getEventId()));
+    }
+
     private List<OptionStateDto> createOptionStates(MarketEvent event) {
         List<OptionStateDto> states = new ArrayList<>();
 
@@ -79,6 +88,4 @@ public class DtoMapper {
             case CLOSED -> EventStatusDto.CLOSED;
         };
     }
-
-
 }

@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -27,12 +26,8 @@
             <HBox spacing="10.0">
                <children>
                   <Button fx:id="loadFileButton" mnemonicParsing="false" onAction="#loadFileButtonAction" text="Load File" />
-                  <VBox spacing="8.0" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label fx:id="filePathLabel" maxWidth="1.7976931348623157E308" styleClass="file-path-label" text="file" />
-                        <ProgressBar fx:id="loadFileProgressBar" prefWidth="200.0" progress="0.0" />
-                     </children>
-                  </VBox>
+                  <Label fx:id="filePathLabel" maxWidth="1.7976931348623157E308" styleClass="file-path-label" text="file" HBox.hgrow="ALWAYS" />
+                  <ProgressBar fx:id="loadFileProgressBar" prefWidth="200.0" progress="0.0" />
                </children>
             </HBox>
          </children>
@@ -48,7 +43,7 @@
             </Tab>
           <Tab text="Users">
             <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                <fx:include fx:id="usersComponent" source="../users/users.fxml" />
             </content>
           </Tab>
         </tabs>

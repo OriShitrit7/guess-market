@@ -1,9 +1,7 @@
 package guessmarket.ui.javafx.components.events;
 
-import guessmarket.dto.CommissionPolicyDto;
-import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.EventSummaryDto;
-import guessmarket.dto.TradingMethodTypeDto;
+import guessmarket.ui.javafx.components.DisplayText;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -21,10 +19,10 @@ public class EventTableRow {
     public EventTableRow(EventSummaryDto summary) {
         this.eventId = summary.getEventId();
         this.name = new SimpleStringProperty(summary.getEventName());
-        this.status = new SimpleStringProperty(toDisplayText(summary.getStatus()));
-        this.methodType = new SimpleStringProperty(toDisplayText(summary.getMethodType()));
+        this.status = new SimpleStringProperty(DisplayText.of(summary.getStatus()));
+        this.methodType = new SimpleStringProperty(DisplayText.of(summary.getMethodType()));
         this.commissionPercent = new SimpleIntegerProperty(summary.getCommissionPercent());
-        this.commissionPolicy = new SimpleStringProperty(toDisplayText(summary.getCommissionPolicy()));
+        this.commissionPolicy = new SimpleStringProperty(DisplayText.of(summary.getCommissionPolicy()));
         this.accountBalance = new SimpleDoubleProperty(summary.getAccountBalance());
     }
 
@@ -70,27 +68,5 @@ public class EventTableRow {
 
     public void setAccountBalance(double accountBalance) {
         this.accountBalance.set(accountBalance);
-    }
-
-    private static String toDisplayText(TradingMethodTypeDto methodType) {
-        return switch (methodType) {
-            case LMSR -> "LMSR";
-            case ORDER_BOOK -> "Order Book";
-        };
-    }
-
-    private static String toDisplayText(EventStatusDto status) {
-        return switch (status) {
-            case NOT_STARTED -> "Not Started";
-            case ACTIVE -> "Active";
-            case CLOSED -> "Closed";
-        };
-    }
-
-    private static String toDisplayText(CommissionPolicyDto policy) {
-        return switch (policy) {
-            case ON_CLOSE -> "On Close";
-            case ON_PURCHASE -> "On Purchase";
-        };
     }
 }

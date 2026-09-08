@@ -3,7 +3,7 @@ package guessmarket.engine.trading;
 public class OrderBookTradingMethod extends TradingMethod {
     private final int d;
     private final boolean mint;
-    private double initialSubsidy;
+    private double initialSubsidy;   // נראה לי שלא צריך את זה, זה פשוט היתרה של הMM
 
     public OrderBookTradingMethod(int d, boolean mint, double initialSubsidy) {
         this.d = d;
@@ -11,9 +11,17 @@ public class OrderBookTradingMethod extends TradingMethod {
         this.initialSubsidy = initialSubsidy;
     }
 
+    public int getD() {
+        return d;
+    }
+
+    public boolean isMint() {
+        return mint;
+    }
+
     @Override
     public double calcInitialSubsidy(int optionCount) {
-        return 0;
+        return initialSubsidy;
     }
 
     @Override

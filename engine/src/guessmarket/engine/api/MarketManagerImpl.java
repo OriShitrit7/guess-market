@@ -1,16 +1,20 @@
 package guessmarket.engine.api;
 
+import guessmarket.dto.EventParticipationDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.PurchaseResultDto;
+import guessmarket.dto.UserSummaryDto;
 import guessmarket.engine.exception.request.EventClosedException;
 import guessmarket.engine.exception.request.EventNotFoundException;
 import guessmarket.engine.exception.InvalidFileException;
 import guessmarket.engine.exception.request.NonPositiveQuantityException;
 import guessmarket.engine.exception.request.OptionNotFoundException;
+import guessmarket.engine.exception.request.UserNotFoundException;
 import guessmarket.engine.model.EventStatus;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.model.Trade;
+import guessmarket.engine.model.User;
 import guessmarket.engine.model.UsersRegistry;
 import guessmarket.engine.xml.LoadedSystemData;
 import guessmarket.engine.xml.SystemFileLoader;
@@ -61,6 +65,23 @@ public class MarketManagerImpl implements MarketManager {
         return dtoMapper.createEventTradingState(getEventById(eventId));
     }
 
+    @Override
+    public List<UserSummaryDto> getUserSummaries() {
+        return users.getAllUsers().stream()
+                .map(dtoMapper::createUserSummary)
+                .toList();
+    }
+
+    @Override
+    public List<EventParticipationDto> getUserEvents(String userName) {
+        User user = getUserByName(userName);
+
+        return events.values().stream()
+                .map(event -> dtoMapper.createEventParticipation(event, user))
+                .filter(participation -> participation.isMarketMaker() || participation.isParticipant())
+                .toList();
+    }
+
     // Validates and performs a purchase, then returns both the trade and the updated event state.
     @Override
     public PurchaseResultDto buyShares(int eventId, int optionIndex, int quantity) {
@@ -93,6 +114,15 @@ public class MarketManagerImpl implements MarketManager {
             throw new EventNotFoundException(eventId);
         }
         return event;
+    }
+
+    private User getUserByName(String userName) {
+        User user = users.getUserByName(userName);
+
+        if (user == null) {
+            throw new UserNotFoundException(userName);
+        }
+        return user;
     }
 
     private MarketEvent getActiveEventById(int eventId) {

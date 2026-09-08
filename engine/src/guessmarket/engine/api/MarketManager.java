@@ -1,8 +1,10 @@
 package guessmarket.engine.api;
 
+import guessmarket.dto.EventParticipationDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.PurchaseResultDto;
+import guessmarket.dto.UserSummaryDto;
 import guessmarket.engine.exception.InvalidFileException;
 
 import java.util.List;
@@ -21,6 +23,10 @@ public interface MarketManager {
 
     // Returns the current account, option and trade state of the requested event.
     EventTradingStateDto getEventTradingState(int eventId);
+
+    List<UserSummaryDto> getUserSummaries();
+
+    List<EventParticipationDto> getUserEvents(String userName);
 
     // Purchases a positive quantity of shares using the zero-based option index.
     PurchaseResultDto buyShares(int eventId, int optionIndex, int quantity);

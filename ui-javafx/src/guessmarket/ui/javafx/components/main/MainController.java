@@ -2,6 +2,7 @@ package guessmarket.ui.javafx.components.main;
 
 import guessmarket.engine.api.MarketManager;
 import guessmarket.ui.javafx.components.events.EventsController;
+import guessmarket.ui.javafx.components.users.UsersController;
 import guessmarket.ui.javafx.tasks.LoadSystemFileTask;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -15,6 +16,7 @@ import java.io.File;
 
 public class MainController {
     @FXML private EventsController eventsComponentController;
+    @FXML private UsersController usersComponentController;
 
     @FXML private Button loadFileButton;
     @FXML private Label filePathLabel;
@@ -27,6 +29,9 @@ public class MainController {
     public void initialize() {
         if (eventsComponentController != null) {
             eventsComponentController.setMainController(this);
+        }
+        if (usersComponentController != null) {
+            usersComponentController.setMainController(this);
         }
     }
 
@@ -69,6 +74,7 @@ public class MainController {
         if (task.getValue()) {
             filePathLabel.setText(absolutePath);
             eventsComponentController.refreshEvents();
+            usersComponentController.refreshUsers();
             return;
         }
 

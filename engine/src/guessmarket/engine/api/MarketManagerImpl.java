@@ -127,16 +127,7 @@ public class MarketManagerImpl implements MarketManager {
         user.joinEvent(eventId);
         double totalCommissionPaid = settleOrderMatches(event, matches);
 
-        return createOrderResult(matches, quantity, totalCommissionPaid);
-    }
-
-    private OrderResultDto createOrderResult(List<OrderMatch> matches, int quantity,
-                                             double totalCommissionPaid) {
-        int matchedQuantity = matches.stream().mapToInt(OrderMatch::getQuantity).sum();
-        double totalPaid = matches.stream().mapToDouble(OrderMatch::getTotalPaid).sum();
-
-        return new OrderResultDto(matchedQuantity, quantity - matchedQuantity, totalPaid,
-                totalCommissionPaid);
+        return dtoMapper.createOrderResult(matches, quantity, totalCommissionPaid);
     }
 
     // Applies every match to the two users involved and returns the commission the buyer side paid.
@@ -183,17 +174,17 @@ public class MarketManagerImpl implements MarketManager {
         }
     }
 
+    private void validateOrderPrice(MarketEvent event, double pricePerShare) {
+        if (!event.isValidOrderPrice(pricePerShare)) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_ORDER_PRICE);
+        }
+    }
+
     private OrderAction toOrderAction(OrderActionDto action) {
         if (action == null) {
             throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_ORDER_ACTION);
         }
         return OrderAction.valueOf(action.name());
-    }
-
-    private void validateOrderPrice(MarketEvent event, double pricePerShare) {
-        if (!event.isValidOrderPrice(pricePerShare)) {
-            throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_ORDER_PRICE);
-        }
     }
 
     private void payCommissionToMarketMaker(MarketEvent event, double commissionCost) {

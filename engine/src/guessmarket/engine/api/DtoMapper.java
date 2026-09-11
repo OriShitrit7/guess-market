@@ -2,6 +2,7 @@ package guessmarket.engine.api;
 
 import guessmarket.dto.*;
 import guessmarket.engine.model.*;
+import guessmarket.engine.trading.OrderMatch;
 import guessmarket.engine.trading.TradingMethodType;
 
 import java.util.ArrayList;
@@ -43,6 +44,15 @@ public class DtoMapper {
     EventParticipationDto createEventParticipation(MarketEvent event, User user) {
         return new EventParticipationDto(createEventSummary(event), event.isMarketMaker(user.getName()),
                 user.getPositions().containsKey(event.getEventId()));
+    }
+
+    OrderResultDto createOrderResult(List<OrderMatch> matches, int requestedQuantity,
+                                     double totalCommissionPaid) {
+        int matchedQuantity = matches.stream().mapToInt(OrderMatch::getQuantity).sum();
+        double totalPaid = matches.stream().mapToDouble(OrderMatch::getTotalPaid).sum();
+
+        return new OrderResultDto(matchedQuantity, requestedQuantity - matchedQuantity, totalPaid,
+                totalCommissionPaid);
     }
 
     private List<OptionStateDto> createOptionStates(MarketEvent event) {

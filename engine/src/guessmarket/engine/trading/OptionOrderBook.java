@@ -58,24 +58,24 @@ public class OptionOrderBook {
                 : buyOrders;
 
         while (!incomingOrder.isFilled() && !oppositeOrders.isEmpty()) {
-            Order restingOrder = oppositeOrders.getFirst();
+            Order bestOppositeOrder = oppositeOrders.getFirst();
 
-            if (!pricesMatch(incomingOrder, restingOrder)) {
+            if (!pricesMatch(incomingOrder, bestOppositeOrder)) {
                 break;
             }
 
             int matchedQuantity = Math.min(incomingOrder.getRemainingQuantity(),
-                    restingOrder.getRemainingQuantity());
-            double executionPrice = restingOrder.getPricePerShare();
+                    bestOppositeOrder.getRemainingQuantity());
+            double executionPrice = bestOppositeOrder.getPricePerShare();
 
-            matches.add(createMatch(incomingOrder, restingOrder, optionIndex,
+            matches.add(createMatch(incomingOrder, bestOppositeOrder, optionIndex,
                     matchedQuantity, executionPrice));
             lastTradePrice = executionPrice;
 
             incomingOrder.reduceRemainingQuantity(matchedQuantity);
-            restingOrder.reduceRemainingQuantity(matchedQuantity);
+            bestOppositeOrder.reduceRemainingQuantity(matchedQuantity);
 
-            if (restingOrder.isFilled()) {
+            if (bestOppositeOrder.isFilled()) {
                 oppositeOrders.removeFirst();
             }
         }
@@ -87,23 +87,23 @@ public class OptionOrderBook {
         return matches;
     }
 
-    private boolean pricesMatch(Order incomingOrder, Order restingOrder) {
+    private boolean pricesMatch(Order incomingOrder, Order bestOppositeOrder) {
         if (incomingOrder.getAction() == OrderAction.BUY) {
-            return incomingOrder.getPricePerShare() >= restingOrder.getPricePerShare();
+            return incomingOrder.getPricePerShare() >= bestOppositeOrder.getPricePerShare();
         }
-        return incomingOrder.getPricePerShare() <= restingOrder.getPricePerShare();
+        return incomingOrder.getPricePerShare() <= bestOppositeOrder.getPricePerShare();
     }
 
-    private OrderMatch createMatch(Order incomingOrder, Order restingOrder, int optionIndex,
+    private OrderMatch createMatch(Order incomingOrder, Order bestOppositeOrder, int optionIndex,
                                    int quantity, double executionPrice) {
         String buyerName;
         String sellerName;
 
         if (incomingOrder.getAction() == OrderAction.BUY) {
             buyerName = incomingOrder.getUserName();
-            sellerName = restingOrder.getUserName();
+            sellerName = bestOppositeOrder.getUserName();
         } else {
-            buyerName = restingOrder.getUserName();
+            buyerName = bestOppositeOrder.getUserName();
             sellerName = incomingOrder.getUserName();
         }
 

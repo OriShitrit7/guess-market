@@ -157,6 +157,14 @@ public class MarketEvent {
         }
         throw new IllegalStateException("Event '" + eventName + "' does not use the Order Book trading method");
     }
+
+    private LmsrTradingMethod getLmsrTradingMethod() {
+        if (tradingMethod instanceof LmsrTradingMethod lmsrTradingMethod) {
+            return lmsrTradingMethod;
+        }
+        throw new IllegalStateException("Event '" + eventName + "' does not use the LMSR trading method");
+    }
+
     public double calcOpeningCost() {
         return tradingMethod.calcOpeningCost(options.size());
     }
@@ -165,7 +173,6 @@ public class MarketEvent {
     private double calcSharesCost(int optionIndex, int sharesToBuy) {
         return getLmsrTradingMethod().calcSharesCost(getSharesCountPerOption(), optionIndex, sharesToBuy);
     }
-
 
     public double calcWinningPayout(int winningShares) {
         return tradingMethod.calcWinningPayout(winningShares);
@@ -180,12 +187,4 @@ public class MarketEvent {
                 .mapToInt(MarketOption::getTotalSharesBought)
                 .toArray();
     }
-
-    private LmsrTradingMethod getLmsrTradingMethod() {
-        if (tradingMethod instanceof LmsrTradingMethod lmsrTradingMethod) {
-            return lmsrTradingMethod;
-        }
-        throw new IllegalStateException("Event '" + eventName + "' does not use the LMSR trading method");
-    }
-
 }

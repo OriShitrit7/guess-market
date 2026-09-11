@@ -57,8 +57,7 @@ public class OrderBookTradingMethod extends TradingMethod {
         return TradingMethodType.ORDER_BOOK;
     }
 
-    public List<OrderMatch> submitOrder(String userName, int optionIndex, OrderAction action,
-                                        int quantity, double pricePerShare) {
+    public List<OrderMatch> submitOrder(String userName, int optionIndex, OrderAction action, int quantity, double pricePerShare) {
         OptionOrderBook book = books.get(optionIndex);
         Order order = new Order(userName, action, quantity, pricePerShare, nextSequence++);
         return book.submitOrder(order, optionIndex);

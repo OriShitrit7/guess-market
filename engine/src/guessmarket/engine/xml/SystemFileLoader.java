@@ -1,13 +1,7 @@
 package guessmarket.engine.xml;
 
-import guessmarket.engine.exception.file.FileDoesNotExistException;
-import guessmarket.engine.exception.file.FileReadFailedException;
-import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.file.MalformedPathException;
-import guessmarket.engine.exception.file.MalformedXmlException;
-import guessmarket.engine.exception.file.NotAFileException;
-import guessmarket.engine.exception.file.NotXmlFileException;
-import guessmarket.engine.exception.file.UnexpectedXmlStructureException;
+import guessmarket.engine.exception.file.FileErrorCode;
+import guessmarket.engine.exception.file.InvalidFileException;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.model.User;
 import guessmarket.engine.model.UsersRegistry;
@@ -64,14 +58,14 @@ public class SystemFileLoader {
             Object root = unmarshaller.unmarshal(path.toFile());
 
             if (!(root instanceof GuessMarket guessMarket)) {
-                throw new UnexpectedXmlStructureException(path);
+                throw new InvalidFileException(FileErrorCode.UNEXPECTED_XML_STRUCTURE, path.getFileName());
             }
             return guessMarket;
 
         } catch (UnmarshalException e) {
             throw translateUnmarshalFailure(path, e);
         } catch (JAXBException e) {
-            throw new MalformedXmlException(path);
+            throw new InvalidFileException(FileErrorCode.MALFORMED_XML, e, path.getFileName());
         }
     }
 
@@ -81,13 +75,13 @@ public class SystemFileLoader {
         Throwable cause = e.getLinkedException();
 
         if (cause instanceof SAXParseException parseError) {
-            return new MalformedXmlException(path, parseError.getLineNumber(),
-                    parseError.getColumnNumber(), parseError.getMessage());
+            return new InvalidFileException(FileErrorCode.MALFORMED_XML_AT_LOCATION, parseError,
+                    path.getFileName(), parseError.getLineNumber(), parseError.getColumnNumber(), parseError.getMessage());
         }
         if (cause instanceof IOException) {
-            return new FileReadFailedException(path);
+            return new InvalidFileException(FileErrorCode.FILE_READ_FAILED, cause, path);
         }
-        return new UnexpectedXmlStructureException(path, e.getMessage());
+        return new InvalidFileException(FileErrorCode.UNEXPECTED_XML_STRUCTURE_DETAILS, e, path.getFileName(), e.getMessage());
     }
 
     // Validates the path, file type and XML extension before attempting to read the document.
@@ -98,17 +92,18 @@ public class SystemFileLoader {
         try {
             path = Path.of(pathText);
         } catch (InvalidPathException e) {
-            throw new MalformedPathException(pathText);
+            throw new InvalidFileException(FileErrorCode.MALFORMED_PATH, e, pathText);
         }
 
         if (!Files.exists(path)) {
-            throw new FileDoesNotExistException(path);
+            throw new InvalidFileException(FileErrorCode.FILE_NOT_FOUND, path);
         }
         if (!Files.isRegularFile(path)) {
-            throw new NotAFileException(path);
+            throw new InvalidFileException(FileErrorCode.NOT_A_FILE, path);
         }
         if (!hasXmlExtension(path)) {
-            throw new NotXmlFileException(path);
+            Path fileName = path.getFileName();
+            throw new InvalidFileException(FileErrorCode.NOT_XML_FILE, fileName != null ? fileName : path);
         }
         return path;
     }

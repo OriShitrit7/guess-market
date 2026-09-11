@@ -1,7 +1,6 @@
 package guessmarket.engine.model;
 
-import guessmarket.engine.trading.TradingMethod;
-import guessmarket.engine.trading.TradingMethodType;
+import guessmarket.engine.trading.*;
 
 import java.util.List;
 
@@ -12,9 +11,9 @@ public class MarketEvent {
     private final int eventId;
     private final String eventName;
     private final String description;
-    private EventStatus status = EventStatus.ACTIVE;
+    private EventStatus status = EventStatus.NOT_STARTED;
 
-    private User marketMaker;
+    private String marketMakerName;
 
     private final List<MarketOption> options;
     private MarketOption winningOption;
@@ -49,12 +48,12 @@ public class MarketEvent {
         return status;
     }
 
-    public User getMarketMaker() {
-        return marketMaker;
+    public String getMarketMakerName() {
+        return marketMakerName;
     }
 
-    public void setMarketMaker(User marketMaker) {
-        this.marketMaker = marketMaker;
+    public void setMarketMakerName(String marketMakerName) {
+        this.marketMakerName = marketMakerName;
     }
     
     public List<MarketOption> getOptions() {
@@ -87,56 +86,93 @@ public class MarketEvent {
 
     // Calculates the current value of each option from the number of shares purchased.
     public double[] getOptionsValues() {
-        return tradingMethod.calcOptionsValues(getSharesCountPerOption());
+        return getLmsrTradingMethod().calcOptionsValues(getSharesCountPerOption());
     }
 
-    // Calculates and deposits the initial subsidy required by the trading method.
-    public void processInitialSubsidy() {
-        account.recordSubsidy(tradingMethod.calcInitialSubsidy(options.size()));
+    public boolean isMarketMaker(String userName) {
+        return userName.equals(marketMakerName);
+    }
+
+     public void open() {
+        int sharesPerOption = tradingMethod.calcInitialSharesPerOption();
+
+        account.processSubsidy(calcOpeningCost());
+        options.forEach(option -> option.addShares(sharesPerOption));
+
+        status = EventStatus.ACTIVE;
+    }
+
+    // Marks the event as resolved. The payouts themselves are performed by the caller.
+    public void close(int winningOptionIndex) {
+        winningOption = options.get(winningOptionIndex);
+        status = EventStatus.CLOSED;
+    }
+
+    public void recordPayout(double amount) {
+        account.payOut(amount);
+    }
+
+    public void collectCommission(double amount) {
+        account.collectCommission(amount);
     }
 
     // Purchases shares in an option and records the resulting payment in the event account.
-    public Trade buyShares(int optionIndex, int quantity) {
+    public Trade buyShares(String buyerName, int optionIndex, int quantity) {
         MarketOption option = options.get(optionIndex);
 
         double sharesCost = calcSharesCost(optionIndex, quantity);
         double commissionCost = commissionConfig.calcPurchaseCommission(sharesCost);
 
         option.addShares(quantity);
-        Trade trade = new Trade(option, quantity, sharesCost, commissionCost);
-        account.recordPurchase(trade);
+        Trade trade = new Trade(buyerName, option, quantity, sharesCost, commissionCost);
+        account.processPurchase(trade);
 
         return trade;
     }
+    public List<OrderMatch> submitOrder(String userName, int optionIndex, OrderAction action,
+                                        int quantity, double pricePerShare) {
+        return getOrderBookTradingMethod()
+                .submitOrder(userName, optionIndex, action, quantity, pricePerShare);
+    }
 
-    // Closes the event, collects any closing commission and pays the winning shares.
-    public void close(int winningOptionIndex) {
-        MarketOption winner = options.get(winningOptionIndex);
+    public boolean isValidOrderPrice(double pricePerShare) {
+        return getOrderBookTradingMethod().isValidOrderPrice(pricePerShare);
+    }
 
-        double commissionCost = commissionConfig.calcCloseCommission(calcInvestedIn(winner));
-        double payout = calcPayout(winner, commissionCost);
+    public int getPendingSellQuantity(String userName, int optionIndex) {
+        return getOrderBookTradingMethod().getPendingSellQuantity(userName, optionIndex);
+    }
 
-        account.recordClose(commissionCost, payout);
+    public double calcPurchaseCommission(double amount) {
+        return commissionConfig.calcPurchaseCommission(amount);
+    }
 
-        winningOption = winner;
-        status = EventStatus.CLOSED;
+    public int calcInitialSharesPerOption() {
+        return tradingMethod.calcInitialSharesPerOption();
+    }
+
+    private OrderBookTradingMethod getOrderBookTradingMethod() {
+        if (tradingMethod instanceof OrderBookTradingMethod orderBookTradingMethod) {
+            return orderBookTradingMethod;
+        }
+        throw new IllegalStateException("Event '" + eventName + "' does not use the Order Book trading method");
+    }
+    public double calcOpeningCost() {
+        return tradingMethod.calcOpeningCost(options.size());
     }
 
     // Calculates the price of a purchase without changing the current event state.
     private double calcSharesCost(int optionIndex, int sharesToBuy) {
-        return tradingMethod.calcSharesCost(getSharesCountPerOption(), optionIndex, sharesToBuy);
+        return getLmsrTradingMethod().calcSharesCost(getSharesCountPerOption(), optionIndex, sharesToBuy);
     }
 
-    private double calcPayout(MarketOption winner, double commissionCost) {
-        return tradingMethod.calcWinningPayout(winner.getTotalSharesBought()) - commissionCost;
+
+    public double calcWinningPayout(int winningShares) {
+        return tradingMethod.calcWinningPayout(winningShares);
     }
 
-    // Uses share costs only because purchase commission is not part of the winning investment.
-    private double calcInvestedIn(MarketOption option) {
-        return account.getTradeHistory().stream()
-                .filter(trade -> trade.getOption() == option)
-                .mapToDouble(Trade::getSharesCost)
-                .sum();
+    public double calcCloseCommission(double payout) {
+        return commissionConfig.calcCloseCommission(payout);
     }
 
     private int[] getSharesCountPerOption() {
@@ -144,4 +180,12 @@ public class MarketEvent {
                 .mapToInt(MarketOption::getTotalSharesBought)
                 .toArray();
     }
+
+    private LmsrTradingMethod getLmsrTradingMethod() {
+        if (tradingMethod instanceof LmsrTradingMethod lmsrTradingMethod) {
+            return lmsrTradingMethod;
+        }
+        throw new IllegalStateException("Event '" + eventName + "' does not use the LMSR trading method");
+    }
+
 }

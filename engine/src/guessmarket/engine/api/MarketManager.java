@@ -3,9 +3,12 @@ package guessmarket.engine.api;
 import guessmarket.dto.EventParticipationDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
+import guessmarket.dto.OrderActionDto;
+import guessmarket.dto.OrderResultDto;
 import guessmarket.dto.PurchaseResultDto;
+import guessmarket.dto.UserInvolvementDto;
 import guessmarket.dto.UserSummaryDto;
-import guessmarket.engine.exception.InvalidFileException;
+import guessmarket.engine.exception.file.InvalidFileException;
 
 import java.util.List;
 
@@ -28,9 +31,17 @@ public interface MarketManager {
 
     List<EventParticipationDto> getUserEvents(String userName);
 
-    // Purchases a positive quantity of shares using the zero-based option index.
-    PurchaseResultDto buyShares(int eventId, int optionIndex, int quantity);
+    // Returns the named user's own trades in the requested event, newest first.
+    UserInvolvementDto getUserInvolvement(String userName, int eventId);
+
+    // Purchases a positive quantity of shares for the named user, using the zero-based option index.
+    PurchaseResultDto buyShares(String userName, int eventId, int optionIndex, int quantity);
+
+    OrderResultDto submitOrder(String userName, int eventId, int optionIndex, OrderActionDto action,
+                               int quantity, double pricePerShare);
+
+    EventTradingStateDto openEvent(String userName, int eventID);
 
     // Closes an active event using the zero-based index of its winning option.
-    EventTradingStateDto closeEvent(int eventId, int winningOptionIndex);
+    EventTradingStateDto closeEvent(String userName, int eventId, int winningOptionIndex);
 }

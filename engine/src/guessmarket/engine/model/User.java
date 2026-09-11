@@ -32,6 +32,12 @@ public class User {
         return Collections.unmodifiableMap(positions);
     }
 
+    public int getQuantityInEvent(int eventId, MarketOption option) {
+        Position position = positions.get(eventId);
+
+        return position == null ? 0 : position.getPositionQuantityByOption(option);
+    }
+
     public void deposit(double amount) {
         balance += amount;
     }
@@ -44,8 +50,25 @@ public class User {
         }
     }
 
+    public boolean hasSufficientBalance(double amount) {
+        return balance >= amount;
+    }
+
     public void recordPurchase(int eventId, Trade trade) {
         positionFor(eventId).recordPurchase(trade);
+    }
+
+    public void addShares(int eventId, MarketOption option, int quantity, double amountPaid) {
+        positionFor(eventId).addShares(option, quantity, amountPaid);
+    }
+
+    public void removeShares(int eventId, MarketOption option, int quantity) {
+        positionFor(eventId).removeShares(option, quantity);
+    }
+
+    // Creates an empty position so a user with only a resting order still counts as a participant.
+    public void joinEvent(int eventId) {
+        positionFor(eventId);
     }
 
     public void recordCommission(int eventId, double amount) {

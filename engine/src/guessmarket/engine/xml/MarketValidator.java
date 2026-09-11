@@ -1,11 +1,7 @@
 package guessmarket.engine.xml;
 
-import guessmarket.engine.exception.file.CommissionOutOfRangeException;
-import guessmarket.engine.exception.file.DuplicateEventIdException;
-import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.file.InvalidInitialBalanceException;
-import guessmarket.engine.exception.file.InvalidMarketMakerException;
-import guessmarket.engine.exception.file.WrongOptionCountException;
+import guessmarket.engine.exception.file.FileErrorCode;
+import guessmarket.engine.exception.file.InvalidFileException;
 import guessmarket.engine.model.CommissionConfig;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.model.User;
@@ -33,42 +29,45 @@ public class MarketValidator {
         }
     }
 
-    private void validateUniqueEventIds(List<MarketEvent> events) throws DuplicateEventIdException {
+    private void validateUniqueEventIds(List<MarketEvent> events) throws InvalidFileException {
         Map<Integer, String> namesById = new HashMap<>();
 
         for (MarketEvent event : events) {
             String existingName = namesById.putIfAbsent(event.getEventId(), event.getEventName());
 
             if (existingName != null) {
-                throw new DuplicateEventIdException(event.getEventName(), existingName, event.getEventId());
+                throw new InvalidFileException(FileErrorCode.DUPLICATE_EVENT_ID,
+                        event.getEventName(), event.getEventId(), existingName);
             }
         }
     }
 
-    private void validateCommission(MarketEvent event) throws CommissionOutOfRangeException {
+    private void validateCommission(MarketEvent event) throws InvalidFileException {
         int commissionPercent = event.getCommissionPercent();
 
         if (commissionPercent < CommissionConfig.MIN_COMMISSION_PERCENT
                 || commissionPercent > CommissionConfig.MAX_COMMISSION_PERCENT) {
-            throw new CommissionOutOfRangeException(event.getEventName(), commissionPercent);
+            throw new InvalidFileException(FileErrorCode.COMMISSION_OUT_OF_RANGE, event.getEventName(), commissionPercent,
+                    CommissionConfig.MIN_COMMISSION_PERCENT, CommissionConfig.MAX_COMMISSION_PERCENT);
         }
     }
 
-    private void validateOptionCount(MarketEvent event) throws WrongOptionCountException {
+    private void validateOptionCount(MarketEvent event) throws InvalidFileException {
         if (event.getOptionCount() != MarketEvent.REQUIRED_OPTION_COUNT) {
-            throw new WrongOptionCountException(event.getEventName(), event.getOptionCount());
+            throw new InvalidFileException(FileErrorCode.WRONG_OPTION_COUNT,
+                    event.getEventName(), event.getOptionCount(), MarketEvent.REQUIRED_OPTION_COUNT);
         }
     }
 
-    private void validateMarketMaker(MarketEvent event) throws InvalidMarketMakerException {
-        if (event.getMarketMaker() == null) {
-            throw new InvalidMarketMakerException(event.getEventName());
+    private void validateMarketMaker(MarketEvent event) throws InvalidFileException {
+        if (event.getMarketMakerName() == null) {
+            throw new InvalidFileException(FileErrorCode.MARKET_MAKER_MISSING, event.getEventName());
         }
     }
 
-    private void validateInitialBalance(User user) throws InvalidInitialBalanceException {
+    private void validateInitialBalance(User user) throws InvalidFileException {
         if (user.getBalance() <= 0) {
-            throw new InvalidInitialBalanceException(user.getName(), user.getBalance());
+            throw new InvalidFileException(FileErrorCode.INVALID_INITIAL_BALANCE, user.getName(), user.getBalance());
         }
     }
 

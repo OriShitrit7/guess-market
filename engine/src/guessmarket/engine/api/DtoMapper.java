@@ -24,7 +24,7 @@ public class DtoMapper {
 
         return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
                 event.getAccount().getTotalCommissionCollected(),
-                createTradeDtos(event),
+                createTradeDtos(event.getAccount().getTradeHistory()),
                 winner == null ? null : winner.getName());
     }
 
@@ -32,12 +32,24 @@ public class DtoMapper {
         return new UserSummaryDto(user.getName(), user.getBalance(), user.isBlocked());
     }
 
+    UserInvolvementDto createUserInvolvement(MarketEvent event, User user) {
+        List<Trade> userTrades = event.getAccount().getTradeHistory().stream()
+                .filter(trade -> trade.getBuyerName().equals(user.getName()))
+                .toList();
+
+        return new UserInvolvementDto(createTradeDtos(userTrades), sumCommissionPaid(userTrades));
+    }
+
     EventParticipationDto createEventParticipation(MarketEvent event, User user) {
-        return new EventParticipationDto(createEventSummary(event), event.getMarketMaker() == user,
+        return new EventParticipationDto(createEventSummary(event), event.isMarketMaker(user.getName()),
                 user.getPositions().containsKey(event.getEventId()));
     }
 
     private List<OptionStateDto> createOptionStates(MarketEvent event) {
+        if (event.getMethodType() != TradingMethodType.LMSR) {
+            return List.of();
+        }
+
         List<OptionStateDto> states = new ArrayList<>();
 
         List<MarketOption> options = event.getOptions();
@@ -52,14 +64,17 @@ public class DtoMapper {
 
 
     // Converts trade history to DTOs in reverse order so the newest purchases appear first.
-    private List<TradeDto> createTradeDtos(MarketEvent event) {
-        List<Trade> trades = event.getAccount().getTradeHistory();
+    private List<TradeDto> createTradeDtos(List<Trade> trades) {
         List<TradeDto> tradeDtos = new ArrayList<>();
 
         for (int i = trades.size() - 1; i >= 0; i--) {
             tradeDtos.add(createTradeDto(trades.get(i)));
         }
         return tradeDtos;
+    }
+
+    private double sumCommissionPaid(List<Trade> trades) {
+        return trades.stream().mapToDouble(Trade::getCommissionCost).sum();
     }
 
     TradeDto createTradeDto(Trade trade) {

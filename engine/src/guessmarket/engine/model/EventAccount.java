@@ -23,32 +23,27 @@ public class EventAccount {
     }
 
     // Adds the initial market subsidy to the event balance.
-    void recordSubsidy(double amount) {
+    void processSubsidy(double amount) {
         deposit(amount);
     }
 
-    // Records the payment, commission and history entry created by a completed purchase.
-    void recordPurchase(Trade trade) {
-        deposit(trade.getSharesCost() + trade.getCommissionCost());
-        updateTotalCommission(trade.getCommissionCost());
+    // Process the payment, commission and history entry created by a completed purchase.
+    void processPurchase(Trade trade) {
+        deposit(trade.getSharesCost());
         tradeHistory.add(trade);
     }
 
-    // Records the commission and payout applied when the event is closed.
-    void recordClose(double commissionCost, double payout) {
-        updateTotalCommission(commissionCost);
-        withdraw(payout);
+    // Records a payout leaving the event account.
+    void payOut(double amount) {
+        balance -= amount;
+    }
+
+    // Records commission collected from a payout on behalf of the market maker.
+    void collectCommission(double amount) {
+        totalCommissionCollected += amount;
     }
 
     private void deposit(double amount) {
         balance += amount;
-    }
-
-    private void withdraw(double amount) {
-        balance -= amount;
-    }
-
-    private void updateTotalCommission(double commission) {
-        totalCommissionCollected += commission;
     }
 }

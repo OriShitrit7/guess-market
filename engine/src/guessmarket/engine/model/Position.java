@@ -16,10 +16,29 @@ public class Position {
         return totalCommissionPaid;
     }
 
+    public int getPositionQuantityByOption(MarketOption option) {
+        if (holdings.containsKey(option)) {
+            return holdings.get(option).getQuantity();
+        }
+        return 0;
+    }
+
     void recordPurchase(Trade trade) {
-        holdings.computeIfAbsent(trade.getOption(), option -> new OptionHolding())
-                .add(trade.getQuantity(), trade.getSharesCost());
+        addShares(trade.getOption(), trade.getQuantity(), trade.getSharesCost());
         recordCommission(trade.getCommissionCost());
+    }
+
+    void addShares(MarketOption option, int quantity, double amountPaid) {
+        holdings.computeIfAbsent(option, ignored -> new OptionHolding()).add(quantity, amountPaid);
+    }
+
+    void removeShares(MarketOption option, int quantity) {
+        OptionHolding holding = holdings.get(option);
+
+        if (holding == null) {
+            throw new IllegalArgumentException("The user does not hold shares of this option.");
+        }
+        holding.remove(quantity);
     }
 
     void recordCommission(double amount) {

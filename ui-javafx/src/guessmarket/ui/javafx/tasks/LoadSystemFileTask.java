@@ -1,7 +1,7 @@
 package guessmarket.ui.javafx.tasks;
 
 import guessmarket.engine.api.MarketManager;
-import guessmarket.engine.exception.InvalidFileException;
+import guessmarket.engine.exception.file.InvalidFileException;
 import javafx.concurrent.Task;
 
 public class LoadSystemFileTask extends Task<Boolean> {

@@ -1,12 +1,7 @@
 package guessmarket.engine.xml;
 
-import guessmarket.engine.exception.file.InvalidEventIdException;
-import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.file.InvalidLiquidityException;
-import guessmarket.engine.exception.file.MissingAttributeException;
-import guessmarket.engine.exception.file.MissingElementException;
-import guessmarket.engine.exception.file.NoEventsException;
-import guessmarket.engine.exception.file.UnknownCommissionTypeException;
+import guessmarket.engine.exception.file.FileErrorCode;
+import guessmarket.engine.exception.file.InvalidFileException;
 import guessmarket.engine.model.CommissionConfig;
 import guessmarket.engine.model.CommissionPolicy;
 import guessmarket.engine.model.MarketEvent;
@@ -49,11 +44,11 @@ public class EventXmlMapper {
         return mappedEvents;
     }
 
-    private List<GMEvent> extractEvents(GuessMarket xmlRoot) throws NoEventsException {
+    private List<GMEvent> extractEvents(GuessMarket xmlRoot) throws InvalidFileException {
         GMEvents eventsElement = xmlRoot.getGMEvents();
 
         if (eventsElement == null || eventsElement.getGMEvent().isEmpty()) {
-            throw new NoEventsException();
+            throw new InvalidFileException(FileErrorCode.NO_EVENTS);
         }
         return eventsElement.getGMEvent();
     }
@@ -64,20 +59,23 @@ public class EventXmlMapper {
 
         // JAXB may use zero when a primitive integer value is missing or invalid.
         if (source.getId() <= 0) {
-            throw new InvalidEventIdException(eventNumber);
+            throw new InvalidFileException(FileErrorCode.INVALID_EVENT_ID, eventNumber);
         }
+
+        List<MarketOption> options = mapOptions(source, eventName);
 
         return new MarketEvent(source.getId(), eventName,
                 requireValue(source.getDescription(), eventName, DESCRIPTION_ELEMENT),
-                mapOptions(source, eventName), mapCommission(source, eventName, eventNumber),
-                mapTradingMethod(source, eventName));
+                options, mapCommission(source, eventName, eventNumber),
+                mapTradingMethod(source, eventName, options));
     }
 
-    private String mapEventName(GMEvent source, int eventNumber) throws MissingAttributeException {
+    private String mapEventName(GMEvent source, int eventNumber) throws InvalidFileException {
         String eventName = source.getName();
 
         if (eventName == null || eventName.isBlank()) {
-            throw new MissingAttributeException(EVENT_ENTITY, eventNumber, EVENT_ELEMENT, NAME_ATTRIBUTE);
+            throw new InvalidFileException(FileErrorCode.MISSING_ATTRIBUTE, EVENT_ENTITY, eventNumber,
+                    EVENT_ELEMENT, NAME_ATTRIBUTE);
         }
         return eventName.trim();
     }
@@ -88,11 +86,11 @@ public class EventXmlMapper {
         Commission commissionElement = source.getCommission();
 
         if (commissionElement == null) {
-            throw new MissingElementException(eventName, COMMISSION_ELEMENT);
+            throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, COMMISSION_ELEMENT);
         }
         if (commissionElement.getType() == null) {
-            throw new MissingAttributeException(EVENT_ENTITY, eventNumber, COMMISSION_ELEMENT,
-                    TYPE_ATTRIBUTE);
+            throw new InvalidFileException(FileErrorCode.MISSING_ATTRIBUTE, EVENT_ENTITY, eventNumber,
+                    COMMISSION_ELEMENT, TYPE_ATTRIBUTE);
         }
 
         String policyValue = commissionElement.getType().trim();
@@ -100,7 +98,7 @@ public class EventXmlMapper {
         CommissionPolicy policy = switch (policyValue) {
             case ON_PURCHASE_VALUE -> CommissionPolicy.ON_PURCHASE;
             case ON_CLOSE_VALUE -> CommissionPolicy.ON_CLOSE;
-            default -> throw new UnknownCommissionTypeException(eventName, policyValue);
+            default -> throw new InvalidFileException(FileErrorCode.UNKNOWN_COMMISSION_TYPE, eventName, policyValue);
         };
 
         return new CommissionConfig(commissionElement.getValue(), policy);
@@ -110,7 +108,7 @@ public class EventXmlMapper {
         GMOptions optionsElement = source.getGMOptions();
 
         if (optionsElement == null) {
-            throw new MissingElementException(eventName, OPTIONS_ELEMENT);
+            throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, OPTIONS_ELEMENT);
         }
 
         List<MarketOption> options = new ArrayList<>();
@@ -122,11 +120,12 @@ public class EventXmlMapper {
     }
 
     // Creates the configured trading method and reports an invalid liquidity value as a file error.
-    private TradingMethod mapTradingMethod(GMEvent source, String eventName) throws InvalidFileException {
+    private TradingMethod mapTradingMethod(GMEvent source, String eventName,
+                                           List<MarketOption> options) throws InvalidFileException {
         GMMethod methodElement = source.getGMMethod();
 
         if (methodElement == null) {
-            throw new MissingElementException(eventName, METHOD_ELEMENT);
+            throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, METHOD_ELEMENT);
         }
 
         GMLMSR lmsrElement = methodElement.getGMLMSR();
@@ -138,30 +137,30 @@ public class EventXmlMapper {
         GMOrderBook orderBookElement = methodElement.getGMOrderBook();
 
         if (orderBookElement != null) {
-            return mapOrderBookMethod(orderBookElement);
+            return mapOrderBookMethod(orderBookElement, options);
         }
-        throw new MissingElementException(eventName, TRADING_METHOD_ELEMENTS);
+        throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, TRADING_METHOD_ELEMENTS);
     }
 
-    private TradingMethod mapLmsrMethod(GMLMSR lmsrElement, String eventName) throws InvalidLiquidityException {
+    private TradingMethod mapLmsrMethod(GMLMSR lmsrElement, String eventName) throws InvalidFileException {
         try {
             return new LmsrTradingMethod(lmsrElement.getB());
         } catch (IllegalArgumentException e) {
-            throw new InvalidLiquidityException(eventName, lmsrElement.getB());
+            throw new InvalidFileException(FileErrorCode.INVALID_LIQUIDITY, e, eventName, lmsrElement.getB());
         }
     }
 
-    private TradingMethod mapOrderBookMethod(GMOrderBook orderBookElement) {
+    private TradingMethod mapOrderBookMethod(GMOrderBook orderBookElement, List<MarketOption> options) {
         return new OrderBookTradingMethod(orderBookElement.getD(),
-                Boolean.parseBoolean(orderBookElement.getAllowMint()), orderBookElement.getInitial());
+                Boolean.parseBoolean(orderBookElement.getAllowMint()), orderBookElement.getInitial(), options);
     }
 
     // Rejects an element that is absent from the file or carries no readable text.
-    private String requireValue(String rawText, String eventName, String elementName) throws MissingElementException {
+    private String requireValue(String rawText, String eventName, String elementName) throws InvalidFileException {
         String text = rawText == null ? "" : rawText.trim();
 
         if (text.isEmpty()) {
-            throw new MissingElementException(eventName, elementName);
+            throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, elementName);
         }
         return text;
     }

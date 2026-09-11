@@ -5,6 +5,7 @@ import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.OptionStateDto;
+import guessmarket.dto.UserInvolvementDto;
 import guessmarket.dto.UserSummaryDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import guessmarket.ui.javafx.components.main.MainController;
@@ -13,6 +14,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -27,6 +29,7 @@ public class UsersController {
     private static final String COMMISSION_FORMAT = "%d%% %s";
     private static final String OPEN_EVENT = "Open Event";
     private static final String CLOSE_EVENT = "Close Event";
+    private static final int OPTION_COUNT = 2;
 
     private MainController mainController;
 
@@ -74,12 +77,24 @@ public class UsersController {
     private Label secondOptionPriceLabel;
 
     @FXML
+    private TableView<TradeTableRow> userTradesTable;
+    @FXML
+    private TableColumn<TradeTableRow, String> tradeOptionColumn;
+    @FXML
+    private TableColumn<TradeTableRow, Number> tradeSharesColumn;
+    @FXML
+    private TableColumn<TradeTableRow, Number> tradePaidColumn;
+    @FXML
+    private Label totalCommissionPaidLabel;
+
+    @FXML
     private Button changeEventStatusButton;
     @FXML
     private Button buySharesButton;
 
     private final ObservableList<UserTableRow> users = FXCollections.observableArrayList();
     private final ObservableList<UserEventTableRow> userEvents = FXCollections.observableArrayList();
+    private final ObservableList<TradeTableRow> userTrades = FXCollections.observableArrayList();
 
     @FXML
     private void initialize() {
@@ -88,6 +103,7 @@ public class UsersController {
 
         initUsersTable();
         initUserEventsTable();
+        initUserTradesTable();
         initSelectionListeners();
 
         clearUserDetails();
@@ -127,6 +143,21 @@ public class UsersController {
         userEventRoleColumn.setCellValueFactory(new PropertyValueFactory<>("role"));
 
         userEventsTable.setItems(userEvents);
+    }
+
+    private void initUserTradesTable() {
+        tradeOptionColumn.setCellValueFactory(new PropertyValueFactory<>("optionName"));
+        tradeSharesColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        tradePaidColumn.setCellValueFactory(new PropertyValueFactory<>("sharesCost"));
+        tradePaidColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(Number value, boolean empty) {
+                super.updateItem(value, empty);
+                setText(empty || value == null ? null : String.format(AMOUNT_FORMAT, value.doubleValue()));
+            }
+        });
+
+        userTradesTable.setItems(userTrades);
     }
 
     private void initSelectionListeners() {
@@ -173,6 +204,17 @@ public class UsersController {
         showEventSummary(state.getSummary());
         showOptionPrices(state.getOptions());
         showActionButtons(state.getSummary().getStatus(), selectedEvent.isMarketMaker());
+        showUserTrades(selectedEvent.getEventId());
+    }
+
+    private void showUserTrades(int eventId) {
+        String userName = usersTable.getSelectionModel().getSelectedItem().getName();
+        UserInvolvementDto involvement =
+                mainController.getMarketManager().getUserInvolvement(userName, eventId);
+
+        userTrades.setAll(involvement.getTrades().stream().map(TradeTableRow::new).toList());
+        totalCommissionPaidLabel.setText(
+                String.format(AMOUNT_FORMAT, involvement.getTotalCommissionPaid()));
     }
 
     private void showEventSummary(EventSummaryDto summary) {
@@ -185,6 +227,10 @@ public class UsersController {
     }
 
     private void showOptionPrices(List<OptionStateDto> options) {
+        if (options.size() < OPTION_COUNT) {
+            clearOptionPrices();
+            return;
+        }
         showOptionPrice(options.get(0), firstOptionNameLabel, firstOptionPriceLabel);
         showOptionPrice(options.get(1), secondOptionNameLabel, secondOptionPriceLabel);
     }
@@ -213,6 +259,9 @@ public class UsersController {
         eventAccountLabel.setText(EMPTY_AMOUNT);
 
         clearOptionPrices();
+
+        userTrades.clear();
+        totalCommissionPaidLabel.setText(EMPTY_AMOUNT);
 
         changeEventStatusButton.setDisable(true);
         buySharesButton.setDisable(true);

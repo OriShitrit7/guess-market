@@ -1,6 +1,7 @@
 package guessmarket.engine.model;
 
-import guessmarket.engine.exception.file.DuplicateUserNameException;
+import guessmarket.engine.exception.file.FileErrorCode;
+import guessmarket.engine.exception.file.InvalidFileException;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -18,12 +19,10 @@ public class UsersRegistry {
         return users.get(username);
     }
 
-    public void addUser(User user) throws DuplicateUserNameException {
+    public void addUser(User user) throws InvalidFileException {
         if (users.containsKey(user.getName())) {
-            throw new DuplicateUserNameException(user.getName());
+            throw new InvalidFileException(FileErrorCode.DUPLICATE_USER_NAME, user.getName());
         }
         users.put(user.getName(), user);
     }
 }
-
-

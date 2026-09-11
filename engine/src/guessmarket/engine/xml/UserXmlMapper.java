@@ -1,9 +1,7 @@
 package guessmarket.engine.xml;
 
-import guessmarket.engine.exception.InvalidFileException;
-import guessmarket.engine.exception.file.InvalidMarketMakerException;
-import guessmarket.engine.exception.file.MissingAttributeException;
-import guessmarket.engine.exception.file.NoUsersException;
+import guessmarket.engine.exception.file.FileErrorCode;
+import guessmarket.engine.exception.file.InvalidFileException;
 import guessmarket.engine.model.MarketEvent;
 import guessmarket.engine.model.User;
 import guessmarket.engine.xml.generated.*;
@@ -33,26 +31,28 @@ public class UserXmlMapper {
         return mappedUsers;
     }
 
-    private List<GMUser> extractUsers(GuessMarket xmlRoot) throws NoUsersException {
+    private List<GMUser> extractUsers(GuessMarket xmlRoot) throws InvalidFileException {
         GMUsers usersElement = xmlRoot.getGMUsers();
 
         if (usersElement == null || usersElement.getGMUser().isEmpty()) {
-            throw new NoUsersException();
+            throw new InvalidFileException(FileErrorCode.NO_USERS);
         }
         return usersElement.getGMUser();
     }
 
-    private User mapUser(GMUser xmlUser, int userNumber) throws MissingAttributeException {
+    private User mapUser(GMUser xmlUser, int userNumber) throws InvalidFileException {
         String userName = xmlUser.getName();
 
         if (userName == null || userName.isBlank()) {
-            throw new MissingAttributeException(USER_ENTITY, userNumber, USER_ELEMENT, NAME_ATTRIBUTE);
+            throw new InvalidFileException(FileErrorCode.MISSING_ATTRIBUTE,
+                    USER_ENTITY, userNumber, USER_ELEMENT, NAME_ATTRIBUTE);
         }
         return new User(userName.trim(), xmlUser.getInitialCash());
     }
 
     // Links every event the user declares to that user, rejecting unknown and already taken events.
-    private void assignMarketMakerEvents(GMUser xmlUser, User user, Map<Integer, MarketEvent> eventsById) throws InvalidMarketMakerException {
+    private void assignMarketMakerEvents(GMUser xmlUser, User user, Map<Integer, MarketEvent> eventsById)
+            throws InvalidFileException {
         GMMarketMaker marketMakerElement = xmlUser.getGMMarketMaker();
 
         if (marketMakerElement == null) {
@@ -63,13 +63,14 @@ public class UserXmlMapper {
             MarketEvent event = eventsById.get(eventReference.getId());
 
             if (event == null) {
-                throw new InvalidMarketMakerException(user.getName(), eventReference.getId());
+                throw new InvalidFileException(FileErrorCode.MARKET_MAKER_UNKNOWN_EVENT,
+                        user.getName(), eventReference.getId());
             }
-            if (event.getMarketMaker() != null) {
-                throw new InvalidMarketMakerException(event.getEventName(),
-                        event.getMarketMaker().getName(), user.getName());
+            if (event.getMarketMakerName() != null) {
+                throw new InvalidFileException(FileErrorCode.MARKET_MAKER_ALREADY_ASSIGNED,
+                        event.getEventName(), event.getMarketMakerName(), user.getName());
             }
-            event.setMarketMaker(user);
+            event.setMarketMakerName(user.getName());
         }
     }
 

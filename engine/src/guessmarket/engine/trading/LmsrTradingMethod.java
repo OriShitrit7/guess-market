@@ -24,13 +24,23 @@ public class LmsrTradingMethod extends TradingMethod {
 
     // Calculates the initial subsidy C(0) = b * ln(optionCount).
     @Override
-    public double calcInitialSubsidy(int optionCount) {
+    public double calcOpeningCost(int optionCount) {
         return calcCost(new int[optionCount]);
+    }
+
+    @Override
+    public int calcInitialSharesPerOption() {
+        return 0;
+    }
+
+    // Calculates the payout using the fixed value of one dollar per winning share.
+    @Override
+    public double calcWinningPayout(int winningShares) {
+        return winningShares * WINNING_SHARE_VALUE;
     }
 
     // Calculates normalized option values from exp(q_i / b).
     // Each value is between zero and one, and all values sum to one.
-    @Override
     public double[] calcOptionsValues(int[] quantities) {
         double maximumExponent = findMaximumExponent(quantities);
         double[] values = calcExponents(quantities, maximumExponent);
@@ -52,18 +62,11 @@ public class LmsrTradingMethod extends TradingMethod {
     }
 
     // Calculates a purchase price as the difference between the market cost before and after it.
-    @Override
     public double calcSharesCost(int[] quantitiesBefore, int optionIndex, int sharesToBuy) {
         int[] quantitiesAfter = quantitiesBefore.clone();
         quantitiesAfter[optionIndex] += sharesToBuy;
 
         return calcCost(quantitiesAfter) - calcCost(quantitiesBefore);
-    }
-
-    // Calculates the payout using the fixed value of one dollar per winning share.
-    @Override
-    public double calcWinningPayout(int winningShares) {
-        return winningShares * WINNING_SHARE_VALUE;
     }
 
     // Calculates exponentials relative to the largest q_i / b value.

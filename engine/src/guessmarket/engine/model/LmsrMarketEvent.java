@@ -1,36 +1,65 @@
-package guessmarket.engine.trading;
+package guessmarket.engine.model;
 
-// Implements the LMSR formulas used to price shares and calculate option values.
-// Shifted exponents keep the calculations stable for large share quantities.
-public class LmsrTradingMethod extends TradingMethod {
+import java.util.ArrayList;
+import java.util.List;
+
+public class LmsrMarketEvent extends MarketEvent {
 
     // Each winning share pays one dollar when the event closes.
     private static final double WINNING_SHARE_VALUE = 1.0;
 
     // Positive LMSR liquidity parameter that controls price sensitivity.
     private final int b;
+    private final List<Trade> tradeHistory = new ArrayList<>();
 
-    public LmsrTradingMethod(int b) {
-        if (b <= 0) {
-            throw new IllegalArgumentException("b must be greater than 0, but was " + b);
-        }
+    public LmsrMarketEvent(int eventId, String eventName, String description, List<MarketOption> options,
+                           CommissionConfig commissionConfig, int b) {
+        super(eventId, eventName, description, options, commissionConfig);
         this.b = b;
     }
 
     @Override
-    public TradingMethodType getType() {
+    public TradingMethodType getMethodType() {
         return TradingMethodType.LMSR;
     }
 
     // Calculates the initial subsidy C(0) = b * ln(optionCount).
     @Override
-    public double calcOpeningCost(int optionCount) {
-        return calcCost(new int[optionCount]);
+    public double calcOpeningCost() {
+        return calcCost(new int[getOptionCount()]);
     }
 
     @Override
     public int calcInitialSharesPerOption() {
         return 0;
+    }
+
+    @Override
+    public double calcInitialAmountPerOption() {
+        return 0;
+    }
+
+    public List<Trade> getTradeHistory() {
+        return List.copyOf(tradeHistory);
+    }
+
+    public double[] getOptionsValues() {
+        return calcOptionsValues(getSharesCountPerOption());
+    }
+
+    // Prices the purchase and records it. The caller moves the money.
+    public Trade buyShares(String buyerName, int optionIndex, int quantity) {
+        MarketOption option = getOptions().get(optionIndex);
+        double sharesCost = calcSharesCost(getSharesCountPerOption(), optionIndex, quantity);
+        Trade trade = new Trade(buyerName, option, quantity, sharesCost, calcPurchaseCommission(sharesCost));
+
+        option.addShares(quantity);
+        tradeHistory.add(trade);
+        return trade;
+    }
+
+    private int[] getSharesCountPerOption() {
+        return getOptions().stream().mapToInt(MarketOption::getTotalSharesBought).toArray();
     }
 
     // Calculates the payout using the fixed value of one dollar per winning share.
@@ -62,14 +91,14 @@ public class LmsrTradingMethod extends TradingMethod {
     }
 
     // Calculates a purchase price as the difference between the market cost before and after it.
-    public double calcSharesCost(int[] quantitiesBefore, int optionIndex, int sharesToBuy) {
+    private double calcSharesCost(int[] quantitiesBefore, int optionIndex, int sharesToBuy) {
         int[] quantitiesAfter = quantitiesBefore.clone();
         quantitiesAfter[optionIndex] += sharesToBuy;
 
         return calcCost(quantitiesAfter) - calcCost(quantitiesBefore);
     }
 
-    // Calculates exponentials relative to the largest q_i / b value.
+    // Calculates exponential values relative to the largest q_i / b value.
     private double[] calcExponents(int[] quantities, double maximumExponent) {
         double[] exponents = new double[quantities.length];
 

@@ -4,6 +4,7 @@ import guessmarket.dto.EventParticipationDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.OrderActionDto;
+import guessmarket.dto.OrderBookStateDto;
 import guessmarket.dto.OrderResultDto;
 import guessmarket.dto.PurchaseResultDto;
 import guessmarket.dto.UserInvolvementDto;
@@ -21,11 +22,11 @@ public interface MarketManager {
     // Returns a summary of every loaded event.
     List<EventSummaryDto> getEventSummaries();
 
-    // Returns a summary of the loaded events that are still active.
-    List<EventSummaryDto> getActiveEventSummaries();
-
     // Returns the current account, option and trade state of the requested event.
     EventTradingStateDto getEventTradingState(int eventId);
+
+    // Returns the books, statistics and participants of the requested order book event.
+    OrderBookStateDto getOrderBookState(int eventId);
 
     List<UserSummaryDto> getUserSummaries();
 

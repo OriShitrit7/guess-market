@@ -75,6 +75,14 @@ public class User {
         positionFor(eventId).recordCommission(amount);
     }
 
+    public void recordSale(int eventId, double amount) {
+        positionFor(eventId).recordSale(amount);
+    }
+
+    public void recordPayout(int eventId, double amount) {
+        positionFor(eventId).recordPayout(amount);
+    }
+
     private Position positionFor(int eventId) {
         return positions.computeIfAbsent(eventId, id -> new Position());
     }

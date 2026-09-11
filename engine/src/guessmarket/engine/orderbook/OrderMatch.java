@@ -1,4 +1,4 @@
-package guessmarket.engine.trading;
+package guessmarket.engine.orderbook;
 
 public class OrderMatch {
     private final String buyerName;

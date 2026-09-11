@@ -1,4 +1,4 @@
-package guessmarket.engine.trading;
+package guessmarket.engine.model;
 
 public enum TradingMethodType {
     LMSR,

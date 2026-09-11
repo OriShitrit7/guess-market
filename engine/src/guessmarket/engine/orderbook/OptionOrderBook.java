@@ -1,4 +1,4 @@
-package guessmarket.engine.trading;
+package guessmarket.engine.orderbook;
 
 import guessmarket.engine.model.MarketOption;
 
@@ -20,7 +20,7 @@ public class OptionOrderBook {
     private static final Comparator<Order> SELL_ORDER_COMPARATOR =
             Comparator.comparingDouble(Order::getPricePerShare)
                     .thenComparingLong(Order::getSequence);
-    
+
     public OptionOrderBook(MarketOption option) {
         this.option = option;
     }
@@ -41,6 +41,32 @@ public class OptionOrderBook {
         return lastTradePrice;
     }
 
+    // The highest price anyone is currently willing to pay, or null when no one is buying.
+    public Double getBid() {
+        return buyOrders.isEmpty() ? null : buyOrders.getFirst().getPricePerShare();
+    }
+
+    // The lowest price anyone is currently willing to sell at, or null when no one is selling.
+    public Double getAsk() {
+        return sellOrders.isEmpty() ? null : sellOrders.getFirst().getPricePerShare();
+    }
+
+    // The midpoint between BID and ASK, available only while both sides have orders.
+    public Double getMid() {
+        Double bid = getBid();
+        Double ask = getAsk();
+
+        return bid == null || ask == null ? null : (bid + ask) / 2;
+    }
+
+    // The gap between ASK and BID, available only while both sides have orders.
+    public Double getSpread() {
+        Double bid = getBid();
+        Double ask = getAsk();
+
+        return bid == null || ask == null ? null : ask - bid;
+    }
+
     public void addOrder(Order order) {
         if (order.getAction() == OrderAction.BUY) {
             buyOrders.add(order);
@@ -51,40 +77,51 @@ public class OptionOrderBook {
         }
     }
 
-    public List<OrderMatch> submitOrder(Order incomingOrder, int optionIndex) {
+    public void getEventData() {
+
+    }
+
+    // Plans matches without changing orders, the book, or LAST.
+    public List<OrderMatch> findMatches(Order incomingOrder, int optionIndex) {
         List<OrderMatch> matches = new ArrayList<>();
         List<Order> oppositeOrders = incomingOrder.getAction() == OrderAction.BUY
                 ? sellOrders
                 : buyOrders;
+        int remainingQuantity = incomingOrder.getRemainingQuantity();
 
-        while (!incomingOrder.isFilled() && !oppositeOrders.isEmpty()) {
-            Order bestOppositeOrder = oppositeOrders.getFirst();
-
-            if (!pricesMatch(incomingOrder, bestOppositeOrder)) {
+        for (Order bestOppositeOrder : oppositeOrders) {
+            if (remainingQuantity == 0 || !pricesMatch(incomingOrder, bestOppositeOrder)) {
                 break;
             }
 
-            int matchedQuantity = Math.min(incomingOrder.getRemainingQuantity(),
-                    bestOppositeOrder.getRemainingQuantity());
+            int matchedQuantity = Math.min(remainingQuantity, bestOppositeOrder.getRemainingQuantity());
             double executionPrice = bestOppositeOrder.getPricePerShare();
 
             matches.add(createMatch(incomingOrder, bestOppositeOrder, optionIndex,
                     matchedQuantity, executionPrice));
-            lastTradePrice = executionPrice;
+            remainingQuantity -= matchedQuantity;
+        }
+        return List.copyOf(matches);
+    }
 
-            incomingOrder.reduceRemainingQuantity(matchedQuantity);
-            bestOppositeOrder.reduceRemainingQuantity(matchedQuantity);
+    // Called by the event only after the planned matches have been settled successfully.
+    public void completeMatches(Order incomingOrder, List<OrderMatch> matches) {
+        List<Order> oppositeOrders = incomingOrder.getAction() == OrderAction.BUY ? sellOrders : buyOrders;
+        for (OrderMatch match : matches) {
+            Order bestOppositeOrder = oppositeOrders.getFirst();
+            incomingOrder.reduceRemainingQuantity(match.getQuantity());
+            bestOppositeOrder.reduceRemainingQuantity(match.getQuantity());
+            lastTradePrice = match.getPricePerShare();
 
             if (bestOppositeOrder.isFilled()) {
                 oppositeOrders.removeFirst();
             }
         }
+    }
 
-        if (!incomingOrder.isFilled()) {
-            addOrder(incomingOrder);
-        }
-
-        return matches;
+    public void clearOrders() {
+        buyOrders.clear();
+        sellOrders.clear();
     }
 
     private boolean pricesMatch(Order incomingOrder, Order bestOppositeOrder) {
@@ -110,10 +147,10 @@ public class OptionOrderBook {
         return new OrderMatch(buyerName, sellerName, optionIndex, quantity, executionPrice);
     }
 
-    public int getPendingSellQuantity(String userName) {
+    public long getPendingSellQuantity(String userName) {
         return sellOrders.stream()
                 .filter(order -> order.getUserName().equals(userName))
-                .mapToInt(Order::getRemainingQuantity)
+                .mapToLong(Order::getRemainingQuantity)
                 .sum();
     }
 }

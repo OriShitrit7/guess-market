@@ -1,4 +1,4 @@
-package guessmarket.engine.trading;
+package guessmarket.engine.orderbook;
 
 public class Order {
     private final String userName;
@@ -18,6 +18,7 @@ public class Order {
     public String getUserName() {
         return userName;
     }
+
     public OrderAction getAction() {
         return action;
     }

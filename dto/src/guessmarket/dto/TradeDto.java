@@ -2,6 +2,7 @@ package guessmarket.dto;
 
 // Carries the share and commission details of a completed purchase.
 public final class TradeDto {
+    private final String buyerName;
     private final String optionName;
     private final int quantity;
     // Cost of the purchased shares in dollars, excluding commission.
@@ -9,11 +10,17 @@ public final class TradeDto {
     // Commission charged for the purchase in dollars.
     private final double commissionCost;
 
-    public TradeDto(String optionName, int quantity, double sharesCost, double commissionCost) {
+    public TradeDto(String buyerName, String optionName, int quantity, double sharesCost,
+                    double commissionCost) {
+        this.buyerName = buyerName;
         this.optionName = optionName;
         this.quantity = quantity;
         this.sharesCost = sharesCost;
         this.commissionCost = commissionCost;
+    }
+
+    public String getBuyerName() {
+        return buyerName;
     }
 
     public String getOptionName() {

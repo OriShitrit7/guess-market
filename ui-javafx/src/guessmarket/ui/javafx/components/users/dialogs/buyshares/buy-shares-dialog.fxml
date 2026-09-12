@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ButtonType?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<DialogPane fx:id="dialogPane" headerText="Buy Shares" prefWidth="400.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.buyshares.BuySharesDialogController">
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+   <buttonTypes>
+      <ButtonType fx:constant="CANCEL" />
+      <ButtonType fx:id="buyButtonType" buttonData="OK_DONE" text="Buy" />
+   </buttonTypes>
+   <content>
+      <VBox spacing="15.0">
+         <children>
+            <GridPane hgap="10.0" maxWidth="1.7976931348623157E308">
+              <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
+                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" vgrow="NEVER" />
+              </rowConstraints>
+               <children>
+                  <ToggleButton fx:id="firstOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Option1" />
+                  <ToggleButton fx:id="secondOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Option2" GridPane.columnIndex="1" />
+               </children>
+            </GridPane>
+            <TextField fx:id="sharesField" maxWidth="1.7976931348623157E308" promptText="Shares" />
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+               <children>
+                  <Label text="Available Balance :" />
+                  <Label fx:id="availableBalanceLabel" text="0.00" />
+               </children>
+            </HBox>
+            <Separator maxWidth="1.7976931348623157E308" />
+            <GridPane vgap="10.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="Shares Cost :" />
+                  <Label fx:id="commissionTitleLabel" text="Commission :" GridPane.rowIndex="1" />
+                  <Label fx:id="sharesCostLabel" text="0.00" GridPane.columnIndex="1" />
+                  <Label fx:id="commissionLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               </children>
+            </GridPane>
+            <Label fx:id="insufficientBalanceLabel" managed="false" text="This purchase exceeds your balance. Your account will be blocked." textFill="#c1272d" visible="false" wrapText="true" />
+            <Separator maxWidth="1.7976931348623157E308" />
+            <GridPane>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Label text="Total :">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="totalLabel" text="0.00" GridPane.columnIndex="1">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Label>
+               </children>
+            </GridPane>
+         </children>
+      </VBox>
+   </content>
+</DialogPane>

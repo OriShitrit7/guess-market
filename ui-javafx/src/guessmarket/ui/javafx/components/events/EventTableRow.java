@@ -1,6 +1,7 @@
 package guessmarket.ui.javafx.components.events;
 
 import guessmarket.dto.EventSummaryDto;
+import guessmarket.dto.TradingMethodTypeDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -8,6 +9,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 public class EventTableRow {
     private final int eventId;
+    private final boolean orderBook;
 
     private final SimpleStringProperty name;
     private final SimpleStringProperty status;
@@ -18,6 +20,7 @@ public class EventTableRow {
 
     public EventTableRow(EventSummaryDto summary) {
         this.eventId = summary.getEventId();
+        this.orderBook = summary.getMethodType() == TradingMethodTypeDto.ORDER_BOOK;
         this.name = new SimpleStringProperty(summary.getEventName());
         this.status = new SimpleStringProperty(DisplayText.of(summary.getStatus()));
         this.methodType = new SimpleStringProperty(DisplayText.of(summary.getMethodType()));
@@ -28,6 +31,10 @@ public class EventTableRow {
 
     public int getEventId() {
         return eventId;
+    }
+
+    public boolean isOrderBook() {
+        return orderBook;
     }
 
     public String getName() {

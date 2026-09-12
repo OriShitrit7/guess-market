@@ -7,6 +7,7 @@ import guessmarket.dto.OrderActionDto;
 import guessmarket.dto.OrderBookStateDto;
 import guessmarket.dto.OrderResultDto;
 import guessmarket.dto.PurchaseResultDto;
+import guessmarket.dto.TradeDto;
 import guessmarket.dto.UserInvolvementDto;
 import guessmarket.dto.UserSummaryDto;
 import guessmarket.engine.exception.file.InvalidFileException;
@@ -34,6 +35,9 @@ public interface MarketManager {
 
     // Returns the named user's own trades in the requested event, newest first.
     UserInvolvementDto getUserInvolvement(String userName, int eventId);
+
+    // Prices a purchase without performing it, so the caller can preview its cost and commission.
+    TradeDto quotePurchase(String userName, int eventId, int optionIndex, int quantity);
 
     // Purchases a positive quantity of shares for the named user, using the zero-based option index.
     PurchaseResultDto buyShares(String userName, int eventId, int optionIndex, int quantity);

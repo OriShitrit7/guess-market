@@ -6,17 +6,15 @@ import java.util.List;
 public final class EventTradingStateDto {
     private final EventSummaryDto summary;
     private final List<OptionStateDto> options;
-    private final double totalCommissionCollected;
     private final List<TradeDto> tradeHistory;
-    private final String winningOptionName;
+    private final List<ParticipantHoldingsDto> participants;
 
-    public EventTradingStateDto(EventSummaryDto summary, List<OptionStateDto> options, double totalCommissionCollected,
-                                List<TradeDto> tradeHistory, String winningOptionName) {
+    public EventTradingStateDto(EventSummaryDto summary, List<OptionStateDto> options,
+                                List<TradeDto> tradeHistory, List<ParticipantHoldingsDto> participants) {
         this.summary = summary;
         this.options = List.copyOf(options);
-        this.totalCommissionCollected = totalCommissionCollected;
         this.tradeHistory = List.copyOf(tradeHistory);
-        this.winningOptionName = winningOptionName;
+        this.participants = List.copyOf(participants);
     }
 
     public EventSummaryDto getSummary() {
@@ -27,15 +25,11 @@ public final class EventTradingStateDto {
         return options;
     }
 
-    public double getTotalCommissionCollected() {
-        return totalCommissionCollected;
-    }
-
     public List<TradeDto> getTradeHistory() {
         return tradeHistory;
     }
 
-    public String getWinningOptionName() {
-        return winningOptionName;
+    public List<ParticipantHoldingsDto> getParticipants() {
+        return participants;
     }
 }

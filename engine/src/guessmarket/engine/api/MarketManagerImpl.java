@@ -54,7 +54,7 @@ public class MarketManagerImpl implements MarketManager {
     // Creates a complete snapshot of the requested event, including closed events.
     @Override
     public EventTradingStateDto getEventTradingState(int eventId) {
-        return dtoMapper.createEventTradingState(getEventById(eventId));
+        return dtoMapper.createEventTradingState(getEventById(eventId), users.getAllUsers());
     }
 
     @Override
@@ -96,7 +96,7 @@ public class MarketManagerImpl implements MarketManager {
         settlement.settleOpening(event);
         event.open();
 
-        return dtoMapper.createEventTradingState(event);
+        return dtoMapper.createEventTradingState(event, users.getAllUsers());
     }
 
     @Override
@@ -111,9 +111,20 @@ public class MarketManagerImpl implements MarketManager {
         settlement.settleClose(event, event.getOptions().get(winningOptionIndex));
         event.close(winningOptionIndex);
 
-        return dtoMapper.createEventTradingState(event);
+        return dtoMapper.createEventTradingState(event, users.getAllUsers());
     }
     
+    @Override
+    public TradeDto quotePurchase(String userName, int eventId, int optionIndex, int quantity) {
+        LmsrMarketEvent event = getLmsrEvent(eventId);
+
+        validateStatus(event, EventStatus.ACTIVE);
+        validateOptionIndex(event, optionIndex);
+        validateQuantity(quantity);
+
+        return dtoMapper.createTradeDto(event.quotePurchase(userName, optionIndex, quantity));
+    }
+
     @Override
     public PurchaseResultDto buyShares(String userName, int eventId, int optionIndex, int quantity) {
         getActiveUserByName(userName);
@@ -126,7 +137,7 @@ public class MarketManagerImpl implements MarketManager {
         Trade trade = event.buyShares(userName, optionIndex, quantity);
         settlement.settlePurchase(event, trade);
 
-        return new PurchaseResultDto(dtoMapper.createTradeDto(trade), dtoMapper.createEventTradingState(event));
+        return new PurchaseResultDto(dtoMapper.createTradeDto(trade), dtoMapper.createEventTradingState(event, users.getAllUsers()));
     }
 
     @Override

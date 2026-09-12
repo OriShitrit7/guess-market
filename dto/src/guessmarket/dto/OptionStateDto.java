@@ -4,10 +4,10 @@ package guessmarket.dto;
 public final class OptionStateDto {
     private final String optionName;
     // Current market value between zero and one.
-    private final double currentValue;
+    private final Double currentValue;
     private final int totalSharesBought;
 
-    public OptionStateDto(String optionName, double currentValue, int totalSharesBought) {
+    public OptionStateDto(String optionName, Double currentValue, int totalSharesBought) {
         this.optionName = optionName;
         this.currentValue = currentValue;
         this.totalSharesBought = totalSharesBought;
@@ -17,7 +17,7 @@ public final class OptionStateDto {
         return optionName;
     }
 
-    public double getCurrentValue() {
+    public Double getCurrentValue() {
         return currentValue;
     }
 

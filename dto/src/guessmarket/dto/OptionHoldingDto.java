@@ -5,11 +5,14 @@ public final class OptionHoldingDto {
     private final String optionName;
     private final int quantity;
     private final double amountPaid;
+    // What the holding is worth right now, or null while the option has no price.
+    private final Double currentValue;
 
-    public OptionHoldingDto(String optionName, int quantity, double amountPaid) {
+    public OptionHoldingDto(String optionName, int quantity, double amountPaid, Double currentValue) {
         this.optionName = optionName;
         this.quantity = quantity;
         this.amountPaid = amountPaid;
+        this.currentValue = currentValue;
     }
 
     public String getOptionName() {
@@ -22,5 +25,9 @@ public final class OptionHoldingDto {
 
     public double getAmountPaid() {
         return amountPaid;
+    }
+
+    public Double getCurrentValue() {
+        return currentValue;
     }
 }

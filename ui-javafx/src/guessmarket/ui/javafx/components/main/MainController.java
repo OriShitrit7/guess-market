@@ -27,6 +27,9 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        loadFileProgressBar.managedProperty().bind(loadFileProgressBar.visibleProperty());
+        loadFileProgressBar.setVisible(false);
+
         if (eventsComponentController != null) {
             eventsComponentController.setMainController(this);
         }
@@ -47,6 +50,12 @@ public class MainController {
         return marketManager;
     }
 
+    // Called after any action that changes the system, so both tabs show the new state.
+    public void refreshAll() {
+        eventsComponentController.refreshEvents();
+        usersComponentController.refreshUsers();
+    }
+
     @FXML
     public void loadFileButtonAction() {
         FileChooser fileChooser = new FileChooser();
@@ -61,6 +70,7 @@ public class MainController {
         LoadSystemFileTask task = new LoadSystemFileTask(marketManager, absolutePath);
 
         loadFileProgressBar.progressProperty().bind(task.progressProperty());
+        loadFileProgressBar.setVisible(true);
         loadFileButton.setDisable(true);
         task.valueProperty().addListener((observable, oldValue, newValue) -> onLoadFinished(task, absolutePath));
 
@@ -69,6 +79,7 @@ public class MainController {
 
     private void onLoadFinished(LoadSystemFileTask task, String absolutePath) {
         loadFileProgressBar.progressProperty().unbind();
+        loadFileProgressBar.setVisible(false);
         loadFileButton.setDisable(false);
 
         if (task.getValue()) {
@@ -78,7 +89,6 @@ public class MainController {
             return;
         }
 
-        loadFileProgressBar.setProgress(0);
         showLoadError(task.getErrorMessage());
     }
 

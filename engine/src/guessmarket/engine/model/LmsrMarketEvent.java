@@ -47,13 +47,19 @@ public class LmsrMarketEvent extends MarketEvent {
         return calcOptionsValues(getSharesCountPerOption());
     }
 
-    // Prices the purchase and records it. The caller moves the money.
-    public Trade buyShares(String buyerName, int optionIndex, int quantity) {
+    // Prices a purchase without changing anything, so the caller can preview it.
+    public Trade quotePurchase(String buyerName, int optionIndex, int quantity) {
         MarketOption option = getOptions().get(optionIndex);
         double sharesCost = calcSharesCost(getSharesCountPerOption(), optionIndex, quantity);
-        Trade trade = new Trade(buyerName, option, quantity, sharesCost, calcPurchaseCommission(sharesCost));
 
-        option.addShares(quantity);
+        return new Trade(buyerName, option, quantity, sharesCost, calcPurchaseCommission(sharesCost));
+    }
+
+    // Prices the purchase and records it. The caller moves the money.
+    public Trade buyShares(String buyerName, int optionIndex, int quantity) {
+        Trade trade = quotePurchase(buyerName, optionIndex, quantity);
+
+        getOptions().get(optionIndex).addShares(quantity);
         tradeHistory.add(trade);
         return trade;
     }

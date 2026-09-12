@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox maxWidth="1.7976931348623157E308" spacing="6.0" styleClass="result-block" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.eventresult.EventResultController">
+   <children>
+      <Label text="Result">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
+      <Separator maxWidth="1.7976931348623157E308" />
+      <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+         <children>
+            <Label text="Winner :" />
+            <Label fx:id="winnerLabel" text="-">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="payoutPerShareLabel" text="Pays 0.00 per share" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label text="Total Shares Bought :" />
+            <Label fx:id="firstOptionNameLabel" text="Option1" />
+            <Label fx:id="firstOptionSharesLabel" text="0" />
+            <Label text="·" />
+            <Label fx:id="secondOptionNameLabel" text="Option2" />
+            <Label fx:id="secondOptionSharesLabel" text="0" />
+         </children>
+      </HBox>
+   </children>
+   <padding>
+      <Insets bottom="8.0" left="10.0" right="10.0" top="8.0" />
+   </padding>
+</VBox>

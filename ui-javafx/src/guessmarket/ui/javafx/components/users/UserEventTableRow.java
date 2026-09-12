@@ -2,6 +2,7 @@ package guessmarket.ui.javafx.components.users;
 
 import guessmarket.dto.EventParticipationDto;
 import guessmarket.dto.EventSummaryDto;
+import guessmarket.dto.TradingMethodTypeDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import javafx.beans.property.SimpleStringProperty;
 
@@ -12,6 +13,7 @@ public class UserEventTableRow {
 
     private final int eventId;
     private final boolean marketMaker;
+    private final boolean orderBook;
 
     private final SimpleStringProperty name;
     private final SimpleStringProperty status;
@@ -23,6 +25,7 @@ public class UserEventTableRow {
 
         this.eventId = event.getEventId();
         this.marketMaker = participation.isMarketMaker();
+        this.orderBook = event.getMethodType() == TradingMethodTypeDto.ORDER_BOOK;
         this.name = new SimpleStringProperty(event.getEventName());
         this.status = new SimpleStringProperty(DisplayText.of(event.getStatus()));
         this.methodType = new SimpleStringProperty(DisplayText.of(event.getMethodType()));
@@ -35,6 +38,10 @@ public class UserEventTableRow {
 
     public boolean isMarketMaker() {
         return marketMaker;
+    }
+
+    public boolean isOrderBook() {
+        return orderBook;
     }
 
     public String getName() {

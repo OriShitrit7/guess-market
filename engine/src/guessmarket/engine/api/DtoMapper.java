@@ -8,6 +8,8 @@ import guessmarket.engine.orderbook.OrderExecution;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 
 public class DtoMapper {
@@ -16,27 +18,23 @@ public class DtoMapper {
         List<String> optionNames = event.getOptions().stream()
                 .map(MarketOption::getName)
                 .toList();
-
-        return new EventSummaryDto(event.getEventId(), event.getEventName(), event.getDescription(),
-                event.getCommissionPercent(), toDto(event.getCommissionPolicy()), optionNames,
-                toDto(event.getStatus()), toDto(event.getMethodType()), event.getAccount().getBalance());
-    }
-
-    EventTradingStateDto createEventTradingState(MarketEvent event) {
         MarketOption winner = event.getWinningOption();
 
-        return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
-                event.getAccount().getTotalCommissionCollected(),
-                createTradeDtos(getLmsrTrades(event)),
+        return new EventSummaryDto(event.getEventId(), event.getEventName(), event.getDescription(),
+                event.getMarketMakerName(), event.getCommissionPercent(), toDto(event.getCommissionPolicy()), optionNames,
+                toDto(event.getStatus()), toDto(event.getMethodType()), event.getAccount().getBalance(),
+                event.calcWinningPayout(1), event.getAccount().getTotalCommissionCollected(),
                 winner == null ? null : winner.getName());
+    }
+
+    EventTradingStateDto createEventTradingState(MarketEvent event, Collection<User> users) {
+        return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
+                createTradeDtos(getLmsrTrades(event)), createParticipants(event, users));
     }
 
     OrderBookStateDto createOrderBookState(OrderBookMarketEvent event, Collection<User> users) {
-        MarketOption winner = event.getWinningOption();
-
         return new OrderBookStateDto(createEventSummary(event), createOptionBooks(event),
-                createParticipants(event, users), event.getAccount().getTotalCommissionCollected(),
-                winner == null ? null : winner.getName());
+                createOptionStates(event), createParticipants(event, users));
     }
 
     public UserSummaryDto createUserSummary(User user) {
@@ -49,8 +47,7 @@ public class DtoMapper {
                 .toList();
 
         Position position = user.getPositions().get(event.getEventId());
-        boolean finalProfitLossAvailable = event instanceof OrderBookMarketEvent
-                && event.getStatus() == EventStatus.CLOSED;
+        boolean finalProfitLossAvailable = event.getStatus() == EventStatus.CLOSED;
         return new UserInvolvementDto(createTradeDtos(userTrades), createHoldingDtos(event, position),
                 position == null ? 0 : position.getTotalCommissionPaid(), finalProfitLossAvailable,
                 position == null ? 0 : position.calcProfitLoss());
@@ -91,38 +88,71 @@ public class DtoMapper {
     }
 
     // Anyone holding shares or waiting with an order counts as a participant.
-    private List<EventParticipantDto> createParticipants(MarketEvent event, Collection<User> users) {
+    private List<ParticipantHoldingsDto> createParticipants(MarketEvent event, Collection<User> users) {
         return users.stream()
                 .filter(user -> user.getPositions().containsKey(event.getEventId()))
-                .map(user -> new EventParticipantDto(user.getName(),
-                        createHoldingDtos(event, user.getPositions().get(event.getEventId()))))
+                .map(user -> new ParticipantHoldingsDto(user.getName(),
+                        createHoldingDtos(event, user.getPositions().get(event.getEventId())),
+                        countOpenOrders(event, user.getName())))
                 .toList();
     }
 
+    private int countOpenOrders(MarketEvent event, String userName) {
+        if (!(event instanceof OrderBookMarketEvent orderBookEvent)) {
+            return 0;
+        }
+        return orderBookEvent.getOptionBooks().stream()
+                .mapToInt(book -> countOrdersOf(book.getBuyOrders(), userName)
+                        + countOrdersOf(book.getSellOrders(), userName))
+                .sum();
+    }
+
+    private int countOrdersOf(List<Order> orders, String userName) {
+        return (int) orders.stream()
+                .filter(order -> order.getUserName().equals(userName))
+                .count();
+    }
+
     private List<OptionHoldingDto> createHoldingDtos(MarketEvent event, Position position) {
+        Map<MarketOption, Double> values = optionValues(event);
+
         return event.getOptions().stream().map(option -> {
             OptionHolding holding = position == null ? null : position.getHoldings().get(option);
             int quantity = holding == null ? 0 : holding.getQuantity();
             double amountPaid = holding == null ? 0 : holding.getAmountPaid();
-            return new OptionHoldingDto(option.getName(), quantity, amountPaid);
+            Double price = values.get(option);
+
+            return new OptionHoldingDto(option.getName(), quantity, amountPaid,
+                    price == null ? null : price * quantity);
         }).toList();
     }
 
-    private List<OptionStateDto> createOptionStates(MarketEvent event) {
-        if (!(event instanceof LmsrMarketEvent lmsrEvent)) {
-            return List.of();
-        }
-
-        List<OptionStateDto> states = new ArrayList<>();
-
+    // The price each option is currently worth: the LMSR formula, or the order book's MID.
+    private Map<MarketOption, Double> optionValues(MarketEvent event) {
+        Map<MarketOption, Double> values = new LinkedHashMap<>();
         List<MarketOption> options = event.getOptions();
-        double[] values = lmsrEvent.getOptionsValues();
 
-        for (int i = 0; i < options.size(); i++) {
-            states.add(new OptionStateDto(options.get(i).getName(), values[i],
-                    options.get(i).getTotalSharesBought()));
+        if (event instanceof LmsrMarketEvent lmsrEvent) {
+            double[] lmsrValues = lmsrEvent.getOptionsValues();
+
+            for (int i = 0; i < options.size(); i++) {
+                values.put(options.get(i), lmsrValues[i]);
+            }
+            return values;
         }
-        return states;
+        if (event instanceof OrderBookMarketEvent orderBookEvent) {
+            orderBookEvent.getOptionBooks().forEach(book -> values.put(book.getOption(), book.getMid()));
+        }
+        return values;
+    }
+
+    private List<OptionStateDto> createOptionStates(MarketEvent event) {
+        Map<MarketOption, Double> values = optionValues(event);
+
+        return event.getOptions().stream()
+                .map(option -> new OptionStateDto(option.getName(), values.get(option),
+                        option.getTotalSharesBought()))
+                .toList();
     }
 
 
@@ -137,7 +167,7 @@ public class DtoMapper {
     }
 
     TradeDto createTradeDto(Trade trade) {
-        return new TradeDto(trade.getOption().getName(), trade.getQuantity(),
+        return new TradeDto(trade.getBuyerName(), trade.getOption().getName(), trade.getQuantity(),
                 trade.getSharesCost(), trade.getCommissionCost());
     }
 

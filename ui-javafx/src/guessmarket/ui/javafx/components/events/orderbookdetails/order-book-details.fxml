@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.orderbookdetails.OrderBookDetailsController">
+   <children>
+      <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+         <children>
+            <Label text="MM :" />
+            <Label fx:id="marketMakerLabel" text="-" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="eventNameLabel" text="Event Name">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="eventStatusLabel" text="Status" />
+         </children>
+      </HBox>
+      <HBox fx:id="optionBooksRow" maxWidth="1.7976931348623157E308" spacing="10.0">
+         <children>
+            <fx:include fx:id="firstOptionBookComponent" source="optionbook/option-book.fxml" HBox.hgrow="ALWAYS" />
+            <fx:include fx:id="secondOptionBookComponent" source="optionbook/option-book.fxml" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <fx:include fx:id="eventResultComponent" managed="false" source="../eventresult/event-result.fxml" visible="false" />
+      <fx:include fx:id="eventHoldingsComponent" source="../eventholdings/event-holdings.fxml" />
+   </children>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+</VBox>

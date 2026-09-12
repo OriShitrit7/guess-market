@@ -1,6 +1,8 @@
 package guessmarket.ui.javafx.components.events;
 
 import guessmarket.dto.EventSummaryDto;
+import guessmarket.ui.javafx.components.events.lmsrdetails.LmsrDetailsController;
+import guessmarket.ui.javafx.components.events.orderbookdetails.OrderBookDetailsController;
 import guessmarket.ui.javafx.components.main.MainController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -8,11 +10,14 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import org.controlsfx.control.SegmentedButton;
 
 import java.util.List;
 
 public class EventsController {
+    private static final String PERCENT_SIGN = "%";
+
     private MainController mainController;
 
     @FXML
@@ -38,15 +43,32 @@ public class EventsController {
     @FXML
     private TableColumn<EventTableRow, Number> eventBalanceColumn;
 
+    @FXML
+    private Label noEventSelectedLabel;
+    @FXML
+    private VBox lmsrDetailsComponent;
+    @FXML
+    private LmsrDetailsController lmsrDetailsComponentController;
+    @FXML
+    private VBox orderBookDetailsComponent;
+    @FXML
+    private OrderBookDetailsController orderBookDetailsComponentController;
+
     private final ObservableList<EventTableRow> events = FXCollections.observableArrayList();
     private final FilteredList<EventTableRow> filteredEvents = new FilteredList<>(events, row -> true);
 
     @FXML
     private void initialize() {
         eventsTable.setPlaceholder(new Label("Load a file to view events"));
+        noEventSelectedLabel.managedProperty().bind(noEventSelectedLabel.visibleProperty());
+        lmsrDetailsComponent.managedProperty().bind(lmsrDetailsComponent.visibleProperty());
+        orderBookDetailsComponent.managedProperty().bind(orderBookDetailsComponent.visibleProperty());
+
         clearFilterToggles();
         initEventsTable();
         initFilterListeners();
+        initSelectionListener();
+        clearEventDetails();
     }
 
     public void setMainController(MainController mainController) {
@@ -60,6 +82,39 @@ public class EventsController {
         events.setAll(rows);
     }
 
+    private void initSelectionListener() {
+        eventsTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> showEventDetails(newValue));
+    }
+
+    // Shows the panel that matches the selected event's trading method, and hides the other one.
+    private void showEventDetails(EventTableRow selectedEvent) {
+        if (selectedEvent == null) {
+            clearEventDetails();
+            return;
+        }
+        noEventSelectedLabel.setVisible(false);
+        lmsrDetailsComponent.setVisible(!selectedEvent.isOrderBook());
+        orderBookDetailsComponent.setVisible(selectedEvent.isOrderBook());
+
+        if (selectedEvent.isOrderBook()) {
+            orderBookDetailsComponentController.refresh(
+                    mainController.getMarketManager().getOrderBookState(selectedEvent.getEventId()));
+            return;
+        }
+        lmsrDetailsComponentController.refresh(
+                mainController.getMarketManager().getEventTradingState(selectedEvent.getEventId()));
+    }
+
+    private void clearEventDetails() {
+        noEventSelectedLabel.setVisible(true);
+        lmsrDetailsComponent.setVisible(false);
+        orderBookDetailsComponent.setVisible(false);
+
+        lmsrDetailsComponentController.clear();
+        orderBookDetailsComponentController.clear();
+    }
+
     private void clearFilterToggles() {
         methodFilter.setToggleGroup(null);
         statusFilter.setToggleGroup(null);
@@ -71,6 +126,13 @@ public class EventsController {
         eventStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         eventMethodColumn.setCellValueFactory(new PropertyValueFactory<>("methodType"));
         eventCommissionColumn.setCellValueFactory(new PropertyValueFactory<>("commissionPercent"));
+        eventCommissionColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(Number value, boolean empty) {
+                super.updateItem(value, empty);
+                setText(empty || value == null ? null : value + PERCENT_SIGN);
+            }
+        });
         eventCommissionTypeColumn.setCellValueFactory(new PropertyValueFactory<>("commissionPolicy"));
         eventBalanceColumn.setCellValueFactory(new PropertyValueFactory<>("accountBalance"));
 

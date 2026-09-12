@@ -1,6 +1,7 @@
 package guessmarket.ui.javafx.components.users;
 
 import guessmarket.dto.OptionHoldingDto;
+import guessmarket.ui.javafx.components.DisplayText;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
@@ -10,8 +11,7 @@ public class ResultCardController {
     private static final String NO_WINNER = "-";
     private static final String EMPTY_TEXT = "";
     private static final String NO_SHARES = "0";
-    private static final String PAYOUT_FORMAT = "Pays %.2f per share";
-    private static final String PROFIT_LOSS_FORMAT = "%+.2f";
+    private static final String PAYOUT_FORMAT = "Pays %s per share";
     private static final int OPTION_COUNT = 2;
 
     @FXML
@@ -35,8 +35,8 @@ public class ResultCardController {
     public void refresh(String winnerName, double winningSharePayout, List<OptionHoldingDto> holdings,
                         double profitLoss) {
         winnerLabel.setText(winnerName == null ? NO_WINNER : winnerName);
-        payoutPerShareLabel.setText(String.format(PAYOUT_FORMAT, winningSharePayout));
-        profitLossLabel.setText(String.format(PROFIT_LOSS_FORMAT, profitLoss));
+        payoutPerShareLabel.setText(String.format(PAYOUT_FORMAT, DisplayText.amount(winningSharePayout)));
+        profitLossLabel.setText(DisplayText.signedAmount(profitLoss));
 
         showHoldings(holdings);
     }

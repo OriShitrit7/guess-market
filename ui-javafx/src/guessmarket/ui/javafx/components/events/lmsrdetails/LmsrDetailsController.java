@@ -22,9 +22,8 @@ import java.util.List;
 public class LmsrDetailsController {
     private static final String NO_SELECTION = "-";
     private static final String EMPTY_TEXT = "";
-    private static final String EMPTY_AMOUNT = "0.00";
+    private static final String EMPTY_AMOUNT = "$0.00";
     private static final String NO_VALUE = "-";
-    private static final String AMOUNT_FORMAT = "%.2f";
     private static final String COMMISSION_FORMAT = "%d%% %s";
     private static final int FIRST_OPTION_INDEX = 0;
     private static final int SECOND_OPTION_INDEX = 1;
@@ -136,9 +135,9 @@ public class LmsrDetailsController {
         eventDescriptionLabel.setText(summary.getDescription());
         eventCommissionLabel.setText(String.format(COMMISSION_FORMAT, summary.getCommissionPercent(),
                 DisplayText.of(summary.getCommissionPolicy())));
-        eventAccountLabel.setText(String.format(AMOUNT_FORMAT, summary.getAccountBalance()));
+        eventAccountLabel.setText(DisplayText.amount(summary.getAccountBalance()));
         totalCommissionCollectedLabel.setText(
-                String.format(AMOUNT_FORMAT, summary.getTotalCommissionCollected()));
+                DisplayText.amount(summary.getTotalCommissionCollected()));
     }
 
     private void showOptions(List<OptionStateDto> options) {
@@ -154,9 +153,7 @@ public class LmsrDetailsController {
 
     private void showOption(OptionStateDto option, Label nameLabel, Label valueLabel, Label sharesLabel) {
         nameLabel.setText(option.getOptionName());
-        valueLabel.setText(option.getCurrentValue() == null
-                ? NO_VALUE
-                : String.format(AMOUNT_FORMAT, option.getCurrentValue()));
+        valueLabel.setText(DisplayText.optionalAmount(option.getCurrentValue()));
         sharesLabel.setText(String.valueOf(option.getTotalSharesBought()));
     }
 
@@ -185,7 +182,7 @@ public class LmsrDetailsController {
             @Override
             protected void updateItem(Number value, boolean empty) {
                 super.updateItem(value, empty);
-                setText(empty || value == null ? null : String.format(AMOUNT_FORMAT, value.doubleValue()));
+                setText(empty || value == null ? null : DisplayText.amount(value.doubleValue()));
             }
         };
     }

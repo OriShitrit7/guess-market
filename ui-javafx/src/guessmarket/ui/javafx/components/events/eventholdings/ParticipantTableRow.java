@@ -2,6 +2,7 @@ package guessmarket.ui.javafx.components.events.eventholdings;
 
 import guessmarket.dto.OptionHoldingDto;
 import guessmarket.dto.ParticipantHoldingsDto;
+import guessmarket.ui.javafx.components.DisplayText;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
@@ -9,7 +10,6 @@ import java.util.List;
 
 public class ParticipantTableRow {
     private static final String NO_VALUE = "-";
-    private static final String AMOUNT_FORMAT = "%.2f";
     private static final int FIRST_OPTION_INDEX = 0;
     private static final int SECOND_OPTION_INDEX = 1;
 
@@ -85,9 +85,9 @@ public class ParticipantTableRow {
 
     // An option with no price yet has no value, which is different from being worth nothing.
     private static String valueOf(List<OptionHoldingDto> holdings, int optionIndex) {
-        if (optionIndex >= holdings.size() || holdings.get(optionIndex).getCurrentValue() == null) {
+        if (optionIndex >= holdings.size()) {
             return NO_VALUE;
         }
-        return String.format(AMOUNT_FORMAT, holdings.get(optionIndex).getCurrentValue());
+        return DisplayText.optionalAmount(holdings.get(optionIndex).getCurrentValue());
     }
 }

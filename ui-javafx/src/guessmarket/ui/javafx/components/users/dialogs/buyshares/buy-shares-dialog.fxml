@@ -43,7 +43,7 @@
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
                   <Label text="Available Balance :" />
-                  <Label fx:id="availableBalanceLabel" text="0.00" />
+                  <Label fx:id="availableBalanceLabel" text="\$0.00" />
                </children>
             </HBox>
             <Separator maxWidth="1.7976931348623157E308" />
@@ -59,11 +59,11 @@
                <children>
                   <Label text="Shares Cost :" />
                   <Label fx:id="commissionTitleLabel" text="Commission :" GridPane.rowIndex="1" />
-                  <Label fx:id="sharesCostLabel" text="0.00" GridPane.columnIndex="1" />
-                  <Label fx:id="commissionLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label fx:id="sharesCostLabel" text="\$0.00" GridPane.columnIndex="1" />
+                  <Label fx:id="commissionLabel" text="\$0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                </children>
             </GridPane>
-            <Label fx:id="insufficientBalanceLabel" managed="false" text="This purchase exceeds your balance. Your account will be blocked." textFill="#c1272d" visible="false" wrapText="true" />
+            <Label fx:id="insufficientBalanceLabel" managed="false" maxWidth="1.7976931348623157E308" text="This purchase exceeds your balance. Your account will be blocked." textFill="#c1272d" visible="false" wrapText="true" />
             <Separator maxWidth="1.7976931348623157E308" />
             <GridPane>
                <columnConstraints>
@@ -79,7 +79,7 @@
                         <Font name="System Bold" size="15.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalLabel" text="0.00" GridPane.columnIndex="1">
+                  <Label fx:id="totalLabel" text="\$0.00" GridPane.columnIndex="1">
                      <font>
                         <Font name="System Bold" size="15.0" />
                      </font>

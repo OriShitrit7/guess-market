@@ -14,6 +14,8 @@ public final class EventSummaryDto {
     private final CommissionPolicyDto commissionPolicy;
     private final List<String> optionNames;
     private final double accountBalance;
+    // What the market maker is charged when the event is opened.
+    private final double openingCost;
     // What one winning share pays when the event closes: 1.00 in LMSR, d in Order Book.
     private final double winningSharePayout;
     private final double totalCommissionCollected;
@@ -24,7 +26,7 @@ public final class EventSummaryDto {
                            int commissionPercent,
                            CommissionPolicyDto commissionPolicy, List<String> optionNames,
                            EventStatusDto status, TradingMethodTypeDto methodType, double accountBalance,
-                           double winningSharePayout, double totalCommissionCollected,
+                           double openingCost, double winningSharePayout, double totalCommissionCollected,
                            String winningOptionName) {
         this.eventId = eventId;
         this.eventName = eventName;
@@ -36,6 +38,7 @@ public final class EventSummaryDto {
         this.status = status;
         this.methodType = methodType;
         this.accountBalance = accountBalance;
+        this.openingCost = openingCost;
         this.winningSharePayout = winningSharePayout;
         this.totalCommissionCollected = totalCommissionCollected;
         this.winningOptionName = winningOptionName;
@@ -79,6 +82,10 @@ public final class EventSummaryDto {
 
     public double getAccountBalance() {
         return accountBalance;
+    }
+
+    public double getOpeningCost() {
+        return openingCost;
     }
 
     public double getWinningSharePayout() {

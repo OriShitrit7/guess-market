@@ -1,5 +1,6 @@
 package guessmarket.ui.javafx.components.users.dialogs.submitorder;
 
+import guessmarket.ui.javafx.components.DisplayText;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
@@ -14,8 +15,7 @@ import java.util.List;
 
 public class SubmitOrderDialogController {
     private static final String COMMISSION_FORMAT = "Commission (%d%%) :";
-    private static final String AMOUNT_FORMAT = "%.2f";
-    private static final String EMPTY_AMOUNT = "0.00";
+    private static final String EMPTY_AMOUNT = "$0.00";
     private static final String BALANCE_TITLE = "Available Balance :";
     private static final String SHARES_TITLE = "Available Shares :";
     private static final String MAXIMUM_VALUE_TITLE = "Maximum order value :";
@@ -167,7 +167,7 @@ public class SubmitOrderDialogController {
 
     private void showAvailable() {
         availableLabel.setText(isBuy()
-                ? String.format(AMOUNT_FORMAT, balance)
+                ? DisplayText.amount(balance)
                 : String.valueOf(availableSharesOfSelectedOption()));
     }
 
@@ -186,9 +186,9 @@ public class SubmitOrderDialogController {
         double commission = isBuy() ? orderValue * commissionPercent / 100.0 : 0;
         double total = orderValue + commission;
 
-        orderValueLabel.setText(String.format(AMOUNT_FORMAT, orderValue));
-        commissionLabel.setText(String.format(AMOUNT_FORMAT, commission));
-        totalLabel.setText(String.format(AMOUNT_FORMAT, total));
+        orderValueLabel.setText(DisplayText.amount(orderValue));
+        commissionLabel.setText(DisplayText.amount(commission));
+        totalLabel.setText(DisplayText.amount(total));
         insufficientBalanceLabel.setVisible(isBuy() && total > balance);
     }
 

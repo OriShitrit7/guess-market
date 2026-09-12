@@ -23,7 +23,8 @@ public class DtoMapper {
         return new EventSummaryDto(event.getEventId(), event.getEventName(), event.getDescription(),
                 event.getMarketMakerName(), event.getCommissionPercent(), toDto(event.getCommissionPolicy()), optionNames,
                 toDto(event.getStatus()), toDto(event.getMethodType()), event.getAccount().getBalance(),
-                event.calcWinningPayout(1), event.getAccount().getTotalCommissionCollected(),
+                event.calcOpeningCost(), event.calcWinningPayout(1),
+                event.getAccount().getTotalCommissionCollected(),
                 winner == null ? null : winner.getName());
     }
 

@@ -2,6 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -9,26 +12,85 @@
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.orderbookdetails.OrderBookDetailsController">
    <children>
-      <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+      <HBox alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" spacing="15.0" styleClass="event-header">
          <children>
-            <Label text="MM :" />
-            <Label fx:id="marketMakerLabel" text="-" />
+            <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <Label fx:id="eventNameLabel" styleClass="event-title" text="Event Name" wrapText="true">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  <HBox alignment="CENTER_LEFT" spacing="5.0">
+                     <children>
+                        <Label styleClass="secondary-label" text="Market Maker:" textFill="#666666" />
+                        <Label fx:id="marketMakerLabel" text="-" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="eventNameLabel" text="Event Name">
-               <font>
-                  <Font name="System Bold" size="16.0" />
-               </font>
+            <Label fx:id="eventStatusLabel" style="-fx-background-color: #e8eef8; -fx-background-radius: 12; -fx-padding: 4 10 4 10; -fx-font-weight: bold;" styleClass="status-badge" text="Status" />
+         </children>
+      </HBox>
+      <Label fx:id="eventDescriptionLabel" maxWidth="1.7976931348623157E308" styleClass="event-description" text="Description" textFill="#555555" wrapText="true" />
+      <Separator maxWidth="1.7976931348623157E308" />
+      <GridPane hgap="10.0" maxWidth="1.7976931348623157E308" styleClass="event-summary">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.34" />
+         </columnConstraints>
+         <children>
+            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card">
+               <children>
+                  <Label styleClass="summary-title" text="COMMISSION" textFill="#666666">
+                     <font><Font name="System Bold" size="11.0" /></font>
+                  </Label>
+                  <Label fx:id="eventCommissionLabel" styleClass="summary-value" text="-" wrapText="true">
+                     <font><Font size="14.0" /></font>
+                  </Label>
+               </children>
+               <padding><Insets bottom="10.0" left="12.0" right="12.0" top="10.0" /></padding>
+            </VBox>
+            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card" GridPane.columnIndex="1">
+               <children>
+                  <Label styleClass="summary-title" text="EVENT ACCOUNT" textFill="#666666">
+                     <font><Font name="System Bold" size="11.0" /></font>
+                  </Label>
+                  <Label fx:id="eventAccountLabel" styleClass="summary-value" text="\$0.00">
+                     <font><Font size="14.0" /></font>
+                  </Label>
+               </children>
+               <padding><Insets bottom="10.0" left="12.0" right="12.0" top="10.0" /></padding>
+            </VBox>
+            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card" GridPane.columnIndex="2">
+               <children>
+                  <Label styleClass="summary-title" text="COMMISSION COLLECTED" textFill="#666666">
+                     <font><Font name="System Bold" size="11.0" /></font>
+                  </Label>
+                  <Label fx:id="totalCommissionCollectedLabel" styleClass="summary-value" text="\$0.00">
+                     <font><Font size="14.0" /></font>
+                  </Label>
+               </children>
+               <padding><Insets bottom="10.0" left="12.0" right="12.0" top="10.0" /></padding>
+            </VBox>
+         </children>
+      </GridPane>
+      <VBox fx:id="optionBooksSection" maxWidth="1.7976931348623157E308" spacing="8.0">
+         <children>
+            <Label styleClass="section-title" text="ORDER BOOKS" textFill="#555555">
+               <font><Font name="System Bold" size="12.0" /></font>
+               <VBox.margin><Insets top="5.0" /></VBox.margin>
             </Label>
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="eventStatusLabel" text="Status" />
+            <HBox maxWidth="1.7976931348623157E308" spacing="12.0">
+               <children>
+                  <fx:include fx:id="firstOptionBookComponent" source="optionbook/option-book.fxml" HBox.hgrow="ALWAYS" />
+                  <fx:include fx:id="secondOptionBookComponent" source="optionbook/option-book.fxml" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
          </children>
-      </HBox>
-      <HBox fx:id="optionBooksRow" maxWidth="1.7976931348623157E308" spacing="10.0">
-         <children>
-            <fx:include fx:id="firstOptionBookComponent" source="optionbook/option-book.fxml" HBox.hgrow="ALWAYS" />
-            <fx:include fx:id="secondOptionBookComponent" source="optionbook/option-book.fxml" HBox.hgrow="ALWAYS" />
-         </children>
-      </HBox>
+      </VBox>
       <fx:include fx:id="eventResultComponent" managed="false" source="../eventresult/event-result.fxml" visible="false" />
       <fx:include fx:id="eventHoldingsComponent" source="../eventholdings/event-holdings.fxml" />
    </children>

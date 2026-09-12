@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -14,117 +15,163 @@
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.lmsrdetails.LmsrDetailsController">
    <children>
-      <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+      <HBox alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" spacing="15.0" styleClass="event-header">
          <children>
-            <Label text="MM :" />
-            <Label fx:id="marketMakerLabel" text="-" />
+            <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <Label fx:id="eventNameLabel" styleClass="event-title" text="Event Name" wrapText="true">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  <HBox alignment="CENTER_LEFT" spacing="5.0">
+                     <children>
+                        <Label styleClass="secondary-label" text="Market Maker:" textFill="#666666" />
+                        <Label fx:id="marketMakerLabel" text="-" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="eventNameLabel" text="Event Name">
-               <font>
-                  <Font name="System Bold" size="16.0" />
-               </font>
-            </Label>
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="eventStatusLabel" text="Status" />
+            <Label fx:id="eventStatusLabel" style="-fx-background-color: #e8eef8; -fx-background-radius: 12; -fx-padding: 4 10 4 10; -fx-font-weight: bold;" styleClass="status-badge" text="Status" />
          </children>
       </HBox>
-      <HBox maxWidth="1.7976931348623157E308" spacing="15.0">
+      <Label fx:id="eventDescriptionLabel" maxWidth="1.7976931348623157E308" styleClass="event-description" text="Description" textFill="#555555" wrapText="true" />
+      <Separator maxWidth="1.7976931348623157E308" />
+      <GridPane hgap="10.0" maxWidth="1.7976931348623157E308" styleClass="event-summary">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.34" />
+         </columnConstraints>
          <children>
-            <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card">
                <children>
-                  <Label fx:id="eventDescriptionLabel" text="Description" wrapText="true" />
-                  <GridPane vgap="10.0">
-                    <columnConstraints>
-                      <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-                      <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" minWidth="10.0" prefWidth="80.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                      <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                      <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                    </rowConstraints>
+                  <Label styleClass="summary-title" text="COMMISSION" textFill="#666666">
+                     <font>
+                        <Font name="System Bold" size="11.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="eventCommissionLabel" styleClass="summary-value" text="-" wrapText="true">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="12.0" right="12.0" top="10.0" />
+               </padding>
+            </VBox>
+            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card" GridPane.columnIndex="1">
+               <children>
+                  <Label styleClass="summary-title" text="EVENT ACCOUNT" textFill="#666666">
+                     <font>
+                        <Font name="System Bold" size="11.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="eventAccountLabel" styleClass="summary-value" text="\$0.00">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="12.0" right="12.0" top="10.0" />
+               </padding>
+            </VBox>
+            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card" GridPane.columnIndex="2">
+               <children>
+                  <Label styleClass="summary-title" text="COMMISSION COLLECTED" textFill="#666666">
+                     <font>
+                        <Font name="System Bold" size="11.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="totalCommissionCollectedLabel" styleClass="summary-value" text="\$0.00">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="12.0" right="12.0" top="10.0" />
+               </padding>
+            </VBox>
+         </children>
+      </GridPane>
+      <Label styleClass="section-title" text="OPTIONS" textFill="#555555">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <VBox.margin>
+            <Insets top="5.0" />
+         </VBox.margin>
+      </Label>
+      <GridPane hgap="15.0" maxWidth="1.7976931348623157E308">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
+         </columnConstraints>
+         <children>
+            <VBox maxWidth="1.7976931348623157E308" spacing="8.0" style="-fx-background-color: white; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;">
+               <children>
+                  <Label fx:id="firstOptionNameLabel" text="Option1" wrapText="true">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
+                  <Separator maxWidth="1.7976931348623157E308" />
+                  <GridPane hgap="8.0" vgap="5.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                        <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+                        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+                     </rowConstraints>
                      <children>
-                        <Label text="Commission :" />
-                        <Label fx:id="eventCommissionLabel" text="-" GridPane.columnIndex="1" />
-                        <Label text="Event Account :" GridPane.rowIndex="1" />
-                        <Label fx:id="eventAccountLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label text="Total Commission Collected :" GridPane.rowIndex="2" />
-                        <Label fx:id="totalCommissionCollectedLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Label text="Current Value" textFill="#555555" />
+                        <Label fx:id="firstOptionValueLabel" text="-" GridPane.columnIndex="1" />
+                        <Label text="Shares Bought" textFill="#555555" GridPane.rowIndex="1" />
+                        <Label fx:id="firstOptionSharesLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                      </children>
                   </GridPane>
                </children>
+               <padding>
+                  <Insets bottom="10.0" left="12.0" right="12.0" top="10.0" />
+               </padding>
             </VBox>
-            <VBox minWidth="200.0" spacing="8.0">
+            <VBox maxWidth="1.7976931348623157E308" spacing="8.0" style="-fx-background-color: white; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" GridPane.columnIndex="1">
                <children>
-                  <VBox spacing="4.0" styleClass="option-card">
+                  <Label fx:id="secondOptionNameLabel" text="Option2" wrapText="true">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
+                  <Separator maxWidth="1.7976931348623157E308" />
+                  <GridPane hgap="8.0" vgap="5.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                        <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+                        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+                     </rowConstraints>
                      <children>
-                        <Label fx:id="firstOptionNameLabel" text="Option1">
-                           <font>
-                              <Font name="System Bold" size="13.0" />
-                           </font>
-                        </Label>
-                        <GridPane hgap="8.0" vgap="2.0">
-                          <columnConstraints>
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                            <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                            <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                          </rowConstraints>
-                           <children>
-                              <Label text="Current Value :" />
-                              <Label fx:id="firstOptionValueLabel" text="-" GridPane.columnIndex="1" />
-                              <Label text="Shares Bought :" GridPane.rowIndex="1" />
-                              <Label fx:id="firstOptionSharesLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                           </children>
-                        </GridPane>
+                        <Label text="Current Value" textFill="#555555" />
+                        <Label fx:id="secondOptionValueLabel" text="-" GridPane.columnIndex="1" />
+                        <Label text="Shares Bought" textFill="#555555" GridPane.rowIndex="1" />
+                        <Label fx:id="secondOptionSharesLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                      </children>
-                     <padding>
-                        <Insets bottom="6.0" left="8.0" right="8.0" top="6.0" />
-                     </padding>
-                     <VBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                     </VBox.margin>
-                  </VBox>
-                  <VBox spacing="4.0" styleClass="option-card">
-                     <children>
-                        <Label fx:id="secondOptionNameLabel" text="Option2">
-                           <font>
-                              <Font name="System Bold" size="13.0" />
-                           </font>
-                        </Label>
-                        <GridPane hgap="8.0" vgap="2.0">
-                          <columnConstraints>
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                            <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                            <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                          </rowConstraints>
-                           <children>
-                              <Label text="Current Value :" />
-                              <Label fx:id="secondOptionValueLabel" text="-" GridPane.columnIndex="1" />
-                              <Label text="Shares Bought :" GridPane.rowIndex="1" />
-                              <Label fx:id="secondOptionSharesLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                           </children>
-                        </GridPane>
-                     </children>
-                     <padding>
-                        <Insets bottom="6.0" left="8.0" right="8.0" top="6.0" />
-                     </padding>
-                     <VBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" />
-                     </VBox.margin>
-                  </VBox>
+                  </GridPane>
                </children>
-               <HBox.margin>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </HBox.margin>
+               <padding>
+                  <Insets bottom="10.0" left="12.0" right="12.0" top="10.0" />
+               </padding>
             </VBox>
          </children>
-      </HBox>
+      </GridPane>
       <fx:include fx:id="eventResultComponent" managed="false" source="../eventresult/event-result.fxml" visible="false" />
       <VBox maxWidth="1.7976931348623157E308" spacing="6.0">
          <children>

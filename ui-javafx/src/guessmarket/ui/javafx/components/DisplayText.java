@@ -5,6 +5,26 @@ import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.TradingMethodTypeDto;
 
 public abstract class DisplayText {
+    private static final String AMOUNT_FORMAT = "$%.2f";
+    private static final String NEGATIVE_AMOUNT_FORMAT = "-$%.2f";
+    private static final String POSITIVE_AMOUNT_FORMAT = "+$%.2f";
+    private static final String NO_AMOUNT = "-";
+
+    // Every amount of money in the UI goes through here, so the currency sign lives in one place.
+    public static String amount(double value) {
+        return value < 0 ? String.format(NEGATIVE_AMOUNT_FORMAT, -value)
+                : String.format(AMOUNT_FORMAT, value);
+    }
+
+    // An amount that may be missing, such as a price in an empty order book.
+    public static String optionalAmount(Double value) {
+        return value == null ? NO_AMOUNT : amount(value);
+    }
+
+    // A profit or loss, which is only meaningful together with its sign.
+    public static String signedAmount(double value) {
+        return value < 0 ? amount(value) : String.format(POSITIVE_AMOUNT_FORMAT, value);
+    }
 
     public static String of(EventStatusDto status) {
         return switch (status) {

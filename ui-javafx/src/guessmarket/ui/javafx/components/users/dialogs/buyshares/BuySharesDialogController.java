@@ -2,6 +2,7 @@ package guessmarket.ui.javafx.components.users.dialogs.buyshares;
 
 import guessmarket.dto.OptionStateDto;
 import guessmarket.dto.TradeDto;
+import guessmarket.ui.javafx.components.DisplayText;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
@@ -14,10 +15,9 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 public class BuySharesDialogController {
-    private static final String OPTION_FORMAT = "%s   %.2f";
+    private static final String OPTION_FORMAT = "%s   %s";
     private static final String COMMISSION_FORMAT = "Commission (%d%%) :";
-    private static final String AMOUNT_FORMAT = "%.2f";
-    private static final String EMPTY_AMOUNT = "0.00";
+    private static final String EMPTY_AMOUNT = "$0.00";
     private static final int FIRST_OPTION_INDEX = 0;
     private static final int SECOND_OPTION_INDEX = 1;
     private static final int NO_QUANTITY = 0;
@@ -68,7 +68,7 @@ public class BuySharesDialogController {
 
         firstOptionToggle.setText(toToggleText(options.get(FIRST_OPTION_INDEX)));
         secondOptionToggle.setText(toToggleText(options.get(SECOND_OPTION_INDEX)));
-        availableBalanceLabel.setText(String.format(AMOUNT_FORMAT, balance));
+        availableBalanceLabel.setText(DisplayText.amount(balance));
         commissionTitleLabel.setText(String.format(COMMISSION_FORMAT, commissionPercent));
 
         recalculate();
@@ -122,9 +122,9 @@ public class BuySharesDialogController {
         }
         double total = trade.getSharesCost() + trade.getCommissionCost();
 
-        sharesCostLabel.setText(String.format(AMOUNT_FORMAT, trade.getSharesCost()));
-        commissionLabel.setText(String.format(AMOUNT_FORMAT, trade.getCommissionCost()));
-        totalLabel.setText(String.format(AMOUNT_FORMAT, total));
+        sharesCostLabel.setText(DisplayText.amount(trade.getSharesCost()));
+        commissionLabel.setText(DisplayText.amount(trade.getCommissionCost()));
+        totalLabel.setText(DisplayText.amount(total));
         insufficientBalanceLabel.setVisible(total > balance);
     }
 
@@ -137,6 +137,7 @@ public class BuySharesDialogController {
     }
 
     private String toToggleText(OptionStateDto option) {
-        return String.format(OPTION_FORMAT, option.getOptionName(), option.getCurrentValue());
+        return String.format(OPTION_FORMAT, option.getOptionName(),
+                DisplayText.optionalAmount(option.getCurrentValue()));
     }
 }

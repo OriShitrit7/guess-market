@@ -32,8 +32,7 @@ import java.util.Optional;
 public class LmsrTradeController {
     private static final String NO_SELECTION = "-";
     private static final String EMPTY_TEXT = "";
-    private static final String EMPTY_AMOUNT = "0.00";
-    private static final String AMOUNT_FORMAT = "%.2f";
+    private static final String EMPTY_AMOUNT = "$0.00";
     private static final String COMMISSION_FORMAT = "%d%% %s";
     private static final String OPEN_EVENT = "Open Event";
     private static final String CLOSE_EVENT = "Close Event";
@@ -45,6 +44,8 @@ public class LmsrTradeController {
     private static final String ACTION_FAILED = "Action Failed";
     private static final String ACCOUNT_BLOCKED = "Account Blocked";
     private static final String BLOCKED_MESSAGE = "Your balance is now negative. Your account has been blocked and cannot perform further actions.";
+    private static final String OPEN_EVENT_FORMAT =
+            "Opening \"%s\" will charge you %s.%nYour balance is %s.%n%nOpen the event ?";
 
     private MainController mainController;
     private String userName;
@@ -152,13 +153,23 @@ public class LmsrTradeController {
     @FXML
     public void changeEventStatusButtonAction() {
         if (summary.getStatus() == EventStatusDto.NOT_STARTED) {
-            runAction(() -> mainController.getMarketManager().openEvent(userName, eventId));
+            confirmAndOpenEvent();
             return;
         }
         Dialogs.<CloseEventDialogController>show(getClass(), CLOSE_EVENT_DIALOG, CLOSE_EVENT,
                         dialog -> dialog.setEvent(summary.getEventName(), summary.getOptionNames()))
                 .ifPresent(dialog -> runAction(() -> mainController.getMarketManager()
                         .closeEvent(userName, eventId, dialog.getWinningOptionIndex())));
+    }
+
+    // The market maker pays the opening cost, so the amount is shown before it is charged.
+    private void confirmAndOpenEvent() {
+        String message = String.format(OPEN_EVENT_FORMAT, summary.getEventName(),
+                DisplayText.amount(summary.getOpeningCost()), DisplayText.amount(currentBalance()));
+
+        if (Dialogs.confirm(OPEN_EVENT, message)) {
+            runAction(() -> mainController.getMarketManager().openEvent(userName, eventId));
+        }
     }
 
     @FXML
@@ -223,7 +234,7 @@ public class LmsrTradeController {
             @Override
             protected void updateItem(Number value, boolean empty) {
                 super.updateItem(value, empty);
-                setText(empty || value == null ? null : String.format(AMOUNT_FORMAT, value.doubleValue()));
+                setText(empty || value == null ? null : DisplayText.amount(value.doubleValue()));
             }
         });
 
@@ -236,7 +247,7 @@ public class LmsrTradeController {
         eventDescriptionLabel.setText(summary.getDescription());
         eventCommissionLabel.setText(String.format(COMMISSION_FORMAT, summary.getCommissionPercent(),
                 DisplayText.of(summary.getCommissionPolicy())));
-        eventAccountLabel.setText(String.format(AMOUNT_FORMAT, summary.getAccountBalance()));
+        eventAccountLabel.setText(DisplayText.amount(summary.getAccountBalance()));
     }
 
     private void showOptionPrices(List<OptionStateDto> options) {
@@ -250,7 +261,7 @@ public class LmsrTradeController {
 
     private void showOptionPrice(OptionStateDto option, Label nameLabel, Label priceLabel) {
         nameLabel.setText(option.getOptionName());
-        priceLabel.setText(String.format(AMOUNT_FORMAT, option.getCurrentValue()));
+        priceLabel.setText(DisplayText.optionalAmount(option.getCurrentValue()));
     }
 
     private void clearOptionPrices() {
@@ -289,6 +300,6 @@ public class LmsrTradeController {
     private void showUserTrades(UserInvolvementDto involvement) {
         userTrades.setAll(involvement.getTrades().stream().map(TradeTableRow::new).toList());
         totalCommissionPaidLabel.setText(
-                String.format(AMOUNT_FORMAT, involvement.getTotalCommissionPaid()));
+                DisplayText.amount(involvement.getTotalCommissionPaid()));
     }
 }

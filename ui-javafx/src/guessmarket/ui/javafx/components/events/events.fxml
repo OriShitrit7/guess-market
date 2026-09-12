@@ -4,14 +4,13 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.controlsfx.control.SegmentedButton?>
 
-<SplitPane dividerPositions="0.5" minHeight="300.0" minWidth="500.0" prefHeight="650.0" prefWidth="1001.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.EventsController">
+<SplitPane dividerPositions="0.5" minHeight="300.0" minWidth="500.0" prefHeight="650.0" prefWidth="1001.0" stylesheets="@events.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.EventsController">
    <items>
       <VBox spacing="10.0">
          <padding>
@@ -56,19 +55,24 @@
                   </VBox>
                </children>
             </FlowPane>
-            <TableView fx:id="eventsTable" VBox.vgrow="ALWAYS">
-              <columns>
-                  <TableColumn fx:id="eventNameColumn" reorderable="false" prefWidth="75.0" text="Name" />
-                  <TableColumn fx:id="eventStatusColumn" reorderable="false" prefWidth="75.0" text="Status" />
-                  <TableColumn fx:id="eventMethodColumn" reorderable="false" prefWidth="75.0" text="Method" />
-                  <TableColumn fx:id="eventCommissionColumn" reorderable="false" prefWidth="70.0" text="Commission" />
-                  <TableColumn fx:id="eventCommissionTypeColumn" reorderable="false" prefWidth="70.0" text="Policy" />
-                  <TableColumn fx:id="eventBalanceColumn" reorderable="false" prefWidth="75.0" text="Balance" />
-              </columns>
-               <columnResizePolicy>
-                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-               </columnResizePolicy>
-            </TableView>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" pannable="true" styleClass="event-cards-scroll" VBox.vgrow="ALWAYS">
+               <content>
+                  <StackPane alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" styleClass="event-cards-viewport">
+                     <children>
+                        <FlowPane fx:id="eventCardsPane" columnHalignment="LEFT" hgap="14.0" maxWidth="1.7976931348623157E308" orientation="HORIZONTAL" rowValignment="TOP" vgap="14.0">
+                           <padding>
+                              <Insets bottom="8.0" left="2.0" right="2.0" top="2.0" />
+                           </padding>
+                        </FlowPane>
+                        <Label fx:id="emptyEventsLabel" maxWidth="1.7976931348623157E308" text="Load a file to view events" textAlignment="CENTER" wrapText="true">
+                           <StackPane.margin>
+                              <Insets bottom="20.0" left="15.0" right="15.0" top="30.0" />
+                           </StackPane.margin>
+                        </Label>
+                     </children>
+                  </StackPane>
+               </content>
+            </ScrollPane>
          </children>
       </VBox>
       <VBox minWidth="300.0" spacing="10.0">

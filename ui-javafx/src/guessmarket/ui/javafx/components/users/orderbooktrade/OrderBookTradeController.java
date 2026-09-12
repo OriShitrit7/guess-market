@@ -35,9 +35,8 @@ import java.util.Optional;
 public class OrderBookTradeController {
     private static final String NO_SELECTION = "-";
     private static final String EMPTY_TEXT = "";
-    private static final String EMPTY_AMOUNT = "0.00";
+    private static final String EMPTY_AMOUNT = "$0.00";
     private static final String NO_PRICE = "-";
-    private static final String AMOUNT_FORMAT = "%.2f";
     private static final String COMMISSION_FORMAT = "%d%% %s";
     private static final String OPEN_EVENT = "Open Event";
     private static final String CLOSE_EVENT = "Close Event";
@@ -45,6 +44,7 @@ public class OrderBookTradeController {
     private static final String SELL_SIDE = "Sell";
     private static final String NO_ORDERS = "No open orders";
     private static final String NO_ORDERS_CLOSED = "No open orders - event is closed";
+    private static final String NO_HOLDINGS = "No shares held";
     private static final int OPTION_COUNT = 2;
 
     private static final String SUBMIT_ORDER_DIALOG = "/guessmarket/ui/javafx/components/users/dialogs/submitorder/submit-order-dialog.fxml";
@@ -53,6 +53,8 @@ public class OrderBookTradeController {
     private static final String ACTION_FAILED = "Action Failed";
     private static final String ACCOUNT_BLOCKED = "Account Blocked";
     private static final String BLOCKED_MESSAGE = "Your balance is now negative. Your account has been blocked and cannot perform further actions.";
+    private static final String OPEN_EVENT_FORMAT =
+            "Opening \"%s\" will charge you %s.%nYour balance is %s.%n%nOpen the event ?";
 
     private MainController mainController;
     private String userName;
@@ -185,7 +187,7 @@ public class OrderBookTradeController {
     @FXML
     public void changeEventStatusButtonAction() {
         if (state.getSummary().getStatus() == EventStatusDto.NOT_STARTED) {
-            runAction(() -> mainController.getMarketManager().openEvent(userName, eventId));
+            confirmAndOpenEvent();
             return;
         }
         Dialogs.<CloseEventDialogController>show(getClass(), CLOSE_EVENT_DIALOG, CLOSE_EVENT,
@@ -193,6 +195,17 @@ public class OrderBookTradeController {
                                 state.getSummary().getOptionNames()))
                 .ifPresent(dialog -> runAction(() -> mainController.getMarketManager()
                         .closeEvent(userName, eventId, dialog.getWinningOptionIndex())));
+    }
+
+    // The market maker pays the opening cost, so the amount is shown before it is charged.
+    private void confirmAndOpenEvent() {
+        String message = String.format(OPEN_EVENT_FORMAT, state.getSummary().getEventName(),
+                DisplayText.amount(state.getSummary().getOpeningCost()),
+                DisplayText.amount(currentBalance()));
+
+        if (Dialogs.confirm(OPEN_EVENT, message)) {
+            runAction(() -> mainController.getMarketManager().openEvent(userName, eventId));
+        }
     }
 
     @FXML
@@ -273,6 +286,7 @@ public class OrderBookTradeController {
         holdingPaidColumn.setCellValueFactory(new PropertyValueFactory<>("amountPaid"));
         holdingPaidColumn.setCellFactory(column -> amountCell());
 
+        userHoldingsTable.setPlaceholder(new Label(NO_HOLDINGS));
         userHoldingsTable.setItems(userHoldings);
     }
 
@@ -309,7 +323,7 @@ public class OrderBookTradeController {
         eventDescriptionLabel.setText(summary.getDescription());
         eventCommissionLabel.setText(String.format(COMMISSION_FORMAT, summary.getCommissionPercent(),
                 DisplayText.of(summary.getCommissionPolicy())));
-        eventAccountLabel.setText(String.format(AMOUNT_FORMAT, summary.getAccountBalance()));
+        eventAccountLabel.setText(DisplayText.amount(summary.getAccountBalance()));
     }
 
     private void showBookPrices(List<OptionBookDto> books) {
@@ -323,8 +337,8 @@ public class OrderBookTradeController {
 
     private void showBookPrice(OptionBookDto book, Label nameLabel, Label bidLabel, Label askLabel) {
         nameLabel.setText(book.getOptionName());
-        bidLabel.setText(formatPrice(book.getBid()));
-        askLabel.setText(formatPrice(book.getAsk()));
+        bidLabel.setText(DisplayText.optionalAmount(book.getBid()));
+        askLabel.setText(DisplayText.optionalAmount(book.getAsk()));
     }
 
     private void clearBookPrices() {
@@ -349,9 +363,12 @@ public class OrderBookTradeController {
     }
 
     private void showHoldings(UserInvolvementDto involvement) {
-        userHoldings.setAll(involvement.getHoldings().stream().map(HoldingTableRow::new).toList());
+        userHoldings.setAll(involvement.getHoldings().stream()
+                .filter(holding -> holding.getQuantity() > 0)
+                .map(HoldingTableRow::new)
+                .toList());
         totalCommissionPaidLabel.setText(
-                String.format(AMOUNT_FORMAT, involvement.getTotalCommissionPaid()));
+                DisplayText.amount(involvement.getTotalCommissionPaid()));
     }
 
     private void showPendingOrders(String userName, OrderBookStateDto state) {
@@ -393,12 +410,9 @@ public class OrderBookTradeController {
             @Override
             protected void updateItem(Number value, boolean empty) {
                 super.updateItem(value, empty);
-                setText(empty || value == null ? null : String.format(AMOUNT_FORMAT, value.doubleValue()));
+                setText(empty || value == null ? null : DisplayText.amount(value.doubleValue()));
             }
         };
     }
 
-    private String formatPrice(Double price) {
-        return price == null ? NO_PRICE : String.format(AMOUNT_FORMAT, price);
-    }
 }

@@ -1,6 +1,7 @@
 package guessmarket.ui.javafx.components.events.eventresult;
 
 import guessmarket.dto.OptionStateDto;
+import guessmarket.ui.javafx.components.DisplayText;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
@@ -10,7 +11,7 @@ public class EventResultController {
     private static final String NO_WINNER = "-";
     private static final String EMPTY_TEXT = "";
     private static final String NO_SHARES = "0";
-    private static final String PAYOUT_FORMAT = "Pays %.2f per share";
+    private static final String PAYOUT_FORMAT = "Pays %s per share";
     private static final int FIRST_OPTION_INDEX = 0;
     private static final int SECOND_OPTION_INDEX = 1;
     private static final int OPTION_COUNT = 2;
@@ -31,7 +32,7 @@ public class EventResultController {
     // Shows how a closed event ended, for the event as a whole.
     public void refresh(String winnerName, double winningSharePayout, List<OptionStateDto> options) {
         winnerLabel.setText(winnerName == null ? NO_WINNER : winnerName);
-        payoutPerShareLabel.setText(String.format(PAYOUT_FORMAT, winningSharePayout));
+        payoutPerShareLabel.setText(String.format(PAYOUT_FORMAT, DisplayText.amount(winningSharePayout)));
 
         if (options.size() < OPTION_COUNT) {
             clearOptions();

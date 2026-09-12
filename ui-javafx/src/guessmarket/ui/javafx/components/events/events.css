@@ -1,0 +1,91 @@
+.event-cards-scroll,
+.event-cards-scroll > .viewport,
+.event-cards-viewport {
+    -fx-background-color: transparent;
+}
+
+.event-cards-scroll {
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.event-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #d4d8de;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+
+.event-card:hover {
+    -fx-border-color: #8ca6c9;
+    -fx-effect: dropshadow(gaussian, rgba(31, 54, 81, 0.14), 10, 0.12, 0, 2);
+}
+
+.event-card:selected,
+.event-card:focused {
+    -fx-border-color: #168fbd;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(22, 143, 189, 0.18), 10, 0.12, 0, 2);
+}
+
+.event-card-title {
+    -fx-text-fill: #25282c;
+}
+
+.event-card-header-separator .line {
+    -fx-border-color: #c9cdd3;
+}
+
+.event-status-badge,
+.trading-method-badge {
+    -fx-background-radius: 12;
+    -fx-padding: 4 9;
+    -fx-font-weight: bold;
+}
+
+.status-not-started {
+    -fx-background-color: #e8ebef;
+    -fx-text-fill: #59616b;
+}
+
+.status-active {
+    -fx-background-color: #dcefe5;
+    -fx-text-fill: #21704f;
+}
+
+.status-closed {
+    -fx-background-color: #eee4e4;
+    -fx-text-fill: #875050;
+}
+
+.trading-method-badge {
+    -fx-background-color: #e6edf7;
+    -fx-text-fill: #355b85;
+}
+
+.event-card-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #686f78;
+}
+
+.commission-description,
+.event-account-value {
+    -fx-text-fill: #24272b;
+}
+
+.commission-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: #555d66;
+}
+
+.event-account-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.event-account-row {
+    -fx-padding: 4 0 7 0;
+}

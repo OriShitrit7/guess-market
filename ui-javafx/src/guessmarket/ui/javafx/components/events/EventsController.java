@@ -8,15 +8,22 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import org.controlsfx.control.SegmentedButton;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class EventsController {
-    private static final String PERCENT_SIGN = "%";
+    private static final String EVENT_CARD_FXML = "event-card.fxml";
+    private static final String EMPTY_BEFORE_LOAD = "Load a file to view events";
+    private static final String EMPTY_AFTER_LOAD = "No events match the selected filters";
 
     private MainController mainController;
 
@@ -28,20 +35,9 @@ public class EventsController {
     private SegmentedButton commissionFilter;
 
     @FXML
-    private TableView<EventTableRow> eventsTable;
-
+    private FlowPane eventCardsPane;
     @FXML
-    private TableColumn<EventTableRow, String> eventNameColumn;
-    @FXML
-    private TableColumn<EventTableRow, String> eventStatusColumn;
-    @FXML
-    private TableColumn<EventTableRow, String> eventMethodColumn;
-    @FXML
-    private TableColumn<EventTableRow, Number> eventCommissionColumn;
-    @FXML
-    private TableColumn<EventTableRow, String> eventCommissionTypeColumn;
-    @FXML
-    private TableColumn<EventTableRow, Number> eventBalanceColumn;
+    private Label emptyEventsLabel;
 
     @FXML
     private Label noEventSelectedLabel;
@@ -56,18 +52,21 @@ public class EventsController {
 
     private final ObservableList<EventTableRow> events = FXCollections.observableArrayList();
     private final FilteredList<EventTableRow> filteredEvents = new FilteredList<>(events, row -> true);
+    private final List<EventCardController> displayedCards = new ArrayList<>();
+
+    private Integer selectedEventId;
+    private boolean eventsWereLoaded;
 
     @FXML
     private void initialize() {
-        eventsTable.setPlaceholder(new Label("Load a file to view events"));
+        emptyEventsLabel.managedProperty().bind(emptyEventsLabel.visibleProperty());
         noEventSelectedLabel.managedProperty().bind(noEventSelectedLabel.visibleProperty());
         lmsrDetailsComponent.managedProperty().bind(lmsrDetailsComponent.visibleProperty());
         orderBookDetailsComponent.managedProperty().bind(orderBookDetailsComponent.visibleProperty());
 
         clearFilterToggles();
-        initEventsTable();
         initFilterListeners();
-        initSelectionListener();
+        rebuildEventCards();
         clearEventDetails();
     }
 
@@ -76,15 +75,32 @@ public class EventsController {
     }
 
     public void refreshEvents() {
-        List<EventSummaryDto> summaries = mainController.getMarketManager().getEventSummaries();
-        List<EventTableRow> rows = summaries.stream().map(EventTableRow::new).toList();
+        Integer eventIdToRestore = selectedEventId;
 
-        events.setAll(rows);
+        List<EventSummaryDto> summaries = mainController.getMarketManager().getEventSummaries();
+        events.setAll(summaries.stream().map(EventTableRow::new).toList());
+        eventsWereLoaded = true;
+
+        EventTableRow restoredSelection = findVisibleEvent(eventIdToRestore);
+        selectedEventId = restoredSelection == null ? null : restoredSelection.getEventId();
+        rebuildEventCards();
+        showEventDetails(restoredSelection);
     }
 
-    private void initSelectionListener() {
-        eventsTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showEventDetails(newValue));
+    private EventTableRow findVisibleEvent(Integer eventId) {
+        if (eventId == null) {
+            return null;
+        }
+        return filteredEvents.stream()
+                .filter(event -> event.getEventId() == eventId)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void selectEvent(EventTableRow selectedEvent) {
+        selectedEventId = selectedEvent.getEventId();
+        displayedCards.forEach(card -> card.setSelected(card.getEventId() == selectedEventId));
+        showEventDetails(selectedEvent);
     }
 
     // Shows the panel that matches the selected event's trading method, and hides the other one.
@@ -121,30 +137,28 @@ public class EventsController {
         commissionFilter.setToggleGroup(null);
     }
 
-    private void initEventsTable() {
-        eventNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        eventStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        eventMethodColumn.setCellValueFactory(new PropertyValueFactory<>("methodType"));
-        eventCommissionColumn.setCellValueFactory(new PropertyValueFactory<>("commissionPercent"));
-        eventCommissionColumn.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(Number value, boolean empty) {
-                super.updateItem(value, empty);
-                setText(empty || value == null ? null : value + PERCENT_SIGN);
-            }
-        });
-        eventCommissionTypeColumn.setCellValueFactory(new PropertyValueFactory<>("commissionPolicy"));
-        eventBalanceColumn.setCellValueFactory(new PropertyValueFactory<>("accountBalance"));
+    private void rebuildEventCards() {
+        eventCardsPane.getChildren().clear();
+        displayedCards.clear();
 
-        eventBalanceColumn.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(Number value, boolean empty) {
-                super.updateItem(value, empty);
-                setText(empty || value == null ? null : String.format("%.2f", value.doubleValue()));
-            }
-        });
+        for (EventTableRow event : filteredEvents) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(EVENT_CARD_FXML));
+                Node eventCard = loader.load();
+                EventCardController controller = loader.getController();
 
-        eventsTable.setItems(filteredEvents);
+                controller.setEvent(event, this::selectEvent);
+                controller.setSelected(selectedEventId != null && event.getEventId() == selectedEventId);
+                displayedCards.add(controller);
+                eventCardsPane.getChildren().add(eventCard);
+            } catch (IOException exception) {
+                throw new IllegalStateException("Could not load the event card", exception);
+            }
+        }
+
+        boolean empty = filteredEvents.isEmpty();
+        emptyEventsLabel.setText(eventsWereLoaded ? EMPTY_AFTER_LOAD : EMPTY_BEFORE_LOAD);
+        emptyEventsLabel.setVisible(empty);
     }
     
     private void initFilterListeners() {
@@ -160,6 +174,11 @@ public class EventsController {
         filteredEvents.setPredicate(row -> matchesFilter(methodFilter, row.getMethodType())
                                     && matchesFilter(statusFilter, row.getStatus())
                                     && matchesFilter(commissionFilter, row.getCommissionPolicy()));
+
+        EventTableRow selectedEvent = findVisibleEvent(selectedEventId);
+        selectedEventId = selectedEvent == null ? null : selectedEvent.getEventId();
+        rebuildEventCards();
+        showEventDetails(selectedEvent);
     }
 
     private boolean matchesFilter(SegmentedButton filter, String rowValue) {

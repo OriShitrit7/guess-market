@@ -43,7 +43,7 @@
                 <RowConstraints minHeight="10.0" vgrow="NEVER" />
               </rowConstraints>
                <children>
-                  <ToggleButton fx:id="firstOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Option1" />
+                  <ToggleButton fx:id="firstOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Option1" />
                   <ToggleButton fx:id="secondOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Option2" GridPane.columnIndex="1" />
                </children>
             </GridPane>
@@ -51,7 +51,7 @@
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
                   <Label fx:id="availableTitleLabel" text="Available Balance :" />
-                  <Label fx:id="availableLabel" text="0.00" />
+                  <Label fx:id="availableLabel" text="\$0.00" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
@@ -74,11 +74,11 @@
                <children>
                   <Label fx:id="orderValueTitleLabel" text="Maximum order value :" />
                   <Label fx:id="commissionTitleLabel" text="Commission :" GridPane.rowIndex="1" />
-                  <Label fx:id="orderValueLabel" text="0.00" GridPane.columnIndex="1" />
-                  <Label fx:id="commissionLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label fx:id="orderValueLabel" text="\$0.00" GridPane.columnIndex="1" />
+                  <Label fx:id="commissionLabel" text="\$0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                </children>
             </GridPane>
-            <Label fx:id="insufficientBalanceLabel" managed="false" text="This order exceeds your balance. Your account will be blocked if it executes." textFill="#c1272d" visible="false" wrapText="true" />
+            <Label fx:id="insufficientBalanceLabel" managed="false" maxWidth="1.7976931348623157E308" text="This order exceeds your balance. Your account will be blocked if it executes." textFill="#c1272d" visible="false" wrapText="true" />
             <Separator maxWidth="1.7976931348623157E308" />
             <GridPane>
                <columnConstraints>
@@ -94,7 +94,7 @@
                         <Font name="System Bold" size="15.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalLabel" text="0.00" GridPane.columnIndex="1">
+                  <Label fx:id="totalLabel" text="\$0.00" GridPane.columnIndex="1">
                      <font>
                         <Font name="System Bold" size="15.0" />
                      </font>

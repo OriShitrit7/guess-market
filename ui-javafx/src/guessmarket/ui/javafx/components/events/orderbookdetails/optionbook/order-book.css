@@ -1,0 +1,76 @@
+.order-book-card {
+    -fx-background-color: #f7f8fa;
+    -fx-background-radius: 8;
+    -fx-border-color: #d6d9de;
+    -fx-border-radius: 8;
+}
+
+.book-side-title {
+    -fx-text-fill: #626976;
+}
+
+.bid-side-title {
+    -fx-text-fill: #26775a;
+}
+
+.ask-side-title {
+    -fx-text-fill: #9b4b4b;
+}
+
+.orders-scroll,
+.orders-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.orders-scroll {
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.order-depth-row,
+.order-depth-bar {
+    -fx-background-radius: 6;
+}
+
+.bid-order-row {
+    -fx-background-color: #e7f2ed;
+}
+
+.ask-order-row {
+    -fx-background-color: #f5e8e8;
+}
+
+.bid-depth-bar {
+    -fx-background-color: #b9dccd;
+}
+
+.ask-depth-bar {
+    -fx-background-color: #e4baba;
+}
+
+.order-user,
+.order-price {
+    -fx-font-weight: bold;
+}
+
+.order-mm-tag,
+.order-quantity,
+.empty-orders {
+    -fx-text-fill: #68707c;
+}
+
+.order-mm-tag {
+    -fx-font-size: 10px;
+}
+
+.bid-order-price {
+    -fx-text-fill: #14855b;
+}
+
+.ask-order-price {
+    -fx-text-fill: #bd4545;
+}
+
+.empty-orders {
+    -fx-padding: 5 9;
+}

@@ -91,7 +91,7 @@
                   </Label>
                   <Region maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                   <Label text="Total Commission Paid :" />
-                  <Label fx:id="totalCommissionPaidLabel" text="0.00" />
+                  <Label fx:id="totalCommissionPaidLabel" text="\$0.00" />
                </children>
             </HBox>
             <TableView fx:id="userTradesTable" maxWidth="1.7976931348623157E308" prefHeight="200.0">

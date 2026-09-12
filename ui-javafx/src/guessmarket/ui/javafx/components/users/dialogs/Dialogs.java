@@ -40,6 +40,19 @@ public abstract class Dialogs {
         show(Alert.AlertType.ERROR, title, message);
     }
 
+    // Asks the user to approve an action, and reports whether they did.
+    public static boolean confirm(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        Optional<ButtonType> choice = alert.showAndWait();
+
+        return choice.isPresent() && choice.get() == ButtonType.OK;
+    }
+
     private static void show(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
 

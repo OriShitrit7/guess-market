@@ -1,21 +1,26 @@
 package guessmarket.ui.javafx.components.events.orderbookdetails.optionbook;
 
 import guessmarket.dto.OptionBookDto;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import guessmarket.dto.OrderEntryDto;
+import guessmarket.ui.javafx.components.DisplayText;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+
+import java.util.List;
 
 public class OptionBookController {
     private static final String NO_PRICE = "-";
-    private static final String AMOUNT_FORMAT = "%.2f";
-    private static final String NO_ORDERS = "No waiting orders";
+    private static final String NO_ORDERS = "\u2014";
+    private static final String MARKET_MAKER_TAG = "MM";
+    private static final double MINIMUM_BAR_RATIO = 0.06;
+    private static final double ORDER_ROW_HEIGHT = 32.0;
 
     @FXML
     private Label optionNameLabel;
@@ -31,49 +36,23 @@ public class OptionBookController {
     private Label spreadLabel;
 
     @FXML
-    private ToggleButton buyOrdersToggle;
+    private VBox buyOrdersBox;
     @FXML
-    private ToggleButton sellOrdersToggle;
+    private VBox sellOrdersBox;
 
-    @FXML
-    private TableView<BookOrderTableRow> ordersTable;
-    @FXML
-    private TableColumn<BookOrderTableRow, String> orderUserColumn;
-    @FXML
-    private TableColumn<BookOrderTableRow, Number> orderQuantityColumn;
-    @FXML
-    private TableColumn<BookOrderTableRow, Number> orderPriceColumn;
-
-    private final ToggleGroup shownSide = new ToggleGroup();
-    private final ObservableList<BookOrderTableRow> orders = FXCollections.observableArrayList();
-
-    private OptionBookDto book;
-
-    @FXML
-    private void initialize() {
-        buyOrdersToggle.setToggleGroup(shownSide);
-        sellOrdersToggle.setToggleGroup(shownSide);
-
-        keepOneSideSelected();
-        initOrdersTable();
-    }
-
-    public void refresh(OptionBookDto book) {
-        this.book = book;
-
+    public void refresh(OptionBookDto book, int maximumOrderQuantity, String marketMakerName) {
         optionNameLabel.setText(book.getOptionName());
-        lastLabel.setText(formatPrice(book.getLastTradePrice()));
-        bidLabel.setText(formatPrice(book.getBid()));
-        askLabel.setText(formatPrice(book.getAsk()));
-        midLabel.setText(formatPrice(book.getMid()));
-        spreadLabel.setText(formatPrice(book.getSpread()));
+        lastLabel.setText(DisplayText.optionalAmount(book.getLastTradePrice()));
+        bidLabel.setText(DisplayText.optionalAmount(book.getBid()));
+        askLabel.setText(DisplayText.optionalAmount(book.getAsk()));
+        midLabel.setText(DisplayText.optionalAmount(book.getMid()));
+        spreadLabel.setText(DisplayText.optionalAmount(book.getSpread()));
 
-        showSelectedSide();
+        showOrders(buyOrdersBox, book.getBuyOrders(), maximumOrderQuantity, marketMakerName, true);
+        showOrders(sellOrdersBox, book.getSellOrders(), maximumOrderQuantity, marketMakerName, false);
     }
 
     public void clear() {
-        book = null;
-
         optionNameLabel.setText(NO_PRICE);
         lastLabel.setText(NO_PRICE);
         bidLabel.setText(NO_PRICE);
@@ -81,46 +60,76 @@ public class OptionBookController {
         midLabel.setText(NO_PRICE);
         spreadLabel.setText(NO_PRICE);
 
-        orders.clear();
+        showOrders(buyOrdersBox, List.of(), 1, null, true);
+        showOrders(sellOrdersBox, List.of(), 1, null, false);
     }
 
-    // A toggle group allows clearing the selection; one side must always stay shown.
-    private void keepOneSideSelected() {
-        shownSide.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null) {
-                shownSide.selectToggle(oldValue);
-            }
-            showSelectedSide();
-        });
-    }
+    private void showOrders(VBox ordersBox, List<OrderEntryDto> orders, int maximumOrderQuantity,
+                            String marketMakerName, boolean bid) {
+        ordersBox.getChildren().clear();
 
-    private void initOrdersTable() {
-        ordersTable.setPlaceholder(new Label(NO_ORDERS));
-
-        orderUserColumn.setCellValueFactory(new PropertyValueFactory<>("userName"));
-        orderQuantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-        orderPriceColumn.setCellValueFactory(new PropertyValueFactory<>("pricePerShare"));
-        orderPriceColumn.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(Number value, boolean empty) {
-                super.updateItem(value, empty);
-                setText(empty || value == null ? null : String.format(AMOUNT_FORMAT, value.doubleValue()));
-            }
-        });
-
-        ordersTable.setItems(orders);
-    }
-
-    private void showSelectedSide() {
-        if (book == null) {
-            orders.clear();
+        if (orders.isEmpty()) {
+            Label placeholder = new Label(NO_ORDERS);
+            placeholder.getStyleClass().add("empty-orders");
+            ordersBox.getChildren().add(placeholder);
             return;
         }
-        orders.setAll((buyOrdersToggle.isSelected() ? book.getBuyOrders() : book.getSellOrders())
-                .stream().map(BookOrderTableRow::new).toList());
+
+        orders.stream()
+                .map(order -> createOrderRow(order, maximumOrderQuantity, marketMakerName, bid))
+                .forEach(ordersBox.getChildren()::add);
     }
 
-    private String formatPrice(Double price) {
-        return price == null ? NO_PRICE : String.format(AMOUNT_FORMAT, price);
+    private StackPane createOrderRow(OrderEntryDto order, int maximumOrderQuantity,
+                                     String marketMakerName, boolean bid) {
+        double barRatio = Math.min(1.0, Math.max(MINIMUM_BAR_RATIO,
+                (double) order.getQuantity() / Math.max(1, maximumOrderQuantity)));
+
+        StackPane row = new StackPane();
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setMinHeight(ORDER_ROW_HEIGHT);
+        row.setPrefHeight(ORDER_ROW_HEIGHT);
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.getStyleClass().addAll("order-depth-row", bid ? "bid-order-row" : "ask-order-row");
+
+        Region bar = new Region();
+        bar.setMaxHeight(Double.MAX_VALUE);
+        bar.prefWidthProperty().bind(row.widthProperty().multiply(barRatio));
+        bar.maxWidthProperty().bind(row.widthProperty().multiply(barRatio));
+        bar.getStyleClass().addAll("order-depth-bar", bid ? "bid-depth-bar" : "ask-depth-bar");
+        StackPane.setAlignment(bar, Pos.CENTER_LEFT);
+
+        HBox content = createOrderContent(order, marketMakerName, bid);
+        row.getChildren().addAll(bar, content);
+        return row;
     }
+
+    private HBox createOrderContent(OrderEntryDto order, String marketMakerName, boolean bid) {
+        Label userLabel = new Label(order.getUserName());
+        userLabel.getStyleClass().add("order-user");
+
+        HBox user = new HBox(5.0, userLabel);
+        user.setAlignment(Pos.CENTER_LEFT);
+        if (order.getUserName().equals(marketMakerName)) {
+            Label marketMakerTag = new Label(MARKET_MAKER_TAG);
+            marketMakerTag.getStyleClass().add("order-mm-tag");
+            user.getChildren().add(marketMakerTag);
+        }
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label quantity = new Label(Integer.toString(order.getQuantity()));
+        quantity.getStyleClass().add("order-quantity");
+
+        Label price = new Label(DisplayText.amount(order.getPricePerShare()));
+        price.getStyleClass().addAll("order-price", bid ? "bid-order-price" : "ask-order-price");
+
+        HBox content = new HBox(10.0, user, spacer, quantity, price);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setPadding(new Insets(0.0, 9.0, 0.0, 9.0));
+        content.setMaxWidth(Double.MAX_VALUE);
+        return content;
+    }
+
 }

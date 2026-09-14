@@ -1,6 +1,7 @@
 package guessmarket.ui.javafx.components.events;
 
 import guessmarket.ui.javafx.components.DisplayText;
+import guessmarket.ui.javafx.components.StatusStyle;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -16,8 +17,7 @@ public class EventCardController {
     private static final String ON_PURCHASE_TEXT = "\u00b7 Charged on purchase";
     private static final String ON_CLOSE_TEXT = "\u00b7 Charged when event closes";
     private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("selected");
-    private static final List<String> STATUS_STYLE_CLASSES =
-            List.of("status-not-started", "status-active", "status-closed");
+    private static final List<String> METHOD_STYLE_CLASSES = List.of("method-lmsr", "method-order-book");
 
     @FXML
     private VBox eventCard;
@@ -58,7 +58,8 @@ public class EventCardController {
         eventAccountLabel.setText(DisplayText.amount(event.getAccountBalance()));
         eventCard.setAccessibleText(event.getName() + ", " + event.getStatus());
 
-        updateStatusStyle(event.getStatus());
+        StatusStyle.apply(statusLabel, event.getStatusType());
+        updateMethodStyle(event.isOrderBook());
     }
 
     public int getEventId() {
@@ -80,12 +81,8 @@ public class EventCardController {
         return "On Purchase".equals(policy) ? ON_PURCHASE_TEXT : ON_CLOSE_TEXT;
     }
 
-    private void updateStatusStyle(String status) {
-        statusLabel.getStyleClass().removeAll(STATUS_STYLE_CLASSES);
-        statusLabel.getStyleClass().add(switch (status) {
-            case "Active" -> "status-active";
-            case "Closed" -> "status-closed";
-            default -> "status-not-started";
-        });
+    private void updateMethodStyle(boolean orderBook) {
+        tradingMethodLabel.getStyleClass().removeAll(METHOD_STYLE_CLASSES);
+        tradingMethodLabel.getStyleClass().add(orderBook ? "method-order-book" : "method-lmsr");
     }
 }

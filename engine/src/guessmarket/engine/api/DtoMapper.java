@@ -30,16 +30,28 @@ public class DtoMapper {
 
     EventTradingStateDto createEventTradingState(MarketEvent event, Collection<User> users) {
         return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
-                createTradeDtos(getLmsrTrades(event)), createParticipants(event, users));
+                createSharePriceHistory(event), createTradeDtos(getLmsrTrades(event)),
+                createParticipants(event, users));
     }
 
     OrderBookStateDto createOrderBookState(OrderBookMarketEvent event, Collection<User> users) {
         return new OrderBookStateDto(createEventSummary(event), createOptionBooks(event),
-                createOptionStates(event), createParticipants(event, users));
+                createOrderBookPriceHistory(event), createOptionStates(event),
+                createParticipants(event, users));
     }
 
     public UserSummaryDto createUserSummary(User user) {
         return new UserSummaryDto(user.getName(), user.getBalance(), user.isBlocked());
+    }
+
+    List<BalancePointDto> createBalanceHistory(User user) {
+        List<Double> balances = user.getBalanceHistory();
+        List<BalancePointDto> history = new ArrayList<>();
+
+        for (int i = 0; i < balances.size(); i++) {
+            history.add(new BalancePointDto(i, balances.get(i)));
+        }
+        return List.copyOf(history);
     }
 
     UserInvolvementDto createUserInvolvement(MarketEvent event, User user) {
@@ -60,8 +72,10 @@ public class DtoMapper {
     }
 
     OrderResultDto createOrderResult(OrderExecution execution) {
-        return new OrderResultDto(OrderActionDto.valueOf(execution.getAction().name()), execution.getMatchedQuantity(),
-                execution.getRemainingQuantity(), execution.getTradeAmount(), execution.getCommissionPaid());
+        return new OrderResultDto(OrderActionDto.valueOf(execution.getAction().name()),
+                execution.getMatchedQuantity(), execution.getMintedQuantity(),
+                execution.getRemainingQuantity(), execution.getMatchedAmount(),
+                execution.getMintedAmount(), execution.getCommissionPaid());
     }
 
     // The existing UI DTO represents LMSR purchases only; OB details will receive their own DTO later.
@@ -72,6 +86,12 @@ public class DtoMapper {
     private List<OptionBookDto> createOptionBooks(OrderBookMarketEvent event) {
         return event.getOptionBooks().stream()
                 .map(this::createOptionBook)
+                .toList();
+    }
+
+    private List<List<Double>> createOrderBookPriceHistory(OrderBookMarketEvent event) {
+        return event.getOptionBooks().stream()
+                .map(OptionOrderBook::getPriceHistory)
                 .toList();
     }
 
@@ -154,6 +174,42 @@ public class DtoMapper {
                 .map(option -> new OptionStateDto(option.getName(), values.get(option),
                         option.getTotalSharesBought()))
                 .toList();
+    }
+
+    // Replays LMSR purchases in chronological order and records both option values after each one.
+    private List<List<Double>> createSharePriceHistory(MarketEvent event) {
+        if (!(event instanceof LmsrMarketEvent lmsrEvent)) {
+            return List.of();
+        }
+
+        List<MarketOption> options = event.getOptions();
+        List<List<Double>> history = options.stream()
+                .<List<Double>>map(option -> new ArrayList<>())
+                .toList();
+        int[] quantities = new int[options.size()];
+
+        addSharePriceSnapshot(history, lmsrEvent, quantities);
+
+        for (Trade trade : lmsrEvent.getTradeHistory()) {
+            int optionIndex = options.indexOf(trade.getOption());
+
+            if (optionIndex >= 0) {
+                quantities[optionIndex] += trade.getQuantity();
+                addSharePriceSnapshot(history, lmsrEvent, quantities);
+            }
+        }
+        return history.stream()
+                .map(List::copyOf)
+                .toList();
+    }
+
+    private void addSharePriceSnapshot(List<List<Double>> history, LmsrMarketEvent event,
+                                       int[] quantities) {
+        double[] prices = event.calcOptionsValues(quantities);
+
+        for (int i = 0; i < history.size(); i++) {
+            history.get(i).add(prices[i]);
+        }
     }
 
 

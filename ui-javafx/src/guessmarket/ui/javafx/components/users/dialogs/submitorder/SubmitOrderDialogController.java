@@ -14,6 +14,7 @@ import javafx.scene.control.ToggleGroup;
 import java.util.List;
 
 public class SubmitOrderDialogController {
+    private static final String HEADER_FORMAT = "%s - Submit Order";
     private static final String COMMISSION_FORMAT = "Commission (%d%%) :";
     private static final String EMPTY_AMOUNT = "$0.00";
     private static final String BALANCE_TITLE = "Available Balance :";
@@ -84,12 +85,14 @@ public class SubmitOrderDialogController {
         recalculateOnChange();
     }
 
-    public void setEvent(List<String> optionNames, List<Integer> availableShares, double balance,
+    public void setEvent(String eventName, List<String> optionNames,
+                         List<Integer> availableShares, double balance,
                          int commissionPercent, int baseValue) {
         this.availableShares = List.copyOf(availableShares);
         this.balance = balance;
         this.commissionPercent = commissionPercent;
 
+        dialogPane.setHeaderText(String.format(HEADER_FORMAT, eventName));
         firstOptionToggle.setText(optionNames.get(FIRST_OPTION_INDEX));
         secondOptionToggle.setText(optionNames.get(SECOND_OPTION_INDEX));
         commissionTitleLabel.setText(String.format(COMMISSION_FORMAT, commissionPercent));

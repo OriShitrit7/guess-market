@@ -8,10 +8,7 @@ import guessmarket.engine.exception.request.InvalidUserRequestException;
 import guessmarket.engine.exception.request.UserRequestErrorCode;
 import guessmarket.engine.model.*;
 import guessmarket.engine.exception.request.NonPositiveQuantityException;
-import guessmarket.engine.orderbook.Order;
-import guessmarket.engine.orderbook.OrderAction;
-import guessmarket.engine.orderbook.OrderMatch;
-import guessmarket.engine.orderbook.OrderExecution;
+import guessmarket.engine.orderbook.*;
 import guessmarket.engine.xml.LoadedSystemData;
 import guessmarket.engine.xml.SystemFileLoader;
 
@@ -67,6 +64,11 @@ public class MarketManagerImpl implements MarketManager {
         return users.getAllUsers().stream()
                 .map(dtoMapper::createUserSummary)
                 .toList();
+    }
+
+    @Override
+    public List<BalancePointDto> getUserBalanceHistory(String userName) {
+        return dtoMapper.createBalanceHistory(getUserByName(userName));
     }
 
     @Override
@@ -157,14 +159,112 @@ public class MarketManagerImpl implements MarketManager {
         }
 
         Order order = event.createOrder(userName, action, quantity, pricePerShare);
-        List<OrderMatch> matches = event.findMatches(order, optionIndex);
-        double commissionPaid = settlement.settleOrderMatches(event, userName, matches);
 
-        event.commitOrder(order, optionIndex, matches);
+        MatchPlan plan = event.planMatches(order, optionIndex);
+        double commissionPaid = settlement.settleOrder(event, userName, plan);
+
+        event.commitOrder(order, optionIndex, plan);
         settlement.registerParticipation(event, userName);
 
         return dtoMapper.createOrderResult(
-                new OrderExecution(action, matches, order.getRemainingQuantity(), commissionPaid));
+                new OrderExecution(action, plan, order.getRemainingQuantity(), commissionPaid));
+    }
+
+    // The creator becomes the market maker, and pays nothing until the event is opened.
+    @Override
+    public EventSummaryDto createEvent(String creatorName, NewEventDto request) {
+        User creator = getActiveUserByName(creatorName);
+
+        validateNewEvent(request);
+
+        MarketEvent event = buildEvent(nextEventId(), request);
+        event.setMarketMakerName(creator.getName());
+        events.put(event.getEventId(), event);
+
+        return dtoMapper.createEventSummary(event);
+    }
+
+    private int nextEventId() {
+        return events.keySet().stream().max(Integer::compareTo).orElse(0) + 1;
+    }
+
+    private MarketEvent buildEvent(int eventId, NewEventDto request) {
+        List<MarketOption> options = request.getOptionNames().stream()
+                .map(String::trim)
+                .map(MarketOption::new)
+                .toList();
+        CommissionConfig commission = new CommissionConfig(request.getCommissionPercent(),
+                toCommissionPolicy(request.getCommissionPolicy()));
+        String eventName = request.getEventName().trim();
+        String description = request.getDescription().trim();
+
+        if (toTradingMethodType(request.getMethodType()) == TradingMethodType.LMSR) {
+            return new LmsrMarketEvent(eventId, eventName, description, options, commission, request.getB());
+        }
+        return new OrderBookMarketEvent(eventId, eventName, description, options, commission,
+                request.getD(), request.isAllowMint(), request.getInitialInvestment());
+    }
+
+    // The XSD guards a loaded event; a created one is guarded here.
+    private void validateNewEvent(NewEventDto request) {
+        validateText(request.getEventName(), EventRequestErrorCode.MISSING_EVENT_NAME);
+        validateText(request.getDescription(), EventRequestErrorCode.MISSING_EVENT_DESCRIPTION);
+        validateOptionNames(request.getOptionNames());
+        validateCommissionPercent(request.getCommissionPercent());
+        validateMethodValues(request);
+    }
+
+    private void validateText(String text, EventRequestErrorCode errorCode) {
+        if (text == null || text.isBlank()) {
+            throw new InvalidEventRequestException(errorCode);
+        }
+    }
+
+    private void validateOptionNames(List<String> optionNames) {
+        if (optionNames.size() != MarketEvent.REQUIRED_OPTION_COUNT) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.WRONG_OPTION_COUNT);
+        }
+        optionNames.forEach(name -> validateText(name, EventRequestErrorCode.MISSING_OPTION_NAME));
+
+        if (optionNames.getFirst().trim().equalsIgnoreCase(optionNames.getLast().trim())) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.DUPLICATE_OPTION_NAMES);
+        }
+    }
+
+    private void validateCommissionPercent(int commissionPercent) {
+        if (commissionPercent < CommissionConfig.MIN_COMMISSION_PERCENT
+                || commissionPercent > CommissionConfig.MAX_COMMISSION_PERCENT) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.COMMISSION_OUT_OF_RANGE);
+        }
+    }
+
+    private void validateMethodValues(NewEventDto request) {
+        if (toTradingMethodType(request.getMethodType()) == TradingMethodType.LMSR) {
+            if (request.getB() <= 0) {
+                throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_LMSR_B);
+            }
+            return;
+        }
+        if (request.getD() <= 0) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_BASE_VALUE);
+        }
+        if (request.getInitialInvestment() < 0) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_INITIAL_INVESTMENT);
+        }
+    }
+
+    private CommissionPolicy toCommissionPolicy(CommissionPolicyDto policy) {
+        if (policy == null) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.COMMISSION_OUT_OF_RANGE);
+        }
+        return CommissionPolicy.valueOf(policy.name());
+    }
+
+    private TradingMethodType toTradingMethodType(TradingMethodTypeDto methodType) {
+        if (methodType == null) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.MISSING_TRADING_METHOD);
+        }
+        return TradingMethodType.valueOf(methodType.name());
     }
 
     private OrderAction toOrderAction(OrderActionDto action) {

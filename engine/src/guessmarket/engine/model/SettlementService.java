@@ -1,5 +1,7 @@
 package guessmarket.engine.model;
 
+import guessmarket.engine.orderbook.MatchPlan;
+import guessmarket.engine.orderbook.MintMatch;
 import guessmarket.engine.orderbook.OrderMatch;
 
 import java.util.List;
@@ -34,16 +36,19 @@ public class SettlementService {
         payCommission(event, trade.getCommissionCost());
     }
 
-    // Applies every match to its two sides and returns the commission the submitting user paid.
-    public double settleOrderMatches(MarketEvent event, String submittingUser, List<OrderMatch> matches) {
+    // Applies every match and mint to its two sides, and returns the commission the submitting user paid.
+    public double settleOrder(MarketEvent event, String submittingUser, MatchPlan plan) {
         double submittingUserCommission = 0;
 
-        for (OrderMatch match : matches) {
+        for (OrderMatch match : plan.getMatches()) {
             double commission = settleOrderMatch(event, match);
 
             if (match.getBuyerName().equals(submittingUser)) {
                 submittingUserCommission += commission;
             }
+        }
+        for (MintMatch mint : plan.getMints()) {
+            submittingUserCommission += settleMint(event, mint);
         }
         return submittingUserCommission;
     }
@@ -76,6 +81,29 @@ public class SettlementService {
         seller.deposit(amount);
         seller.recordSale(event.getEventId(), amount);
         buyer.recordCommission(event.getEventId(), commission);
+        payCommission(event, commission);
+
+        return commission;
+    }
+
+    // Both sides are buyers and no one sells: the shares are created and the money funds the event.
+    private double settleMint(MarketEvent event, MintMatch mint) {
+        settleMintSide(event, mint.getRestingBuyerName(), mint.getRestingOptionIndex(),
+                mint.getQuantity(), mint.getRestingTotalPaid());
+
+        return settleMintSide(event, mint.getIncomingBuyerName(), mint.getIncomingOptionIndex(),
+                mint.getQuantity(), mint.getIncomingTotalPaid());
+    }
+
+    private double settleMintSide(MarketEvent event, String buyerName, int optionIndex, int quantity, double amount) {
+        User buyer = users.getUserByName(buyerName);
+        MarketOption option = event.getOptions().get(optionIndex);
+        double commission = event.calcPurchaseCommission(amount);
+
+        buyer.addShares(event.getEventId(), option, quantity, amount);
+        buyer.withdraw(amount + commission);
+        buyer.recordCommission(event.getEventId(), commission);
+        event.getAccount().deposit(amount);
         payCommission(event, commission);
 
         return commission;

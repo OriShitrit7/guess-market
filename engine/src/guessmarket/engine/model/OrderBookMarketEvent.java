@@ -1,9 +1,6 @@
 package guessmarket.engine.model;
 
-import guessmarket.engine.orderbook.Order;
-import guessmarket.engine.orderbook.OrderAction;
-import guessmarket.engine.orderbook.OptionOrderBook;
-import guessmarket.engine.orderbook.OrderMatch;
+import guessmarket.engine.orderbook.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +8,7 @@ import java.util.List;
 public class OrderBookMarketEvent extends MarketEvent {
     // The highest legal order price is one cent below the base value.
     private static final double PRICE_MARGIN = 0.01;
+    private static final double PRICE_SCALE = 100;
 
     private final int d;
     private final boolean mintAllowed;
@@ -87,20 +85,83 @@ public class OrderBookMarketEvent extends MarketEvent {
     }
 
     // Plans the matches without touching the book, so the caller can settle them first.
-    public List<OrderMatch> findMatches(Order order, int optionIndex) {
-        return books.get(optionIndex).findMatches(order, optionIndex);
+    public MatchPlan planMatches(Order order, int optionIndex) {
+        List<OrderMatch> matches = books.get(optionIndex).findMatches(order, optionIndex);
+
+        int matchedQuantity = matches.stream()
+                .mapToInt(OrderMatch::getQuantity)
+                .sum();
+
+        int quantityLeft = order.getRemainingQuantity() - matchedQuantity;
+
+        if (!mintAllowed || order.getAction() != OrderAction.BUY || quantityLeft == 0) {
+            return new MatchPlan(matches, List.of());
+        }
+        return new MatchPlan(matches, findMintMatches(order, optionIndex, quantityLeft));
     }
 
-    // Applies the settled matches to the book and rests whatever is left of the order.
-    public void commitOrder(Order order, int optionIndex, List<OrderMatch> matches) {
+    private int getOppositeOptionIndex(int optionIndex) {
+        return optionIndex == 0 ? 1 : 0;
+    }
+
+    // Pairs the buying order with the demand for the opposite option, best price first.
+    private List<MintMatch> findMintMatches(Order incomingOrder, int optionIndex, int quantityLeft) {
+        List<MintMatch> mints = new ArrayList<>();
+        int oppositeOptionIndex = getOppositeOptionIndex(optionIndex);
+        int remainingQuantity = quantityLeft;
+
+        for (Order restingOrder : books.get(oppositeOptionIndex).getBuyOrders()) {
+            double restingPrice = restingOrder.getPricePerShare();
+
+            if (remainingQuantity == 0 || !checkMintThreshold(restingPrice, incomingOrder.getPricePerShare())) {
+                break;
+            }
+            int mintedQuantity = Math.min(remainingQuantity, restingOrder.getRemainingQuantity());
+
+            mints.add(new MintMatch(restingOrder.getUserName(), incomingOrder.getUserName(),
+                    oppositeOptionIndex, optionIndex, mintedQuantity,
+                    restingPrice, calcComplementPrice(restingPrice)));
+            remainingQuantity -= mintedQuantity;
+        }
+        return List.copyOf(mints);
+    }
+
+    private boolean checkMintThreshold(double restingPrice, double incomingPrice) {
+        return restingPrice + incomingPrice >= d;
+    }
+
+    // The waiting order pays its full price, so the arriving one completes it to the base value.
+    private double calcComplementPrice(double restingPrice) {
+        return Math.round((d - restingPrice) * PRICE_SCALE) / PRICE_SCALE;
+    }
+
+    // Applies the settled plan to the books and rests whatever is left of the order.
+    public void commitOrder(Order order, int optionIndex, MatchPlan plan) {
         OptionOrderBook book = books.get(optionIndex);
 
-        book.completeMatches(order, matches);
-        tradeHistory.addAll(matches);
+        book.completeMatches(order, plan.getMatches());
+        tradeHistory.addAll(plan.getMatches());
+        commitMints(order, optionIndex, plan.getMints());
 
         if (!order.isFilled()) {
             book.addOrder(order);
         }
+    }
+
+    // Minting consumes orders from both books, and gives both options their new shares.
+    private void commitMints(Order order, int optionIndex, List<MintMatch> mints) {
+        if (mints.isEmpty()) {
+            return;
+        }
+        books.get(getOppositeOptionIndex(optionIndex)).completeMints(order, mints);
+        mints.forEach(mint -> books.get(optionIndex).recordTradePrice(mint.getIncomingPricePerShare()));
+
+        mints.forEach(this::mintShares);
+    }
+
+    private void mintShares(MintMatch mint) {
+        getOptions().get(mint.getRestingOptionIndex()).addShares(mint.getQuantity());
+        getOptions().get(mint.getIncomingOptionIndex()).addShares(mint.getQuantity());
     }
 
     @Override

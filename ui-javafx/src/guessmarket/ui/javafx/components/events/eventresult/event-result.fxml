@@ -6,24 +6,15 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <VBox maxWidth="1.7976931348623157E308" spacing="6.0" styleClass="result-block" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.eventresult.EventResultController">
    <children>
-      <Label text="Result">
-         <font>
-            <Font name="System Bold" size="14.0" />
-         </font>
-      </Label>
+      <Label styleClass="section-title" text="RESULT" />
       <Separator maxWidth="1.7976931348623157E308" />
       <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
          <children>
             <Label text="Winner :" />
-            <Label fx:id="winnerLabel" text="-">
-               <font>
-                  <Font name="System Bold" size="13.0" />
-               </font>
-            </Label>
+            <Label fx:id="winnerLabel" styleClass="result-winner" text="-" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="payoutPerShareLabel" text="Pays 0.00 per share" />
          </children>

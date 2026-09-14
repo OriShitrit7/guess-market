@@ -1,8 +1,10 @@
 package guessmarket.engine.api;
 
+import guessmarket.dto.BalancePointDto;
 import guessmarket.dto.EventParticipationDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
+import guessmarket.dto.NewEventDto;
 import guessmarket.dto.OrderActionDto;
 import guessmarket.dto.OrderBookStateDto;
 import guessmarket.dto.OrderResultDto;
@@ -31,6 +33,9 @@ public interface MarketManager {
 
     List<UserSummaryDto> getUserSummaries();
 
+    // Returns the named user's balance from its initial value through every balance change.
+    List<BalancePointDto> getUserBalanceHistory(String userName);
+
     List<EventParticipationDto> getUserEvents(String userName);
 
     // Returns the named user's own trades in the requested event, newest first.
@@ -49,4 +54,7 @@ public interface MarketManager {
 
     // Closes an active event using the zero-based index of its winning option.
     EventTradingStateDto closeEvent(String userName, int eventId, int winningOptionIndex);
+
+    // Creates an event owned by the named user, who becomes its market maker.
+    EventSummaryDto createEvent(String creatorName, NewEventDto request);
 }

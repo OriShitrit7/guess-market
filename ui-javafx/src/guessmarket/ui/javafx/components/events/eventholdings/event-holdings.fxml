@@ -4,15 +4,10 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <VBox maxWidth="1.7976931348623157E308" spacing="6.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.eventholdings.EventHoldingsController">
    <children>
-      <Label text="Event Holdings">
-         <font>
-            <Font name="System Bold" size="14.0" />
-         </font>
-      </Label>
+      <Label styleClass="section-title" text="EVENT HOLDINGS" />
       <TableView fx:id="holdingsTable" maxWidth="1.7976931348623157E308" prefHeight="160.0">
         <columns>
           <TableColumn fx:id="userColumn" prefWidth="100.0" reorderable="false" text="User" />

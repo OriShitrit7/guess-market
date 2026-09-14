@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 public class BuySharesDialogController {
+    private static final String HEADER_FORMAT = "%s - Buy Shares";
     private static final String OPTION_FORMAT = "%s   %s";
     private static final String COMMISSION_FORMAT = "Commission (%d%%) :";
     private static final String EMPTY_AMOUNT = "$0.00";
+    private static final String YES_OPTION = "Yes";
     private static final int FIRST_OPTION_INDEX = 0;
     private static final int SECOND_OPTION_INDEX = 1;
     private static final int NO_QUANTITY = 0;
@@ -61,16 +63,19 @@ public class BuySharesDialogController {
     }
 
     // Receives everything the dialog needs without giving it access to the engine.
-    public void setEvent(List<OptionStateDto> options, double balance, int commissionPercent,
+    public void setEvent(String eventName, List<OptionStateDto> options, double balance,
+                         int commissionPercent,
                          BiFunction<Integer, Integer, TradeDto> quote) {
         this.quote = quote;
         this.balance = balance;
 
+        dialogPane.setHeaderText(String.format(HEADER_FORMAT, eventName));
         firstOptionToggle.setText(toToggleText(options.get(FIRST_OPTION_INDEX)));
         secondOptionToggle.setText(toToggleText(options.get(SECOND_OPTION_INDEX)));
         availableBalanceLabel.setText(DisplayText.amount(balance));
         commissionTitleLabel.setText(String.format(COMMISSION_FORMAT, commissionPercent));
 
+        selectDefaultOption(options);
         recalculate();
     }
 
@@ -134,6 +139,14 @@ public class BuySharesDialogController {
         } catch (NumberFormatException ignored) {
             return NO_QUANTITY;
         }
+    }
+
+    // Prefer an explicitly named Yes option; otherwise the event's first option is the default.
+    private void selectDefaultOption(List<OptionStateDto> options) {
+        boolean secondOptionIsYes = options.get(SECOND_OPTION_INDEX).getOptionName()
+                .trim().equalsIgnoreCase(YES_OPTION);
+
+        selectedOption.selectToggle(secondOptionIsYes ? secondOptionToggle : firstOptionToggle);
     }
 
     private String toToggleText(OptionStateDto option) {

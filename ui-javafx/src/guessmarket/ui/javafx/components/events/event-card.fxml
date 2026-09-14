@@ -6,17 +6,12 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox fx:id="eventCard" focusTraversable="true" minHeight="230.0" minWidth="230.0" prefHeight="230.0" prefWidth="285.0" spacing="11.0" styleClass="event-card" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.EventCardController">
+<VBox fx:id="eventCard" focusTraversable="true" minHeight="-Infinity" minWidth="-Infinity" prefWidth="250.0" spacing="8.0" styleClass="event-card" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.EventCardController">
    <children>
-      <HBox alignment="CENTER_LEFT" minHeight="56.0" prefHeight="56.0" spacing="10.0" styleClass="event-card-header">
+      <HBox alignment="CENTER_LEFT" minHeight="44.0" prefHeight="44.0" spacing="10.0" styleClass="event-card-header">
          <children>
-            <Label fx:id="eventNameLabel" maxHeight="52.0" maxWidth="1.7976931348623157E308" minWidth="0.0" prefWidth="140.0" styleClass="event-card-title" text="Event Name" wrapText="true" HBox.hgrow="ALWAYS">
-               <font>
-                  <Font name="System Bold" size="17.0" />
-               </font>
-            </Label>
+            <Label fx:id="eventNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" prefWidth="140.0" styleClass="event-card-title" text="Event Name" wrapText="true" HBox.hgrow="ALWAYS" />
             <Label fx:id="statusLabel" minWidth="-Infinity" styleClass="event-status-badge" text="Status" />
          </children>
       </HBox>
@@ -29,19 +24,15 @@
          </children>
       </VBox>
       <Separator maxWidth="1.7976931348623157E308" />
-      <HBox alignment="CENTER_LEFT" minHeight="34.0" spacing="10.0" styleClass="event-account-row">
+      <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="event-account-row">
          <children>
             <Label styleClass="event-account-title" text="Event Account" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="eventAccountLabel" styleClass="event-account-value" text="0.00">
-               <font>
-                  <Font name="System Bold" size="16.0" />
-               </font>
-            </Label>
+            <Label fx:id="eventAccountLabel" styleClass="event-account-value" text="0.00" />
          </children>
       </HBox>
    </children>
    <padding>
-      <Insets bottom="14.0" left="14.0" right="14.0" top="14.0" />
+      <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
    </padding>
 </VBox>

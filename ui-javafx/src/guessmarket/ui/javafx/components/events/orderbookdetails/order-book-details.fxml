@@ -1,86 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.orderbookdetails.OrderBookDetailsController">
    <children>
-      <HBox alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" spacing="15.0" styleClass="event-header">
+      <VBox maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="event-overview-card">
          <children>
-            <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+            <HBox alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" spacing="15.0" styleClass="event-header">
                <children>
-                  <Label fx:id="eventNameLabel" styleClass="event-title" text="Event Name" wrapText="true">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Label>
-                  <HBox alignment="CENTER_LEFT" spacing="5.0">
+                  <VBox spacing="3.0" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label styleClass="secondary-label" text="Market Maker:" textFill="#666666" />
-                        <Label fx:id="marketMakerLabel" text="-" />
+                        <Label fx:id="eventNameLabel" maxWidth="1.7976931348623157E308" styleClass="event-title" text="Event Name" wrapText="true" />
+                        <HBox alignment="CENTER_LEFT" spacing="5.0">
+                           <children>
+                              <Label styleClass="secondary-label" text="Market Maker:" />
+                              <Label fx:id="marketMakerLabel" text="-" />
+                           </children>
+                        </HBox>
                      </children>
-                  </HBox>
+                  </VBox>
+                  <Label fx:id="eventStatusLabel" styleClass="status-badge" text="Status" />
                </children>
-            </VBox>
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="eventStatusLabel" style="-fx-background-color: #e8eef8; -fx-background-radius: 12; -fx-padding: 4 10 4 10; -fx-font-weight: bold;" styleClass="status-badge" text="Status" />
+            </HBox>
+            <Label fx:id="eventDescriptionLabel" maxWidth="1.7976931348623157E308" styleClass="event-description" text="Description" wrapText="true" />
+            <Separator maxWidth="1.7976931348623157E308" styleClass="event-overview-separator" />
+            <GridPane hgap="0.0" maxWidth="1.7976931348623157E308" styleClass="event-summary">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
+                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
+                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.34" />
+               </columnConstraints>
+               <children>
+                  <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="summary-section">
+                     <children>
+                        <Label styleClass="summary-title" text="COMMISSION" />
+                        <Label fx:id="eventCommissionLabel" styleClass="summary-value" text="-" wrapText="true" />
+                     </children>
+                     <padding><Insets bottom="4.0" left="12.0" right="12.0" top="4.0" /></padding>
+                  </VBox>
+                  <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="summary-section, summary-section-divided" GridPane.columnIndex="1">
+                     <children>
+                        <Label styleClass="summary-title" text="EVENT ACCOUNT" />
+                        <Label fx:id="eventAccountLabel" styleClass="summary-value" text="\$0.00" />
+                     </children>
+                     <padding><Insets bottom="4.0" left="16.0" right="12.0" top="4.0" /></padding>
+                  </VBox>
+                  <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="summary-section, summary-section-divided" GridPane.columnIndex="2">
+                     <children>
+                        <Label styleClass="summary-title" text="COMMISSION COLLECTED" />
+                        <Label fx:id="totalCommissionCollectedLabel" styleClass="summary-value" text="\$0.00" />
+                     </children>
+                     <padding><Insets bottom="4.0" left="16.0" right="12.0" top="4.0" /></padding>
+                  </VBox>
+               </children>
+            </GridPane>
          </children>
-      </HBox>
-      <Label fx:id="eventDescriptionLabel" maxWidth="1.7976931348623157E308" styleClass="event-description" text="Description" textFill="#555555" wrapText="true" />
-      <Separator maxWidth="1.7976931348623157E308" />
-      <GridPane hgap="10.0" maxWidth="1.7976931348623157E308" styleClass="event-summary">
-         <columnConstraints>
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.34" />
-         </columnConstraints>
-         <children>
-            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card">
-               <children>
-                  <Label styleClass="summary-title" text="COMMISSION" textFill="#666666">
-                     <font><Font name="System Bold" size="11.0" /></font>
-                  </Label>
-                  <Label fx:id="eventCommissionLabel" styleClass="summary-value" text="-" wrapText="true">
-                     <font><Font size="14.0" /></font>
-                  </Label>
-               </children>
-               <padding><Insets bottom="10.0" left="12.0" right="12.0" top="10.0" /></padding>
-            </VBox>
-            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card" GridPane.columnIndex="1">
-               <children>
-                  <Label styleClass="summary-title" text="EVENT ACCOUNT" textFill="#666666">
-                     <font><Font name="System Bold" size="11.0" /></font>
-                  </Label>
-                  <Label fx:id="eventAccountLabel" styleClass="summary-value" text="\$0.00">
-                     <font><Font size="14.0" /></font>
-                  </Label>
-               </children>
-               <padding><Insets bottom="10.0" left="12.0" right="12.0" top="10.0" /></padding>
-            </VBox>
-            <VBox maxWidth="1.7976931348623157E308" spacing="5.0" style="-fx-background-color: #f6f6f6; -fx-background-radius: 6; -fx-border-color: #d8d8d8; -fx-border-radius: 6;" styleClass="summary-card" GridPane.columnIndex="2">
-               <children>
-                  <Label styleClass="summary-title" text="COMMISSION COLLECTED" textFill="#666666">
-                     <font><Font name="System Bold" size="11.0" /></font>
-                  </Label>
-                  <Label fx:id="totalCommissionCollectedLabel" styleClass="summary-value" text="\$0.00">
-                     <font><Font size="14.0" /></font>
-                  </Label>
-               </children>
-               <padding><Insets bottom="10.0" left="12.0" right="12.0" top="10.0" /></padding>
-            </VBox>
-         </children>
-      </GridPane>
+         <padding>
+            <Insets bottom="14.0" left="16.0" right="16.0" top="14.0" />
+         </padding>
+      </VBox>
       <VBox fx:id="optionBooksSection" maxWidth="1.7976931348623157E308" spacing="8.0">
          <children>
-            <Label styleClass="section-title" text="ORDER BOOKS" textFill="#555555">
-               <font><Font name="System Bold" size="12.0" /></font>
+            <Label styleClass="section-title" text="ORDER BOOKS">
                <VBox.margin><Insets top="5.0" /></VBox.margin>
             </Label>
             <HBox maxWidth="1.7976931348623157E308" spacing="12.0">
@@ -91,7 +80,36 @@
             </HBox>
          </children>
       </VBox>
-      <fx:include fx:id="eventResultComponent" managed="false" source="../eventresult/event-result.fxml" visible="false" />
+      <GridPane fx:id="resultAndPriceHistoryPane" hgap="14.0" maxWidth="1.7976931348623157E308" vgap="10.0">
+         <columnConstraints>
+            <ColumnConstraints fx:id="resultColumn" hgrow="NEVER" maxWidth="460.0" minWidth="360.0" prefWidth="400.0" />
+            <ColumnConstraints fx:id="priceHistoryColumn" hgrow="ALWAYS" minWidth="0.0" />
+         </columnConstraints>
+         <children>
+            <VBox fx:id="closedResultCard" managed="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="closed-result-card" visible="false" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
+               <children>
+                  <fx:include fx:id="eventResultComponent" source="../eventresult/event-result.fxml" />
+               </children>
+            </VBox>
+            <VBox fx:id="priceHistorySection" maxWidth="1.7976931348623157E308" spacing="8.0" GridPane.columnIndex="1">
+               <children>
+                  <Label styleClass="section-title" text="PRICE HISTORY" />
+                  <VBox maxWidth="1.7976931348623157E308" minHeight="230.0" prefHeight="250.0" styleClass="price-history-card">
+                     <children>
+                        <LineChart fx:id="priceHistoryChart" animated="false" createSymbols="true" legendSide="TOP" maxWidth="1.7976931348623157E308" minHeight="220.0" prefHeight="240.0" styleClass="price-history-chart" VBox.vgrow="ALWAYS">
+                           <xAxis>
+                              <NumberAxis fx:id="priceHistoryXAxis" autoRanging="false" forceZeroInRange="true" label="Trade" minorTickVisible="false" />
+                           </xAxis>
+                           <yAxis>
+                              <NumberAxis fx:id="priceHistoryYAxis" autoRanging="false" forceZeroInRange="true" label="Share Price ($)" lowerBound="0.0" minorTickVisible="false" tickUnit="0.25" upperBound="1.0" />
+                           </yAxis>
+                        </LineChart>
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+         </children>
+      </GridPane>
       <fx:include fx:id="eventHoldingsComponent" source="../eventholdings/event-holdings.fxml" />
    </children>
    <padding>

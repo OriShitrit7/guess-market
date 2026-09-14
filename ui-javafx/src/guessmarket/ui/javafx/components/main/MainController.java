@@ -28,7 +28,9 @@ public class MainController {
     @FXML
     public void initialize() {
         loadFileProgressBar.managedProperty().bind(loadFileProgressBar.visibleProperty());
+        filePathLabel.managedProperty().bind(filePathLabel.visibleProperty());
         loadFileProgressBar.setVisible(false);
+        filePathLabel.setVisible(false);
 
         if (eventsComponentController != null) {
             eventsComponentController.setMainController(this);
@@ -70,6 +72,7 @@ public class MainController {
         LoadSystemFileTask task = new LoadSystemFileTask(marketManager, absolutePath);
 
         loadFileProgressBar.progressProperty().bind(task.progressProperty());
+        filePathLabel.setVisible(false);
         loadFileProgressBar.setVisible(true);
         loadFileButton.setDisable(true);
         task.valueProperty().addListener((observable, oldValue, newValue) -> onLoadFinished(task, absolutePath));
@@ -84,11 +87,13 @@ public class MainController {
 
         if (task.getValue()) {
             filePathLabel.setText(absolutePath);
+            filePathLabel.setVisible(true);
             eventsComponentController.refreshEvents();
             usersComponentController.refreshUsers();
             return;
         }
 
+        filePathLabel.setVisible(!filePathLabel.getText().isBlank());
         showLoadError(task.getErrorMessage());
     }
 

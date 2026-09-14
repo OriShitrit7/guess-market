@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 
 // Loads and shows the DialogPane based dialogs, and reports whether the user confirmed.
 public abstract class Dialogs {
+    private static final String APP_CSS = "/guessmarket/ui/javafx/components/main/app.css";
 
     // Returns the dialog's controller when the user confirms, and nothing when they cancel.
     public static <C> Optional<C> show(Class<?> owner, String fxmlName, String title, Consumer<C> setup) {
@@ -21,6 +22,7 @@ public abstract class Dialogs {
 
         try {
             pane = loader.load();
+            pane.getStylesheets().add(Dialogs.class.getResource(APP_CSS).toExternalForm());
         } catch (IOException exception) {
             showError(title, "The dialog could not be opened: " + exception.getMessage());
             return Optional.empty();
@@ -30,6 +32,11 @@ public abstract class Dialogs {
         setup.accept(controller);
 
         return isConfirmed(pane, title) ? Optional.of(controller) : Optional.empty();
+    }
+
+    // Shows a dialog that only reports what happened, and therefore has nothing to confirm.
+    public static <C> void showReceipt(Class<?> owner, String fxmlName, String title, Consumer<C> setup) {
+        show(owner, fxmlName, title, setup);
     }
 
     public static void showWarning(String title, String message) {

@@ -1,17 +1,15 @@
 package guessmarket.engine.orderbook;
 
-import java.util.List;
-
 // The completed submission result, expressed from the submitting user's perspective.
 public final class OrderExecution {
     private final OrderAction action;
-    private final List<OrderMatch> matches;
+    private final MatchPlan plan;
     private final int remainingQuantity;
     private final double commissionPaid;
 
-    public OrderExecution(OrderAction action, List<OrderMatch> matches, int remainingQuantity, double commissionPaid) {
+    public OrderExecution(OrderAction action, MatchPlan plan, int remainingQuantity, double commissionPaid) {
         this.action = action;
-        this.matches = List.copyOf(matches);
+        this.plan = plan;
         this.remainingQuantity = remainingQuantity;
         this.commissionPaid = commissionPaid;
     }
@@ -20,20 +18,24 @@ public final class OrderExecution {
         return action;
     }
 
-    public List<OrderMatch> getMatches() {
-        return matches;
+    public int getMatchedQuantity() {
+        return plan.getMatchedQuantity();
     }
 
-    public int getMatchedQuantity() {
-        return matches.stream().mapToInt(OrderMatch::getQuantity).sum();
+    public int getMintedQuantity() {
+        return plan.getMintedQuantity();
     }
 
     public int getRemainingQuantity() {
         return remainingQuantity;
     }
 
-    public double getTradeAmount() {
-        return matches.stream().mapToDouble(OrderMatch::getTotalPaid).sum();
+    public double getMatchedAmount() {
+        return plan.getMatchedAmount();
+    }
+
+    public double getMintedAmount() {
+        return plan.getMintedAmount();
     }
 
     public double getCommissionPaid() {

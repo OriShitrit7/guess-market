@@ -1,12 +1,16 @@
 package guessmarket.ui.javafx.components.users;
 
+import guessmarket.dto.BalancePointDto;
 import guessmarket.dto.EventParticipationDto;
 import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.EventSummaryDto;
+import guessmarket.dto.NewEventDto;
 import guessmarket.dto.TradingMethodTypeDto;
 import guessmarket.dto.UserSummaryDto;
 import guessmarket.ui.javafx.components.main.MainController;
+import guessmarket.engine.exception.InvalidRequestException;
 import guessmarket.ui.javafx.components.users.dialogs.Dialogs;
+import guessmarket.ui.javafx.components.users.dialogs.createevent.CreateEventDialogController;
 import guessmarket.ui.javafx.components.users.dialogs.tradeinevent.TradeInEventDialogController;
 import guessmarket.ui.javafx.components.users.lmsrtrade.LmsrTradeController;
 import guessmarket.ui.javafx.components.users.orderbooktrade.OrderBookTradeController;
@@ -16,13 +20,15 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
@@ -32,14 +38,21 @@ import java.util.List;
 import java.util.Set;
 
 public class UsersController {
-    private static final String NO_SELECTION = "-";
     private static final String EMPTY_AMOUNT = "$0.00";
     private static final String TRADE_IN_EVENT_DIALOG =
             "/guessmarket/ui/javafx/components/users/dialogs/tradeinevent/trade-in-event-dialog.fxml";
     private static final String TRADE_IN_NEW_EVENT = "Trade in New Event";
+    private static final String CREATE_EVENT_DIALOG =
+            "/guessmarket/ui/javafx/components/users/dialogs/createevent/create-event-dialog.fxml";
+    private static final String CREATE_EVENT = "Create Event";
+    private static final String CREATE_FAILED = "Event Not Created";
     private static final String USER_CARD_FXML = "user-card.fxml";
     private static final String EMPTY_USERS_BEFORE_LOAD = "Load a file to view users";
     private static final String EMPTY_USERS_AFTER_LOAD = "No users are available";
+    private static final String NO_USER_SELECTED = "Select a user to view their events";
+    private static final String NO_EVENTS_FORMAT = "%s is not taking part in any event yet";
+    private static final String NO_BALANCE_HISTORY = "No balance changes yet";
+    private static final String SELECT_USER_FOR_BALANCE = "Select a user to view balance history";
 
     private MainController mainController;
     // The event the details panel is showing, which is not always a row in the events table.
@@ -48,14 +61,14 @@ public class UsersController {
     private boolean usersWereLoaded;
 
     @FXML
-    private FlowPane userCardsPane;
+    private VBox userCardsPane;
     @FXML
     private Label emptyUsersLabel;
 
     @FXML
-    private Label selectedUserNameLabel;
-    @FXML
     private Label userBalanceLabel;
+    @FXML
+    private Button createEventButton;
     @FXML
     private Button tradeInNewEventButton;
 
@@ -69,6 +82,13 @@ public class UsersController {
     private TableColumn<UserEventTableRow, String> userEventMethodColumn;
     @FXML
     private TableColumn<UserEventTableRow, String> userEventRoleColumn;
+
+    @FXML
+    private LineChart<Number, Number> balanceHistoryChart;
+    @FXML
+    private NumberAxis balanceHistoryXAxis;
+    @FXML
+    private Label emptyBalanceHistoryLabel;
 
     @FXML
     private TitledPane eventDetailsPane;
@@ -86,11 +106,15 @@ public class UsersController {
     private final ObservableList<UserTableRow> users = FXCollections.observableArrayList();
     private final ObservableList<UserEventTableRow> userEvents = FXCollections.observableArrayList();
     private final List<UserCardController> displayedUserCards = new ArrayList<>();
+    private final Label userEventsPlaceholder = new Label(NO_USER_SELECTED);
+    private final XYChart.Series<Number, Number> balanceSeries = new XYChart.Series<>();
 
     @FXML
     private void initialize() {
         emptyUsersLabel.managedProperty().bind(emptyUsersLabel.visibleProperty());
-        userEventsTable.setPlaceholder(new Label("Select a user to view their events"));
+        userEventsTable.setPlaceholder(userEventsPlaceholder);
+        balanceHistoryChart.getData().add(balanceSeries);
+        clearBalanceHistory();
 
         noEventSelectedLabel.managedProperty().bind(noEventSelectedLabel.visibleProperty());
         lmsrTradeComponent.managedProperty().bind(lmsrTradeComponent.visibleProperty());
@@ -203,22 +227,72 @@ public class UsersController {
             clearUserDetails();
             return;
         }
-        selectedUserNameLabel.setText(selectedUser.getName());
         userBalanceLabel.setText(DisplayText.amount(selectedUser.getBalance()));
         tradeInNewEventButton.setDisable(false);
+        createEventButton.setDisable(false);
 
         refreshUserEvents(selectedUser.getName());
+        refreshBalanceHistory(selectedUser.getName());
     }
 
     private void clearUserDetails() {
         selectedUser = null;
         displayedUserCards.forEach(card -> card.setSelected(false));
-        selectedUserNameLabel.setText(NO_SELECTION);
         userBalanceLabel.setText(EMPTY_AMOUNT);
         tradeInNewEventButton.setDisable(true);
+        createEventButton.setDisable(true);
+        userEventsPlaceholder.setText(NO_USER_SELECTED);
 
         userEvents.clear();
+        clearBalanceHistory();
         clearEventDetails();
+    }
+
+    private void refreshBalanceHistory(String userName) {
+        List<BalancePointDto> history = mainController.getMarketManager().getUserBalanceHistory(userName);
+
+        balanceSeries.getData().setAll(history.stream()
+                .map(point -> new XYChart.Data<Number, Number>(point.getSequence(), point.getBalance()))
+                .toList());
+        configureBalanceXAxis(history.size());
+        emptyBalanceHistoryLabel.setText(NO_BALANCE_HISTORY);
+        emptyBalanceHistoryLabel.setVisible(history.size() <= 1);
+    }
+
+    private void clearBalanceHistory() {
+        balanceSeries.getData().clear();
+        configureBalanceXAxis(0);
+        emptyBalanceHistoryLabel.setText(SELECT_USER_FOR_BALANCE);
+        emptyBalanceHistoryLabel.setVisible(true);
+    }
+
+    private void configureBalanceXAxis(int pointCount) {
+        int maximumSequence = Math.max(1, pointCount - 1);
+
+        balanceHistoryXAxis.setLowerBound(0);
+        balanceHistoryXAxis.setUpperBound(maximumSequence);
+        balanceHistoryXAxis.setTickUnit(Math.max(1, Math.ceil(maximumSequence / 6.0)));
+    }
+
+    // The selected user creates the event and becomes its market maker.
+    @FXML
+    private void createEventButtonAction() {
+        if (selectedUser == null) {
+            return;
+        }
+        Dialogs.<CreateEventDialogController>show(getClass(), CREATE_EVENT_DIALOG, CREATE_EVENT,
+                        dialog -> { })
+                .ifPresent(dialog -> createEvent(dialog.getRequest()));
+    }
+
+    private void createEvent(NewEventDto request) {
+        try {
+            mainController.getMarketManager().createEvent(selectedUser.getName(), request);
+        } catch (InvalidRequestException exception) {
+            Dialogs.showError(CREATE_FAILED, exception.getMessage());
+            return;
+        }
+        mainController.refreshAll();
     }
 
     @FXML
@@ -234,9 +308,12 @@ public class UsersController {
                 .ifPresent(dialog -> showNewEventDetails(selectedUser, dialog.getSelectedEvent()));
     }
 
+    // An empty table means something different before a user is chosen and after.
     private void refreshUserEvents(String userName) {
         List<EventParticipationDto> participations =
                 mainController.getMarketManager().getUserEvents(userName);
+
+        userEventsPlaceholder.setText(String.format(NO_EVENTS_FORMAT, userName));
 
         userEvents.setAll(participations.stream().map(UserEventTableRow::new).toList());
     }

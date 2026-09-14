@@ -4,16 +4,19 @@ import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.OptionStateDto;
+import guessmarket.dto.PurchaseResultDto;
 import guessmarket.dto.TradeDto;
 import guessmarket.dto.UserInvolvementDto;
 import guessmarket.dto.UserSummaryDto;
 import guessmarket.ui.javafx.components.DisplayText;
+import guessmarket.ui.javafx.components.StatusStyle;
 import guessmarket.ui.javafx.components.main.MainController;
 import guessmarket.engine.exception.InvalidRequestException;
 import guessmarket.ui.javafx.components.users.ResultCardController;
 import guessmarket.ui.javafx.components.users.dialogs.Dialogs;
 import guessmarket.ui.javafx.components.users.dialogs.buyshares.BuySharesDialogController;
 import guessmarket.ui.javafx.components.users.dialogs.closeevent.CloseEventDialogController;
+import guessmarket.ui.javafx.components.users.dialogs.receipt.ReceiptDialogController;
 import guessmarket.ui.javafx.components.users.TradeTableRow;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,6 +31,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class LmsrTradeController {
     private static final String NO_SELECTION = "-";
@@ -40,6 +44,8 @@ public class LmsrTradeController {
     private static final int OPTION_COUNT = 2;
 
     private static final String BUY_SHARES_DIALOG = "/guessmarket/ui/javafx/components/users/dialogs/buyshares/buy-shares-dialog.fxml";
+    private static final String RECEIPT_DIALOG = "/guessmarket/ui/javafx/components/users/dialogs/receipt/receipt-dialog.fxml";
+    private static final String PURCHASE_COMPLETED = "Purchase Completed";
     private static final String CLOSE_EVENT_DIALOG = "/guessmarket/ui/javafx/components/users/dialogs/closeevent/close-event-dialog.fxml";
     private static final String ACTION_FAILED = "Action Failed";
     private static final String ACCOUNT_BLOCKED = "Account Blocked";
@@ -94,6 +100,10 @@ public class LmsrTradeController {
     @FXML
     private TableColumn<TradeTableRow, Number> tradePaidColumn;
     @FXML
+    private TableColumn<TradeTableRow, Number> tradeCommissionColumn;
+    @FXML
+    private TableColumn<TradeTableRow, Number> tradeTotalPaidColumn;
+    @FXML
     private Label totalCommissionPaidLabel;
 
     private final ObservableList<TradeTableRow> userTrades = FXCollections.observableArrayList();
@@ -134,6 +144,7 @@ public class LmsrTradeController {
     public void clear() {
         eventNameLabel.setText(NO_SELECTION);
         eventStatusLabel.setText(EMPTY_TEXT);
+        StatusStyle.clear(eventStatusLabel);
         eventDescriptionLabel.setText(EMPTY_TEXT);
         eventCommissionLabel.setText(EMPTY_TEXT);
         eventAccountLabel.setText(EMPTY_AMOUNT);
@@ -174,11 +185,24 @@ public class LmsrTradeController {
 
     @FXML
     public void buySharesButtonAction() {
-        Dialogs.<BuySharesDialogController>show(getClass(), BUY_SHARES_DIALOG, BUY_SHARES,
-                        dialog -> dialog.setEvent(currentOptions(), currentBalance(),
-                                summary.getCommissionPercent(), this::quote))
-                .ifPresent(dialog -> runAction(() -> mainController.getMarketManager()
-                        .buyShares(userName, eventId, dialog.getSelectedOptionIndex(), dialog.getQuantity())));
+        String dialogTitle = summary.getEventName() + " - " + BUY_SHARES;
+
+        Dialogs.<BuySharesDialogController>show(getClass(), BUY_SHARES_DIALOG, dialogTitle,
+                        dialog -> dialog.setEvent(summary.getEventName(), currentOptions(),
+                                currentBalance(), summary.getCommissionPercent(), this::quote))
+                .ifPresent(this::buyShares);
+    }
+
+    private void buyShares(BuySharesDialogController dialog) {
+        runAction(() -> mainController.getMarketManager().buyShares(userName, eventId,
+                dialog.getSelectedOptionIndex(), dialog.getQuantity()))
+                .ifPresent(this::showReceipt);
+    }
+
+    private void showReceipt(PurchaseResultDto result) {
+        Dialogs.<ReceiptDialogController>showReceipt(getClass(), RECEIPT_DIALOG, PURCHASE_COMPLETED,
+                receipt -> receipt.setPurchaseReceipt(result.getTrade(), summary.getCommissionPercent(),
+                        currentBalance()));
     }
 
     private TradeDto quote(int optionIndex, int quantity) {
@@ -194,18 +218,22 @@ public class LmsrTradeController {
     }
 
     // Runs an engine action, reports a rejected request, and refreshes both tabs afterwards.
-    private void runAction(Runnable action) {
+    // The result is empty when the engine rejected the request.
+    private <T> Optional<T> runAction(Supplier<T> action) {
         boolean wasBlocked = isBlocked();
+        T result;
 
         try {
-            action.run();
+            result = action.get();
         } catch (InvalidRequestException exception) {
             Dialogs.showError(ACTION_FAILED, exception.getMessage());
-            return;
+            return Optional.empty();
         }
         mainController.refreshAll();
         refresh(userName, eventId, marketMaker);
         warnIfNewlyBlocked(wasBlocked);
+
+        return Optional.of(result);
     }
 
     // The engine allows a balance to go negative and blocks the user; the user has to be told.
@@ -230,20 +258,29 @@ public class LmsrTradeController {
         tradeOptionColumn.setCellValueFactory(new PropertyValueFactory<>("optionName"));
         tradeSharesColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         tradePaidColumn.setCellValueFactory(new PropertyValueFactory<>("sharesCost"));
-        tradePaidColumn.setCellFactory(column -> new TableCell<>() {
+        tradeCommissionColumn.setCellValueFactory(new PropertyValueFactory<>("commissionCost"));
+        tradeTotalPaidColumn.setCellValueFactory(new PropertyValueFactory<>("totalPaid"));
+        tradePaidColumn.setCellFactory(column -> amountCell());
+        tradeCommissionColumn.setCellFactory(column -> amountCell());
+        tradeTotalPaidColumn.setCellFactory(column -> amountCell());
+
+        userTradesTable.setItems(userTrades);
+    }
+
+    private TableCell<TradeTableRow, Number> amountCell() {
+        return new TableCell<>() {
             @Override
             protected void updateItem(Number value, boolean empty) {
                 super.updateItem(value, empty);
                 setText(empty || value == null ? null : DisplayText.amount(value.doubleValue()));
             }
-        });
-
-        userTradesTable.setItems(userTrades);
+        };
     }
 
     private void showEventSummary(EventSummaryDto summary) {
         eventNameLabel.setText(summary.getEventName());
         eventStatusLabel.setText(DisplayText.of(summary.getStatus()));
+        StatusStyle.apply(eventStatusLabel, summary.getStatus());
         eventDescriptionLabel.setText(summary.getDescription());
         eventCommissionLabel.setText(String.format(COMMISSION_FORMAT, summary.getCommissionPercent(),
                 DisplayText.of(summary.getCommissionPolicy())));

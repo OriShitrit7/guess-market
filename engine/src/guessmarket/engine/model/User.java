@@ -1,7 +1,9 @@
 package guessmarket.engine.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class User {
@@ -10,10 +12,12 @@ public class User {
     private boolean blocked;
 
     private final Map<Integer, Position> positions = new LinkedHashMap<>();
+    private final List<Double> balanceHistory = new ArrayList<>();
 
     public User(String name, double balance) {
         this.name = name;
         this.balance = balance;
+        balanceHistory.add(balance);
     }
 
     public String getName() {
@@ -28,6 +32,10 @@ public class User {
         return blocked;
     }
 
+    public List<Double> getBalanceHistory() {
+        return List.copyOf(balanceHistory);
+    }
+
     public Map<Integer, Position> getPositions() {
         return Collections.unmodifiableMap(positions);
     }
@@ -40,10 +48,12 @@ public class User {
 
     public void deposit(double amount) {
         balance += amount;
+        balanceHistory.add(balance);
     }
 
     public void withdraw(double amount) {
         balance -= amount;
+        balanceHistory.add(balance);
 
         if (balance < 0) {
             blocked = true;

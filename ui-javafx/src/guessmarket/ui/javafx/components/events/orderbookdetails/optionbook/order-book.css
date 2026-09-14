@@ -5,7 +5,20 @@
     -fx-border-radius: 8;
 }
 
+.option-book-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.book-stat-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666666;
+}
+
 .book-side-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
     -fx-text-fill: #626976;
 }
 

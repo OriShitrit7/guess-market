@@ -35,7 +35,7 @@
                 <RowConstraints minHeight="10.0" vgrow="NEVER" />
               </rowConstraints>
                <children>
-                  <ToggleButton fx:id="firstOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Option1" />
+                  <ToggleButton fx:id="firstOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Option1" />
                   <ToggleButton fx:id="secondOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Option2" GridPane.columnIndex="1" />
                </children>
             </GridPane>

@@ -11,6 +11,7 @@ public class OptionOrderBook {
     private final MarketOption option;
     private final List<Order> buyOrders = new ArrayList<>();
     private final List<Order> sellOrders = new ArrayList<>();
+    private final List<Double> priceHistory = new ArrayList<>();
     private Double lastTradePrice;
 
     private static final Comparator<Order> BUY_ORDER_COMPARATOR =
@@ -39,6 +40,10 @@ public class OptionOrderBook {
 
     public Double getLastTradePrice() {
         return lastTradePrice;
+    }
+
+    public List<Double> getPriceHistory() {
+        return List.copyOf(priceHistory);
     }
 
     // The highest price anyone is currently willing to pay, or null when no one is buying.
@@ -77,10 +82,6 @@ public class OptionOrderBook {
         }
     }
 
-    public void getEventData() {
-
-    }
-
     // Plans matches without changing orders, the book, or LAST.
     public List<OrderMatch> findMatches(Order incomingOrder, int optionIndex) {
         List<OrderMatch> matches = new ArrayList<>();
@@ -112,11 +113,34 @@ public class OptionOrderBook {
             incomingOrder.reduceRemainingQuantity(match.getQuantity());
             bestOppositeOrder.reduceRemainingQuantity(match.getQuantity());
             lastTradePrice = match.getPricePerShare();
+            priceHistory.add(lastTradePrice);
 
             if (bestOppositeOrder.isFilled()) {
                 oppositeOrders.removeFirst();
             }
         }
+    }
+
+    // Called by the event only after the planned mints have been settled successfully.
+    public void completeMints(Order incomingOrder, List<MintMatch> mints) {
+        for (MintMatch mint : mints) {
+            Order restingOrder = buyOrders.getFirst();
+
+            incomingOrder.reduceRemainingQuantity(mint.getQuantity());
+            restingOrder.reduceRemainingQuantity(mint.getQuantity());
+            lastTradePrice = mint.getRestingPricePerShare();
+            priceHistory.add(lastTradePrice);
+
+            if (restingOrder.isFilled()) {
+                buyOrders.removeFirst();
+            }
+        }
+    }
+
+    // The book of the option whose shares were minted has no order of its own to complete.
+    public void recordTradePrice(double price) {
+        lastTradePrice = price;
+        priceHistory.add(price);
     }
 
     public void clearOrders() {

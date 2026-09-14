@@ -5,15 +5,18 @@ import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.OptionBookDto;
 import guessmarket.dto.OrderBookStateDto;
 import guessmarket.dto.OrderEntryDto;
+import guessmarket.dto.OrderResultDto;
 import guessmarket.dto.UserInvolvementDto;
 import guessmarket.dto.UserSummaryDto;
 import guessmarket.ui.javafx.components.DisplayText;
+import guessmarket.ui.javafx.components.StatusStyle;
 import guessmarket.ui.javafx.components.main.MainController;
 import guessmarket.dto.OrderActionDto;
 import guessmarket.engine.exception.InvalidRequestException;
 import guessmarket.ui.javafx.components.users.ResultCardController;
 import guessmarket.ui.javafx.components.users.dialogs.Dialogs;
 import guessmarket.ui.javafx.components.users.dialogs.closeevent.CloseEventDialogController;
+import guessmarket.ui.javafx.components.users.dialogs.receipt.ReceiptDialogController;
 import guessmarket.ui.javafx.components.users.dialogs.submitorder.SubmitOrderDialogController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,6 +34,7 @@ import org.controlsfx.control.SegmentedButton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class OrderBookTradeController {
     private static final String NO_SELECTION = "-";
@@ -48,6 +52,8 @@ public class OrderBookTradeController {
     private static final int OPTION_COUNT = 2;
 
     private static final String SUBMIT_ORDER_DIALOG = "/guessmarket/ui/javafx/components/users/dialogs/submitorder/submit-order-dialog.fxml";
+    private static final String RECEIPT_DIALOG = "/guessmarket/ui/javafx/components/users/dialogs/receipt/receipt-dialog.fxml";
+    private static final String ORDER_SUBMITTED = "Order Submitted";
     private static final String CLOSE_EVENT_DIALOG = "/guessmarket/ui/javafx/components/users/dialogs/closeevent/close-event-dialog.fxml";
     private static final String SUBMIT_ORDER = "Submit Order";
     private static final String ACTION_FAILED = "Action Failed";
@@ -167,6 +173,7 @@ public class OrderBookTradeController {
     public void clear() {
         eventNameLabel.setText(NO_SELECTION);
         eventStatusLabel.setText(EMPTY_TEXT);
+        StatusStyle.clear(eventStatusLabel);
         eventDescriptionLabel.setText(EMPTY_TEXT);
         eventCommissionLabel.setText(EMPTY_TEXT);
         eventAccountLabel.setText(EMPTY_AMOUNT);
@@ -210,13 +217,33 @@ public class OrderBookTradeController {
 
     @FXML
     public void submitOrderButtonAction() {
-        Dialogs.<SubmitOrderDialogController>show(getClass(), SUBMIT_ORDER_DIALOG, SUBMIT_ORDER,
-                        dialog -> dialog.setEvent(state.getSummary().getOptionNames(), availableShares(),
-                                currentBalance(), state.getSummary().getCommissionPercent(), baseValue()))
-                .ifPresent(dialog -> runAction(() -> mainController.getMarketManager().submitOrder(
-                        userName, eventId, dialog.getSelectedOptionIndex(),
-                        dialog.isBuy() ? OrderActionDto.BUY : OrderActionDto.SELL,
-                        dialog.getQuantity(), dialog.getPricePerShare())));
+        EventSummaryDto summary = state.getSummary();
+        String dialogTitle = summary.getEventName() + " - " + SUBMIT_ORDER;
+
+        Dialogs.<SubmitOrderDialogController>show(getClass(), SUBMIT_ORDER_DIALOG, dialogTitle,
+                        dialog -> dialog.setEvent(summary.getEventName(), summary.getOptionNames(),
+                                availableShares(), currentBalance(), summary.getCommissionPercent(),
+                                baseValue()))
+                .ifPresent(this::submitOrder);
+    }
+
+    private void submitOrder(SubmitOrderDialogController dialog) {
+        int optionIndex = dialog.getSelectedOptionIndex();
+        String optionName = state.getSummary().getOptionNames().get(optionIndex);
+        int quantity = dialog.getQuantity();
+        double pricePerShare = dialog.getPricePerShare();
+        OrderActionDto action = dialog.isBuy() ? OrderActionDto.BUY : OrderActionDto.SELL;
+
+        runAction(() -> mainController.getMarketManager().submitOrder(userName, eventId, optionIndex,
+                action, quantity, pricePerShare))
+                .ifPresent(result -> showReceipt(result, optionName, quantity, pricePerShare));
+    }
+
+    // The order may have executed below its price, or not at all, so the outcome is reported back.
+    private void showReceipt(OrderResultDto result, String optionName, int quantity, double pricePerShare) {
+        Dialogs.<ReceiptDialogController>showReceipt(getClass(), RECEIPT_DIALOG, ORDER_SUBMITTED,
+                receipt -> receipt.setOrderReceipt(result, optionName, quantity, pricePerShare,
+                        currentBalance()));
     }
 
     // Shares the user still owns and has not already committed to a pending sell order.
@@ -248,18 +275,22 @@ public class OrderBookTradeController {
     }
 
     // Runs an engine action, reports a rejected request, and refreshes both tabs afterwards.
-    private void runAction(Runnable action) {
+    // The result is empty when the engine rejected the request.
+    private <T> Optional<T> runAction(Supplier<T> action) {
         boolean wasBlocked = isBlocked();
+        T result;
 
         try {
-            action.run();
+            result = action.get();
         } catch (InvalidRequestException exception) {
             Dialogs.showError(ACTION_FAILED, exception.getMessage());
-            return;
+            return Optional.empty();
         }
         mainController.refreshAll();
         refresh(userName, eventId, marketMaker);
         warnIfNewlyBlocked(wasBlocked);
+
+        return Optional.of(result);
     }
 
     // The engine allows a balance to go negative and blocks the user; the user has to be told.
@@ -320,6 +351,7 @@ public class OrderBookTradeController {
     private void showEventSummary(EventSummaryDto summary) {
         eventNameLabel.setText(summary.getEventName());
         eventStatusLabel.setText(DisplayText.of(summary.getStatus()));
+        StatusStyle.apply(eventStatusLabel, summary.getStatus());
         eventDescriptionLabel.setText(summary.getDescription());
         eventCommissionLabel.setText(String.format(COMMISSION_FORMAT, summary.getCommissionPercent(),
                 DisplayText.of(summary.getCommissionPolicy())));

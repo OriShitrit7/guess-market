@@ -11,6 +11,7 @@ public class EventTradeTableRow {
     private final SimpleIntegerProperty quantity;
     private final SimpleDoubleProperty paid;
     private final SimpleDoubleProperty commission;
+    private final SimpleDoubleProperty totalPaid;
 
     public EventTradeTableRow(TradeDto trade) {
         this.userName = new SimpleStringProperty(trade.getBuyerName());
@@ -18,6 +19,8 @@ public class EventTradeTableRow {
         this.quantity = new SimpleIntegerProperty(trade.getQuantity());
         this.paid = new SimpleDoubleProperty(trade.getSharesCost());
         this.commission = new SimpleDoubleProperty(trade.getCommissionCost());
+        this.totalPaid = new SimpleDoubleProperty(
+                trade.getSharesCost() + trade.getCommissionCost());
     }
 
     public String getUserName() {
@@ -40,6 +43,10 @@ public class EventTradeTableRow {
         return commission.get();
     }
 
+    public double getTotalPaid() {
+        return totalPaid.get();
+    }
+
     public SimpleStringProperty userNameProperty() {
         return userName;
     }
@@ -58,5 +65,9 @@ public class EventTradeTableRow {
 
     public SimpleDoubleProperty commissionProperty() {
         return commission;
+    }
+
+    public SimpleDoubleProperty totalPaidProperty() {
+        return totalPaid;
     }
 }

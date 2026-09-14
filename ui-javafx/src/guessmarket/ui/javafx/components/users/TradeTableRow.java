@@ -9,11 +9,16 @@ public class TradeTableRow {
     private final SimpleStringProperty optionName;
     private final SimpleIntegerProperty quantity;
     private final SimpleDoubleProperty sharesCost;
+    private final SimpleDoubleProperty commissionCost;
+    private final SimpleDoubleProperty totalPaid;
 
     public TradeTableRow(TradeDto trade) {
         this.optionName = new SimpleStringProperty(trade.getOptionName());
         this.quantity = new SimpleIntegerProperty(trade.getQuantity());
         this.sharesCost = new SimpleDoubleProperty(trade.getSharesCost());
+        this.commissionCost = new SimpleDoubleProperty(trade.getCommissionCost());
+        this.totalPaid = new SimpleDoubleProperty(
+                trade.getSharesCost() + trade.getCommissionCost());
     }
 
     public String getOptionName() {
@@ -28,6 +33,14 @@ public class TradeTableRow {
         return sharesCost.get();
     }
 
+    public double getCommissionCost() {
+        return commissionCost.get();
+    }
+
+    public double getTotalPaid() {
+        return totalPaid.get();
+    }
+
     public SimpleStringProperty optionNameProperty() {
         return optionName;
     }
@@ -38,5 +51,13 @@ public class TradeTableRow {
 
     public SimpleDoubleProperty sharesCostProperty() {
         return sharesCost;
+    }
+
+    public SimpleDoubleProperty commissionCostProperty() {
+        return commissionCost;
+    }
+
+    public SimpleDoubleProperty totalPaidProperty() {
+        return totalPaid;
     }
 }

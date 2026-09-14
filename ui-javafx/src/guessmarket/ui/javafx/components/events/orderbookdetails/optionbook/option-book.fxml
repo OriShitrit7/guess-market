@@ -8,13 +8,10 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <VBox maxWidth="1.7976931348623157E308" spacing="9.0" styleClass="order-book-card" stylesheets="@order-book.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.orderbookdetails.optionbook.OptionBookController">
    <children>
-      <Label fx:id="optionNameLabel" maxWidth="1.7976931348623157E308" styleClass="option-book-title" text="Option Book" wrapText="true">
-         <font><Font name="System Bold" size="15.0" /></font>
-      </Label>
+      <Label fx:id="optionNameLabel" maxWidth="1.7976931348623157E308" styleClass="option-book-title" text="Option Book" wrapText="true" />
       <GridPane hgap="8.0" maxWidth="1.7976931348623157E308" styleClass="book-statistics" vgap="6.0">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="33.33" />
@@ -28,48 +25,44 @@
          <children>
             <VBox spacing="2.0" styleClass="book-stat">
                <children>
-                  <Label styleClass="book-stat-title" text="BEST BID" textFill="#666666" />
+                  <Label styleClass="book-stat-title" text="BEST BID" />
                   <Label fx:id="bidLabel" styleClass="book-stat-value" text="-" />
                </children>
             </VBox>
             <VBox spacing="2.0" styleClass="book-stat" GridPane.columnIndex="1">
                <children>
-                  <Label styleClass="book-stat-title" text="BEST ASK" textFill="#666666" />
+                  <Label styleClass="book-stat-title" text="BEST ASK" />
                   <Label fx:id="askLabel" styleClass="book-stat-value" text="-" />
                </children>
             </VBox>
             <VBox spacing="2.0" styleClass="book-stat" GridPane.columnIndex="2">
                <children>
-                  <Label styleClass="book-stat-title" text="LAST TRADE" textFill="#666666" />
+                  <Label styleClass="book-stat-title" text="LAST TRADE" />
                   <Label fx:id="lastLabel" styleClass="book-stat-value" text="-" />
                </children>
             </VBox>
             <VBox spacing="2.0" styleClass="book-stat" GridPane.rowIndex="1">
                <children>
-                  <Label styleClass="book-stat-title" text="MID" textFill="#666666" />
+                  <Label styleClass="book-stat-title" text="MID" />
                   <Label fx:id="midLabel" styleClass="book-stat-value" text="-" />
                </children>
             </VBox>
             <VBox spacing="2.0" styleClass="book-stat, spread-stat" GridPane.columnIndex="1" GridPane.rowIndex="1">
                <children>
-                  <Label styleClass="book-stat-title" text="SPREAD" textFill="#666666" />
+                  <Label styleClass="book-stat-title" text="SPREAD" />
                   <Label fx:id="spreadLabel" styleClass="book-stat-value" text="-" />
                </children>
             </VBox>
          </children>
       </GridPane>
       <Separator maxWidth="1.7976931348623157E308" />
-      <Label styleClass="book-side-title, bid-side-title" text="BIDS (BUY)">
-         <font><Font name="System Bold" size="12.0" /></font>
-      </Label>
+      <Label styleClass="book-side-title, bid-side-title" text="BIDS (BUY)" />
       <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="120.0" minHeight="45.0" prefHeight="105.0" styleClass="orders-scroll" vbarPolicy="AS_NEEDED">
          <content>
             <VBox fx:id="buyOrdersBox" fillWidth="true" spacing="4.0" />
          </content>
       </ScrollPane>
-      <Label styleClass="book-side-title, ask-side-title" text="ASKS (SELL)">
-         <font><Font name="System Bold" size="12.0" /></font>
-      </Label>
+      <Label styleClass="book-side-title, ask-side-title" text="ASKS (SELL)" />
       <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="120.0" minHeight="45.0" prefHeight="105.0" styleClass="orders-scroll" vbarPolicy="AS_NEEDED">
          <content>
             <VBox fx:id="sellOrdersBox" fillWidth="true" spacing="4.0" />

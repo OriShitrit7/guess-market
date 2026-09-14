@@ -1,5 +1,7 @@
 package guessmarket.engine.orderbook;
 
+// A trade where both sides buy opposite options, so nobody sells and the shares are created instead.
+// Each side pays its own price, and the two prices together cover the event's base value d.
 public class MintMatch {
     private final String restingBuyerName;
     private final String incomingBuyerName;

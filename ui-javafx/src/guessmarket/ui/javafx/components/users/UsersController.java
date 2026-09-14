@@ -8,7 +8,7 @@ import guessmarket.dto.NewEventDto;
 import guessmarket.dto.TradingMethodTypeDto;
 import guessmarket.dto.UserSummaryDto;
 import guessmarket.ui.javafx.components.main.MainController;
-import guessmarket.engine.exception.InvalidRequestException;
+import guessmarket.engine.exception.request.InvalidRequestException;
 import guessmarket.ui.javafx.components.users.dialogs.Dialogs;
 import guessmarket.ui.javafx.components.users.dialogs.createevent.CreateEventDialogController;
 import guessmarket.ui.javafx.components.users.dialogs.tradeinevent.TradeInEventDialogController;
@@ -28,8 +28,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import org.controlsfx.control.SegmentedButton;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+// Manages user selection, account history and event trading in the Users tab.
 public class UsersController {
     private static final String EMPTY_AMOUNT = "$0.00";
     private static final String TRADE_IN_EVENT_DIALOG =
@@ -47,12 +51,22 @@ public class UsersController {
     private static final String CREATE_EVENT = "Create Event";
     private static final String CREATE_FAILED = "Event Not Created";
     private static final String USER_CARD_FXML = "user-card.fxml";
-    private static final String EMPTY_USERS_BEFORE_LOAD = "Load a file to view users";
-    private static final String EMPTY_USERS_AFTER_LOAD = "No users are available";
+    private static final String EMPTY_USERS_TITLE_BEFORE_LOAD = "No users to display";
+    private static final String EMPTY_USERS_MESSAGE_BEFORE_LOAD = "Load an XML file to get started.";
+    private static final String EMPTY_USERS_TITLE_AFTER_LOAD = "No users available";
+    private static final String EMPTY_USERS_MESSAGE_AFTER_LOAD =
+            "The loaded file does not contain any users.";
     private static final String NO_USER_SELECTED = "Select a user to view their events";
     private static final String NO_EVENTS_FORMAT = "%s is not taking part in any event yet";
-    private static final String NO_BALANCE_HISTORY = "No balance changes yet";
-    private static final String SELECT_USER_FOR_BALANCE = "Select a user to view balance history";
+    private static final String NO_BALANCE_HISTORY_TITLE = "No balance history";
+    private static final String NO_BALANCE_HISTORY_MESSAGE = "This user has no balance changes yet.";
+    private static final String SELECT_USER_FOR_BALANCE_TITLE = "No user selected";
+    private static final String SELECT_USER_FOR_BALANCE_MESSAGE =
+            "Select a user to view their balance history.";
+    private static final int MAX_VISIBLE_USER_EVENT_ROWS = 3;
+    private static final double USER_EVENT_ROW_HEIGHT = 44.0;
+    private static final double USER_EVENT_HEADER_HEIGHT = 44.0;
+    private static final double USER_EVENT_TABLE_BORDER_HEIGHT = 2.0;
 
     private MainController mainController;
     // The event the details panel is showing, which is not always a row in the events table.
@@ -63,6 +77,10 @@ public class UsersController {
     @FXML
     private VBox userCardsPane;
     @FXML
+    private VBox emptyUsersState;
+    @FXML
+    private Label emptyUsersTitleLabel;
+    @FXML
     private Label emptyUsersLabel;
 
     @FXML
@@ -71,6 +89,15 @@ public class UsersController {
     private Button createEventButton;
     @FXML
     private Button tradeInNewEventButton;
+
+    @FXML
+    private SegmentedButton userDetailsSelector;
+    @FXML
+    private ToggleButton userEventsToggle;
+    @FXML
+    private VBox userEventsView;
+    @FXML
+    private StackPane balanceHistoryView;
 
     @FXML
     private TableView<UserEventTableRow> userEventsTable;
@@ -88,12 +115,16 @@ public class UsersController {
     @FXML
     private NumberAxis balanceHistoryXAxis;
     @FXML
+    private VBox emptyBalanceHistoryState;
+    @FXML
+    private Label emptyBalanceHistoryTitleLabel;
+    @FXML
     private Label emptyBalanceHistoryLabel;
 
     @FXML
     private TitledPane eventDetailsPane;
     @FXML
-    private Label noEventSelectedLabel;
+    private VBox noEventSelectedState;
     @FXML
     private VBox lmsrTradeComponent;
     @FXML
@@ -110,13 +141,15 @@ public class UsersController {
     private final XYChart.Series<Number, Number> balanceSeries = new XYChart.Series<>();
 
     @FXML
+    // Configures the user cards, details selector, tables and initial empty state.
     private void initialize() {
-        emptyUsersLabel.managedProperty().bind(emptyUsersLabel.visibleProperty());
+        emptyUsersState.managedProperty().bind(emptyUsersState.visibleProperty());
         userEventsTable.setPlaceholder(userEventsPlaceholder);
         balanceHistoryChart.getData().add(balanceSeries);
         clearBalanceHistory();
+        initUserDetailsSelector();
 
-        noEventSelectedLabel.managedProperty().bind(noEventSelectedLabel.visibleProperty());
+        noEventSelectedState.managedProperty().bind(noEventSelectedState.visibleProperty());
         lmsrTradeComponent.managedProperty().bind(lmsrTradeComponent.visibleProperty());
         orderBookComponent.managedProperty().bind(orderBookComponent.visibleProperty());
 
@@ -134,15 +167,16 @@ public class UsersController {
         orderBookComponentController.setMainController(mainController);
     }
 
+    // Reloads users and restores the selected user and event when they still exist.
     public void refreshUsers() {
-        String userNameToRestore = selectedUser == null ? null : selectedUser.getName();
-        Integer selectedEventId = displayedEventId;
+        String userNameToRestore = selectedUser == null ? null : selectedUser.getName(); // Preserve user selection
+        Integer selectedEventId = displayedEventId; // Preserve the displayed event
 
         List<UserSummaryDto> summaries = mainController.getMarketManager().getUserSummaries();
-        users.setAll(summaries.stream().map(UserTableRow::new).toList());
+        users.setAll(summaries.stream().map(UserTableRow::new).toList()); // Replace displayed user data
         usersWereLoaded = true;
 
-        selectedUser = findUser(userNameToRestore);
+        selectedUser = findUser(userNameToRestore); // Restore only an existing user
         rebuildUserCards();
 
         if (selectedUser == null) {
@@ -151,7 +185,7 @@ public class UsersController {
         }
 
         showUserDetails(selectedUser);
-        restoreEventSelection(selectedEventId);
+        restoreEventSelection(selectedEventId); // Restore the event after its table is rebuilt
     }
 
     private UserTableRow findUser(String userName) {
@@ -172,6 +206,7 @@ public class UsersController {
                 .ifPresent(event -> userEventsTable.getSelectionModel().select(event));
     }
 
+    // Recreates the user cards and updates the message shown when no user is available.
     private void rebuildUserCards() {
         userCardsPane.getChildren().clear();
         displayedUserCards.clear();
@@ -192,10 +227,16 @@ public class UsersController {
         }
 
         boolean empty = users.isEmpty();
-        emptyUsersLabel.setText(usersWereLoaded ? EMPTY_USERS_AFTER_LOAD : EMPTY_USERS_BEFORE_LOAD);
-        emptyUsersLabel.setVisible(empty);
+        emptyUsersTitleLabel.setText(usersWereLoaded
+                ? EMPTY_USERS_TITLE_AFTER_LOAD
+                : EMPTY_USERS_TITLE_BEFORE_LOAD);
+        emptyUsersLabel.setText(usersWereLoaded
+                ? EMPTY_USERS_MESSAGE_AFTER_LOAD
+                : EMPTY_USERS_MESSAGE_BEFORE_LOAD);
+        emptyUsersState.setVisible(empty);
     }
 
+    // Changes the active user and clears details that belonged to the previous selection.
     private void selectUser(UserTableRow user) {
         if (selectedUser != null && selectedUser.getName().equals(user.getName())) {
             return;
@@ -214,12 +255,35 @@ public class UsersController {
         userEventMethodColumn.setCellValueFactory(new PropertyValueFactory<>("methodType"));
         userEventRoleColumn.setCellValueFactory(new PropertyValueFactory<>("role"));
 
+        userEventsTable.setFixedCellSize(USER_EVENT_ROW_HEIGHT);
         userEventsTable.setItems(userEvents);
+        updateUserEventsTableHeight();
     }
 
     private void initSelectionListeners() {
         userEventsTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showEventDetails(newValue));
+                (_, _, newValue) -> showEventDetails(newValue));
+    }
+
+    // Keeps exactly one user-details view visible when the selector changes.
+    private void initUserDetailsSelector() {
+        userEventsView.managedProperty().bind(userEventsView.visibleProperty());
+        balanceHistoryView.managedProperty().bind(balanceHistoryView.visibleProperty());
+        userDetailsSelector.getToggleGroup().selectedToggleProperty().addListener(
+                (_, oldValue, newValue) -> {
+                    if (newValue == null) {
+                        userDetailsSelector.getToggleGroup().selectToggle(oldValue);
+                    }
+                    showSelectedUserDetail();
+                });
+        showSelectedUserDetail();
+    }
+
+    private void showSelectedUserDetail() {
+        boolean showEvents = userEventsToggle.isSelected();
+
+        userEventsView.setVisible(showEvents);
+        balanceHistoryView.setVisible(!showEvents);
     }
 
     private void showUserDetails(UserTableRow selectedUser) {
@@ -228,8 +292,8 @@ public class UsersController {
             return;
         }
         userBalanceLabel.setText(DisplayText.amount(selectedUser.getBalance()));
-        tradeInNewEventButton.setDisable(false);
-        createEventButton.setDisable(false);
+        tradeInNewEventButton.setDisable(selectedUser.isBlocked());
+        createEventButton.setDisable(selectedUser.isBlocked());
 
         refreshUserEvents(selectedUser.getName());
         refreshBalanceHistory(selectedUser.getName());
@@ -244,10 +308,12 @@ public class UsersController {
         userEventsPlaceholder.setText(NO_USER_SELECTED);
 
         userEvents.clear();
+        updateUserEventsTableHeight();
         clearBalanceHistory();
         clearEventDetails();
     }
 
+    // Rebuilds the selected user's balance series and updates its empty state.
     private void refreshBalanceHistory(String userName) {
         List<BalancePointDto> history = mainController.getMarketManager().getUserBalanceHistory(userName);
 
@@ -255,17 +321,20 @@ public class UsersController {
                 .map(point -> new XYChart.Data<Number, Number>(point.getSequence(), point.getBalance()))
                 .toList());
         configureBalanceXAxis(history.size());
-        emptyBalanceHistoryLabel.setText(NO_BALANCE_HISTORY);
-        emptyBalanceHistoryLabel.setVisible(history.size() <= 1);
+        emptyBalanceHistoryTitleLabel.setText(NO_BALANCE_HISTORY_TITLE);
+        emptyBalanceHistoryLabel.setText(NO_BALANCE_HISTORY_MESSAGE);
+        emptyBalanceHistoryState.setVisible(history.size() <= 1);
     }
 
     private void clearBalanceHistory() {
         balanceSeries.getData().clear();
         configureBalanceXAxis(0);
-        emptyBalanceHistoryLabel.setText(SELECT_USER_FOR_BALANCE);
-        emptyBalanceHistoryLabel.setVisible(true);
+        emptyBalanceHistoryTitleLabel.setText(SELECT_USER_FOR_BALANCE_TITLE);
+        emptyBalanceHistoryLabel.setText(SELECT_USER_FOR_BALANCE_MESSAGE);
+        emptyBalanceHistoryState.setVisible(true);
     }
 
+    // Scales the sequence axis to the number of available balance points.
     private void configureBalanceXAxis(int pointCount) {
         int maximumSequence = Math.max(1, pointCount - 1);
 
@@ -281,7 +350,7 @@ public class UsersController {
             return;
         }
         Dialogs.<CreateEventDialogController>show(getClass(), CREATE_EVENT_DIALOG, CREATE_EVENT,
-                        dialog -> { })
+                        _ -> { })
                 .ifPresent(dialog -> createEvent(dialog.getRequest()));
     }
 
@@ -316,6 +385,17 @@ public class UsersController {
         userEventsPlaceholder.setText(String.format(NO_EVENTS_FORMAT, userName));
 
         userEvents.setAll(participations.stream().map(UserEventTableRow::new).toList());
+        updateUserEventsTableHeight();
+    }
+
+    // Sizes the table for up to three event rows and avoids unused empty space.
+    private void updateUserEventsTableHeight() {
+        int visibleRows = Math.max(1, Math.min(MAX_VISIBLE_USER_EVENT_ROWS, userEvents.size()));
+        double tableHeight = USER_EVENT_HEADER_HEIGHT
+                + visibleRows * USER_EVENT_ROW_HEIGHT
+                + USER_EVENT_TABLE_BORDER_HEIGHT;
+
+        userEventsTable.setPrefHeight(tableHeight);
     }
 
     // An event is available for a first trade only while active and unrelated to the selected user.
@@ -351,7 +431,7 @@ public class UsersController {
 
     private void showEventDetails(String userName, int eventId, boolean orderBook, boolean marketMaker) {
         displayedEventId = eventId;
-        noEventSelectedLabel.setVisible(false);
+        noEventSelectedState.setVisible(false);
         eventDetailsPane.setExpanded(true);
         lmsrTradeComponent.setVisible(!orderBook);
         orderBookComponent.setVisible(orderBook);
@@ -365,7 +445,7 @@ public class UsersController {
 
     private void clearEventDetails() {
         displayedEventId = null;
-        noEventSelectedLabel.setVisible(true);
+        noEventSelectedState.setVisible(true);
         lmsrTradeComponent.setVisible(false);
         orderBookComponent.setVisible(false);
 

@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 import java.util.List;
 
+// Adapts a participant's event holdings to properties used by the holdings table.
 public class ParticipantTableRow {
     private static final String NO_VALUE = "-";
     private static final int FIRST_OPTION_INDEX = 0;

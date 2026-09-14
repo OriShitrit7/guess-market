@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import java.util.List;
 import java.util.function.Consumer;
 
+// Controls a selectable user card and presents the user's current status.
 public class UserCardController {
     private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("selected");
     private static final List<String> STATUS_STYLE_CLASSES =
@@ -25,6 +26,7 @@ public class UserCardController {
     private Consumer<UserTableRow> selectionHandler;
 
     @FXML
+    // Enables card selection with either the mouse or keyboard.
     private void initialize() {
         userCard.setOnMouseClicked(mouseEvent -> select());
         userCard.setOnKeyPressed(keyEvent -> {
@@ -35,6 +37,7 @@ public class UserCardController {
         });
     }
 
+    // Populates the card and registers the action used when it is selected.
     public void setUser(UserTableRow user, Consumer<UserTableRow> selectionHandler) {
         this.user = user;
         this.selectionHandler = selectionHandler;

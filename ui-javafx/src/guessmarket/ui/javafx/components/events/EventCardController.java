@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 import java.util.List;
 import java.util.function.Consumer;
 
+// Controls a selectable event card and presents its main summary details.
 public class EventCardController {
     private static final String PERCENT_SIGN = "%";
     private static final String TRADING_SUFFIX = " Trading";
@@ -36,6 +37,7 @@ public class EventCardController {
     private Consumer<EventTableRow> selectionHandler;
 
     @FXML
+    // Enables card selection with either the mouse or keyboard.
     private void initialize() {
         eventCard.setOnMouseClicked(mouseEvent -> select());
         eventCard.setOnKeyPressed(keyEvent -> {
@@ -46,6 +48,7 @@ public class EventCardController {
         });
     }
 
+    // Populates the card and registers the action used when it is selected.
     public void setEvent(EventTableRow event, Consumer<EventTableRow> selectionHandler) {
         this.event = event;
         this.selectionHandler = selectionHandler;

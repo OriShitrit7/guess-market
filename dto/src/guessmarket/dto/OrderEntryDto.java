@@ -1,6 +1,6 @@
 package guessmarket.dto;
 
-// Represents one order still waiting in an option's book.
+// Carries one waiting order for the order book display and the user's pending orders table.
 public final class OrderEntryDto {
     private final String userName;
     private final int quantity;

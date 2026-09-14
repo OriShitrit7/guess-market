@@ -2,17 +2,21 @@ package guessmarket.dto;
 
 import java.util.List;
 
-// Carries the details of an event a user asked to create. The fields of the trading method
-// that was not chosen are ignored.
+// Carries a new event request from the creation dialog to the engine. Values belonging to the
+// trading method that was not selected are ignored.
 public final class NewEventDto {
     private final String eventName;
     private final String description;
     private final List<String> optionNames;
+
     private final int commissionPercent;
     private final CommissionPolicyDto commissionPolicy;
     private final TradingMethodTypeDto methodType;
+    // The liquidity parameter used only by LMSR events.
     private final int b;
+    // The payout of one winning share used only by Order Book events.
     private final int d;
+    // The opening investment used only by Order Book events.
     private final int initialInvestment;
     private final boolean allowMint;
 

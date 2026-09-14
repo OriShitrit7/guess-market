@@ -9,6 +9,7 @@ import javafx.scene.control.ToggleGroup;
 
 import java.util.List;
 
+// Collects the winning option when a market maker closes an event.
 public class CloseEventDialogController {
     private static final String PROMPT_FORMAT = "Select the winning option for \"%s\" :";
     private static final int FIRST_OPTION_INDEX = 0;
@@ -32,11 +33,11 @@ public class CloseEventDialogController {
         firstOptionRadio.setToggleGroup(winningOption);
         secondOptionRadio.setToggleGroup(winningOption);
 
-        // The event cannot be closed before a winning option is chosen.
         dialogPane.lookupButton(closeEventButtonType).disableProperty()
-                .bind(winningOption.selectedToggleProperty().isNull());
+                .bind(winningOption.selectedToggleProperty().isNull()); // Require a winning option
     }
 
+    // Displays the event name and its options for winner selection.
     public void setEvent(String eventName, List<String> optionNames) {
         promptLabel.setText(String.format(PROMPT_FORMAT, eventName));
         firstOptionRadio.setText(optionNames.get(FIRST_OPTION_INDEX));

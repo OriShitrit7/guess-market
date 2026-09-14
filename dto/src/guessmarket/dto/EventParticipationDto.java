@@ -1,5 +1,6 @@
 package guessmarket.dto;
 
+// Combines an event summary with one user's roles in that event for the user events table.
 public final class EventParticipationDto {
     private final EventSummaryDto event;
     private final boolean marketMaker;

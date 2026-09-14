@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 
 import java.util.List;
 
+// Presents a closed event's result and its financial outcome for the selected user.
 public class ResultCardController {
     private static final String NO_WINNER = "-";
     private static final String EMPTY_TEXT = "";

@@ -14,13 +14,13 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="event-trade-view" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.lmsrtrade.LmsrTradeController">
+<VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="event-trade-view" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.lmsrtrade.LmsrTradeController">
    <children>
       <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="event-trade-header">
          <children>
-            <Label fx:id="eventNameLabel" maxWidth="1.7976931348623157E308" styleClass="event-trade-title" text="Event Name" wrapText="true" HBox.hgrow="ALWAYS" />
-            <Label fx:id="eventStatusLabel" styleClass="status-badge" text="eventStatus" />
-            <Button fx:id="changeEventStatusButton" mnemonicParsing="false" onAction="#changeEventStatusButtonAction" styleClass="event-status-action-button" text="Close Event" />
+            <Label fx:id="eventNameLabel" maxWidth="1.7976931348623157E308" minHeight="-Infinity" styleClass="event-trade-title" text="Event Name" wrapText="true" HBox.hgrow="ALWAYS" />
+            <Label fx:id="eventStatusLabel" minWidth="-Infinity" styleClass="status-badge" text="eventStatus" />
+            <Button fx:id="changeEventStatusButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#changeEventStatusButtonAction" styleClass="event-status-action-button" text="Close Event" />
          </children>
       </HBox>
       <GridPane hgap="14.0" maxWidth="1.7976931348623157E308" styleClass="event-trade-overview">
@@ -29,30 +29,26 @@
             <ColumnConstraints hgrow="ALWAYS" percentWidth="55.0" />
          </columnConstraints>
          <children>
-            <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="trade-info-card" GridPane.columnIndex="0">
+            <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="trade-info-card" GridPane.columnIndex="0" GridPane.fillHeight="false" GridPane.valignment="TOP">
                <children>
                   <Label styleClass="trade-section-caption" text="EVENT INFORMATION" />
-                  <Label fx:id="eventDescriptionLabel" maxWidth="1.7976931348623157E308" styleClass="event-trade-description" text="Description" wrapText="true" />
+                  <Label fx:id="eventDescriptionLabel" maxWidth="1.7976931348623157E308" minHeight="-Infinity" styleClass="event-trade-description" text="Description" wrapText="true" />
                   <Separator maxWidth="1.7976931348623157E308" />
-                  <GridPane hgap="12.0" vgap="10.0">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                        <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" />
-                        <RowConstraints minHeight="10.0" />
-                     </rowConstraints>
+                  <VBox spacing="2.0">
                      <children>
                         <Label styleClass="trade-detail-label" text="Commission" />
-                        <Label fx:id="eventCommissionLabel" styleClass="trade-detail-value" text="eventCommission" wrapText="true" GridPane.columnIndex="1" />
-                        <Label styleClass="trade-detail-label" text="Event Account" GridPane.rowIndex="1" />
-                        <Label fx:id="eventAccountLabel" styleClass="trade-detail-value" text="eventAccount" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label fx:id="eventCommissionLabel" maxWidth="1.7976931348623157E308" minHeight="-Infinity" styleClass="trade-detail-value" text="eventCommission" wrapText="true" />
                      </children>
-                  </GridPane>
+                  </VBox>
+                  <VBox spacing="2.0">
+                     <children>
+                        <Label styleClass="trade-detail-label" text="Event Account" />
+                        <Label fx:id="eventAccountLabel" maxWidth="1.7976931348623157E308" minHeight="-Infinity" styleClass="trade-detail-value" text="eventAccount" wrapText="true" />
+                     </children>
+                  </VBox>
                </children>
             </VBox>
-            <StackPane maxWidth="1.7976931348623157E308" GridPane.columnIndex="1">
+            <StackPane maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.fillHeight="false" GridPane.valignment="TOP">
                <children>
                   <VBox fx:id="tradingCard" maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="trade-state-card">
                      <children>
@@ -94,11 +90,11 @@
             </HBox>
             <TableView fx:id="userTradesTable" maxWidth="1.7976931348623157E308" prefHeight="200.0">
                <columns>
-                  <TableColumn fx:id="tradeOptionColumn" prefWidth="75.0" text="Option" reorderable="false" />
-                  <TableColumn fx:id="tradeSharesColumn" prefWidth="75.0" text="Shares" reorderable="false" />
-                  <TableColumn fx:id="tradePaidColumn" prefWidth="90.0" reorderable="false" text="Shares Cost" />
-                  <TableColumn fx:id="tradeCommissionColumn" prefWidth="90.0" reorderable="false" text="Commission" />
-                  <TableColumn fx:id="tradeTotalPaidColumn" prefWidth="90.0" reorderable="false" text="Total Paid" />
+                  <TableColumn fx:id="tradeOptionColumn" minWidth="58.0" prefWidth="75.0" text="Option" reorderable="false" />
+                  <TableColumn fx:id="tradeSharesColumn" minWidth="58.0" prefWidth="75.0" text="Shares" reorderable="false" />
+                  <TableColumn fx:id="tradePaidColumn" minWidth="58.0" prefWidth="90.0" reorderable="false" text="Shares Cost" />
+                  <TableColumn fx:id="tradeCommissionColumn" minWidth="58.0" prefWidth="90.0" reorderable="false" text="Commission" />
+                  <TableColumn fx:id="tradeTotalPaidColumn" minWidth="58.0" prefWidth="90.0" reorderable="false" text="Total Paid" />
                </columns>
                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             </TableView>

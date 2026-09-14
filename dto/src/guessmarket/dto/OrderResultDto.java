@@ -1,12 +1,17 @@
 package guessmarket.dto;
 
+// Summarizes how an Order Book request was executed for the order receipt dialog.
 public final class OrderResultDto {
     private final OrderActionDto action;
+    // Shares executed against an existing order.
     private final int matchedQuantity;
-    // Shares created against demand for the opposite option, rather than bought from a seller.
+    // Shares created by pairing buy orders for opposite options.
     private final int mintedQuantity;
+    // Shares from the request that remain in the book.
     private final int remainingQuantity;
+    // Amount paid or received for matched shares, before commission.
     private final double matchedAmount;
+    // Amount paid for minted shares, before commission.
     private final double mintedAmount;
     private final double totalCommissionPaid;
 
@@ -38,7 +43,6 @@ public final class OrderResultDto {
         return remainingQuantity;
     }
 
-    // Value of the matched shares, excluding commission: paid on BUY and received on SELL.
     public double getMatchedAmount() {
         return matchedAmount;
     }

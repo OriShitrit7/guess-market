@@ -1,7 +1,5 @@
 package guessmarket.engine.exception.request;
 
-import guessmarket.engine.exception.InvalidRequestException;
-
 public class NonPositiveQuantityException extends InvalidRequestException {
     private static final String MSG_FORMAT = "The quantity must be greater than 0, but was %d.";
 

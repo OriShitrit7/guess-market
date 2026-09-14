@@ -1,5 +1,6 @@
 package guessmarket.engine.orderbook;
 
+// One trade between a buyer and a seller at a single price, created when two opposite orders meet.
 public class OrderMatch {
     private final String buyerName;
     private final String sellerName;

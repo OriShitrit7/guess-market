@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="trade-state-card, result-card" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.ResultCardController">
+<VBox maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="trade-state-card, result-card" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.ResultCardController">
    <children>
       <Label styleClass="trade-section-caption" text="FINAL RESULT" />
       <HBox alignment="CENTER_LEFT" spacing="8.0">

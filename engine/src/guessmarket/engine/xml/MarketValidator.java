@@ -11,24 +11,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Validates business rules that loaded market events must satisfy before they enter the system.
+// Validates business rules that mapped events and users must satisfy before loading.
 public class MarketValidator {
 
-    // Checks event ID uniqueness, commission limits and the required number of options.
+    // Checks unique IDs, commission, option counts, market makers and initial balances.
     public void validate(List<MarketEvent> events, UsersRegistry users) throws InvalidFileException {
-        validateUniqueEventIds(events);
+        validateUniqueEventIds(events); // Check the rule shared by all events
 
-        for (MarketEvent event : events) {
+        for (MarketEvent event : events) { // Validate each event
             validateCommission(event);
             validateOptionCount(event);
             validateMarketMaker(event);
         }
 
-        for (User user : users.getAllUsers()) {
+        for (User user : users.getAllUsers()) { // Validate each user
             validateInitialBalance(user);
         }
     }
 
+    // Tracks the first event using each ID so duplicate errors can name both events.
     private void validateUniqueEventIds(List<MarketEvent> events) throws InvalidFileException {
         Map<Integer, String> namesById = new HashMap<>();
 
@@ -45,8 +46,7 @@ public class MarketValidator {
     private void validateCommission(MarketEvent event) throws InvalidFileException {
         int commissionPercent = event.getCommissionPercent();
 
-        if (commissionPercent < CommissionConfig.MIN_COMMISSION_PERCENT
-                || commissionPercent > CommissionConfig.MAX_COMMISSION_PERCENT) {
+        if (!CommissionConfig.isValidPercent(commissionPercent)) {
             throw new InvalidFileException(FileErrorCode.COMMISSION_OUT_OF_RANGE, event.getEventName(), commissionPercent,
                     CommissionConfig.MIN_COMMISSION_PERCENT, CommissionConfig.MAX_COMMISSION_PERCENT);
         }

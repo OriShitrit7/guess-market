@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+// Adapts an option holding to JavaFX properties used by the holdings table.
 public class HoldingTableRow {
     private final SimpleStringProperty optionName;
     private final SimpleIntegerProperty quantity;

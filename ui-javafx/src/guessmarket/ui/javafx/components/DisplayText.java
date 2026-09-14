@@ -4,6 +4,7 @@ import guessmarket.dto.CommissionPolicyDto;
 import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.TradingMethodTypeDto;
 
+// Formats domain values into consistent text used throughout the UI.
 public abstract class DisplayText {
     private static final String AMOUNT_FORMAT = "$%.2f";
     private static final String NEGATIVE_AMOUNT_FORMAT = "-$%.2f";
@@ -26,6 +27,7 @@ public abstract class DisplayText {
         return value < 0 ? amount(value) : String.format(POSITIVE_AMOUNT_FORMAT, value);
     }
 
+    // Converts an event status to its user-facing label.
     public static String of(EventStatusDto status) {
         return switch (status) {
             case NOT_STARTED -> "Not Started";
@@ -34,6 +36,7 @@ public abstract class DisplayText {
         };
     }
 
+    // Converts a trading method to its user-facing label.
     public static String of(TradingMethodTypeDto methodType) {
         return switch (methodType) {
             case LMSR -> "LMSR";
@@ -41,6 +44,7 @@ public abstract class DisplayText {
         };
     }
 
+    // Converts a commission policy to its user-facing label.
     public static String of(CommissionPolicyDto policy) {
         return switch (policy) {
             case ON_CLOSE -> "On Close";

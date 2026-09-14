@@ -61,7 +61,7 @@
     -fx-background-radius: 7;
     -fx-border-color: #dfe3e9;
     -fx-border-radius: 7;
-    -fx-padding: 7px 11px;
+    -fx-padding: 4px 11px;
 }
 
 .user-balance-caption {
@@ -108,68 +108,76 @@
     -fx-background-color: #f4f5f7;
 }
 
-.user-details-tab-pane {
-    -fx-background-color: transparent;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-    -fx-tab-min-height: 24px;
-    -fx-tab-max-height: 24px;
-    -fx-tab-min-width: 95px;
+.user-activity-pane {
+    -fx-background-color: #f4f6f8;
+    -fx-background-radius: 8px;
+    -fx-border-color: #d0d5dd;
+    -fx-border-radius: 8px;
 }
 
-.user-details-tab-pane > .tab-header-area {
-    -fx-padding: 0 0 0 0;
+.user-activity-pane > .title {
+    -fx-background-color: #85B3D6;
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-border-color: transparent transparent #6fa2c8 transparent;
+    -fx-padding: 8px 12px;
 }
 
-.user-details-tab-pane > .tab-header-area > .tab-header-background {
-    -fx-background-color: transparent;
-}
-
-.user-details-tab-pane > .tab-header-area > .headers-region {
-    -fx-background-color: #e7ebef;
-    -fx-background-radius: 7px;
-    -fx-padding: 2px;
-}
-
-.user-details-tab-pane > .tab-header-area > .headers-region > .tab {
-    -fx-background-color: transparent;
-    -fx-background-radius: 5px;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-padding: 3px 9px;
-}
-
-.user-details-tab-pane > .tab-header-area > .headers-region > .tab:hover {
-    -fx-background-color: #d9e0e6;
-}
-
-.user-details-tab-pane > .tab-header-area > .headers-region > .tab:selected {
-    -fx-background-color: #2c3e50;
-    -fx-effect: dropshadow(gaussian, rgba(31, 54, 81, 0.18), 5, 0.12, 0, 1);
-}
-
-.user-details-tab-pane > .tab-header-area > .headers-region > .tab:selected:hover {
-    -fx-background-color: #34495e;
-}
-
-.user-details-tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
-    -fx-text-fill: #5f6974;
-    -fx-font-size: 11px;
-}
-
-.user-details-tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
-    -fx-text-fill: white;
+.user-activity-pane > .title > .text {
+    -fx-fill: #2c3e50;
     -fx-font-weight: bold;
 }
 
-.user-details-tab-pane > .tab-content-area {
-    -fx-background-color: white;
-    -fx-background-radius: 8px;
-    -fx-background-insets: 8px 0 0 0;
-    -fx-border-color: #d4d8de;
-    -fx-border-radius: 8px;
-    -fx-border-insets: 8px 0 0 0;
-    -fx-padding: 8px 0 0 0;
+.user-activity-pane > .title:hover {
+    -fx-background-color: #76a8cd;
+}
+
+.user-activity-pane > .title > .arrow-button .arrow {
+    -fx-background-color: #2c3e50;
+}
+
+.user-activity-pane > *.content {
+    -fx-background-color: #f4f6f8;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.user-activity-content {
+    -fx-padding: 8px 10px 10px 10px;
+}
+
+.segmented-view-selector {
+    -fx-background-color: #e7ebef;
+    -fx-background-radius: 7px;
+    -fx-padding: 2px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.segmented-view-selector .toggle-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 5px 14px;
+    -fx-text-fill: #5f6974;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+}
+
+.segmented-view-selector .toggle-button:hover {
+    -fx-background-color: #d9e0e6;
+}
+
+.segmented-view-selector .toggle-button:selected {
+    -fx-background-color: #2c3e50;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(31, 54, 81, 0.18), 5, 0.12, 0, 1);
+}
+
+.segmented-view-selector .toggle-button:selected:hover {
+    -fx-background-color: #34495e;
 }
 
 .balance-history-container {
@@ -250,17 +258,31 @@
 
 /* Event details and trading panel */
 
+.user-workspace-scroll,
+.user-workspace-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.user-workspace-scroll {
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.user-workspace-content {
+    -fx-padding: 0 2px 8px 0;
+}
+
 .event-details-pane {
-    -fx-background-color: white;
+    -fx-background-color: #f4f6f8;
     -fx-background-radius: 8px;
     -fx-border-color: #d0d5dd;
     -fx-border-radius: 8px;
 }
 
 .event-details-pane > .title {
-    -fx-background-color: #f4f5f7;
+    -fx-background-color: #85B3D6;
     -fx-background-radius: 8px 8px 0 0;
-    -fx-border-color: transparent transparent #d0d5dd transparent;
+    -fx-border-color: transparent transparent #6fa2c8 transparent;
     -fx-padding: 8px 12px;
 }
 
@@ -269,16 +291,20 @@
     -fx-font-weight: bold;
 }
 
-.event-details-pane > *.content,
-.event-details-scroll,
-.event-details-scroll > .viewport,
-.event-trade-view {
-    -fx-background-color: transparent;
+.event-details-pane > .title:hover {
+    -fx-background-color: #76a8cd;
 }
 
-.event-details-scroll {
-    -fx-border-color: transparent;
-    -fx-padding: 0;
+.event-details-pane > .title > .arrow-button .arrow {
+    -fx-background-color: #2c3e50;
+}
+
+.event-details-pane > *.content {
+    -fx-background-color: #f4f6f8;
+}
+
+.event-trade-view {
+    -fx-background-color: transparent;
 }
 
 .event-trade-header {

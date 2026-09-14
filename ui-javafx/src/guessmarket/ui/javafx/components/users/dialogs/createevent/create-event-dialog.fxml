@@ -14,102 +14,86 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-
-<DialogPane fx:id="dialogPane" headerText="Create a New Event" minWidth="420.0" prefWidth="470.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.createevent.CreateEventDialogController">
+<DialogPane fx:id="dialogPane" headerText="Create a New Event" minWidth="420.0" prefWidth="500.0" styleClass="app-dialog, create-event-dialog" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.createevent.CreateEventDialogController">
    <buttonTypes>
       <ButtonType fx:constant="CANCEL" />
       <ButtonType fx:id="createEventButtonType" buttonData="OK_DONE" text="Create Event" />
    </buttonTypes>
    <content>
-      <VBox spacing="12.0">
+      <VBox spacing="12.0" styleClass="dialog-content">
          <children>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="form-row">
                <children>
-                  <Label minWidth="-Infinity" text="Event Name" />
-                  <TextField fx:id="eventNameField" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                  <Label minWidth="-Infinity" styleClass="field-label" text="Event Name" />
+                  <TextField fx:id="eventNameField" maxWidth="1.7976931348623157E308" promptText="Enter event name" styleClass="dialog-input" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <Label text="Description" />
-            <TextArea fx:id="descriptionArea" prefHeight="70.0" wrapText="true" />
+            <Label styleClass="field-label" text="Description" />
+            <TextArea fx:id="descriptionArea" prefHeight="70.0" promptText="Describe the event" styleClass="dialog-text-area" wrapText="true" />
             <Separator maxWidth="1.7976931348623157E308" />
-            <Label text="Event Options">
-               <font>
-                  <Font name="System Bold" size="13.0" />
-               </font>
-            </Label>
+            <Label styleClass="dialog-section-title" text="Event Options" />
             <GridPane hgap="10.0" vgap="8.0">
                <columnConstraints>
                   <ColumnConstraints hgrow="NEVER" minWidth="-Infinity" />
                   <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                </columnConstraints>
                <children>
-                  <Label text="Option #1" />
-                  <Label text="Option #2" GridPane.rowIndex="1" />
-                  <TextField fx:id="firstOptionField" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
-                  <TextField fx:id="secondOptionField" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label styleClass="secondary-text" text="Option #1" />
+                  <Label styleClass="secondary-text" text="Option #2" GridPane.rowIndex="1" />
+                  <TextField fx:id="firstOptionField" maxWidth="1.7976931348623157E308" styleClass="dialog-input" GridPane.columnIndex="1" />
+                  <TextField fx:id="secondOptionField" maxWidth="1.7976931348623157E308" styleClass="dialog-input" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                </children>
                <padding>
                   <Insets left="15.0" />
                </padding>
             </GridPane>
             <Separator maxWidth="1.7976931348623157E308" />
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="form-inline-section">
                <children>
-                  <Label minWidth="-Infinity" text="Commission :" />
-                  <Spinner fx:id="commissionSpinner" prefWidth="100.0" />
+                  <Label minWidth="-Infinity" styleClass="field-label" text="Commission :" />
+                  <Spinner fx:id="commissionSpinner" prefWidth="100.0" styleClass="dialog-spinner" />
                   <Label text="\%" />
-                  <RadioButton fx:id="onPurchaseRadio" mnemonicParsing="false" selected="true" text="on-purchase" />
-                  <RadioButton fx:id="onCloseRadio" mnemonicParsing="false" text="on-close" />
+                  <RadioButton fx:id="onPurchaseRadio" mnemonicParsing="false" selected="true" styleClass="dialog-radio" text="on-purchase" />
+                  <RadioButton fx:id="onCloseRadio" mnemonicParsing="false" styleClass="dialog-radio" text="on-close" />
                </children>
             </HBox>
             <Separator maxWidth="1.7976931348623157E308" />
-            <Label text="Trading Method">
-               <font>
-                  <Font name="System Bold" size="13.0" />
-               </font>
-            </Label>
+            <Label styleClass="dialog-section-title" text="Trading Method" />
             <HBox spacing="25.0">
                <children>
-                  <RadioButton fx:id="lmsrRadio" mnemonicParsing="false" selected="true" text="LMSR" />
-                  <RadioButton fx:id="orderBookRadio" mnemonicParsing="false" text="Order Book" />
+                  <RadioButton fx:id="lmsrRadio" mnemonicParsing="false" selected="true" styleClass="dialog-radio" text="LMSR" />
+                  <RadioButton fx:id="orderBookRadio" mnemonicParsing="false" styleClass="dialog-radio" text="Order Book" />
                </children>
                <padding>
                   <Insets left="15.0" />
                </padding>
             </HBox>
-            <HBox fx:id="lmsrFields" alignment="CENTER_LEFT" spacing="10.0">
+            <HBox fx:id="lmsrFields" alignment="CENTER_LEFT" spacing="10.0" styleClass="method-parameters">
                <children>
-                  <Label minWidth="-Infinity" text="b" />
-                  <Spinner fx:id="bSpinner" prefWidth="110.0" />
+                  <Label minWidth="-Infinity" styleClass="secondary-text" text="b" />
+                  <Spinner fx:id="bSpinner" prefWidth="110.0" styleClass="dialog-spinner" />
                </children>
                <padding>
                   <Insets left="30.0" />
                </padding>
             </HBox>
-            <VBox fx:id="orderBookFields" spacing="8.0">
+            <VBox fx:id="orderBookFields" spacing="8.0" styleClass="method-parameters">
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="10.0">
                      <children>
-                        <Label minWidth="-Infinity" text="d" />
-                        <Spinner fx:id="baseValueSpinner" prefWidth="110.0" />
-                        <Label minWidth="-Infinity" text="initial" />
-                        <Spinner fx:id="initialSpinner" prefWidth="110.0" />
+                        <Label minWidth="-Infinity" styleClass="secondary-text" text="d" />
+                        <Spinner fx:id="baseValueSpinner" prefWidth="110.0" styleClass="dialog-spinner" />
+                        <Label minWidth="-Infinity" styleClass="secondary-text" text="initial" />
+                        <Spinner fx:id="initialSpinner" prefWidth="110.0" styleClass="dialog-spinner" />
                      </children>
                   </HBox>
-                  <CheckBox fx:id="mintCheckBox" mnemonicParsing="false" text="Mint enabled" />
+                  <CheckBox fx:id="mintCheckBox" mnemonicParsing="false" styleClass="dialog-checkbox" text="Mint enabled" />
                </children>
                <padding>
                   <Insets left="30.0" />
                </padding>
             </VBox>
          </children>
-         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </padding>
       </VBox>
    </content>
-   <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-   </padding>
 </DialogPane>

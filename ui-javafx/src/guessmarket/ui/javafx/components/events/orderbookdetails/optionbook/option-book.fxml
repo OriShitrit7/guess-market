@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxWidth="1.7976931348623157E308" spacing="9.0" styleClass="order-book-card" stylesheets="@order-book.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.orderbookdetails.optionbook.OptionBookController">
+<VBox maxWidth="1.7976931348623157E308" spacing="9.0" styleClass="order-book-card" stylesheets="@order-book.css" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.orderbookdetails.optionbook.OptionBookController">
    <children>
       <Label fx:id="optionNameLabel" maxWidth="1.7976931348623157E308" styleClass="option-book-title" text="Option Book" wrapText="true" />
       <GridPane hgap="8.0" maxWidth="1.7976931348623157E308" styleClass="book-statistics" vgap="6.0">

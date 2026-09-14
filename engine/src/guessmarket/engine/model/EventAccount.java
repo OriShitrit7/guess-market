@@ -1,6 +1,6 @@
 package guessmarket.engine.model;
 
-// Tracks event funds and commissions; trading history belongs to the event.
+// Tracks the funds held for an event and the total commission collected.
 public class EventAccount {
     private double balance;
     private double totalCommissionCollected;

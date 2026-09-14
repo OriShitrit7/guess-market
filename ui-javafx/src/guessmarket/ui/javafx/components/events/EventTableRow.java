@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+// Adapts an event summary to JavaFX properties used by event cards and lists.
 public class EventTableRow {
     private final int eventId;
     private final boolean orderBook;

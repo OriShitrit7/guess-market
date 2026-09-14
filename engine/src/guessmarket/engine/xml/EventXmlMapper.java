@@ -13,8 +13,7 @@ import guessmarket.engine.xml.generated.*;
 import java.util.ArrayList;
 import java.util.List;
 
-// Converts JAXB-generated XML objects into the market engine's model objects.
-// Reports missing,empty or unsupported XML data through detailed file exceptions.
+// Converts JAXB event data into model events and reports missing or unsupported XML values.
 public class EventXmlMapper {
     private static final String EVENT_ENTITY = "Event";
     private static final String EVENT_ELEMENT = "GM-event";
@@ -34,10 +33,10 @@ public class EventXmlMapper {
     // Maps every XML event to a model event while preserving its position in the source file.
     public List<MarketEvent> mapEvents(GuessMarket xmlRoot) throws InvalidFileException {
         List<MarketEvent> mappedEvents = new ArrayList<>();
-        List<GMEvent> xmlEvents = extractEvents(xmlRoot);
+        List<GMEvent> xmlEvents = extractEvents(xmlRoot); // Require at least one event
 
         for (int i = 0; i < xmlEvents.size(); i++) {
-            mappedEvents.add(mapEvent(xmlEvents.get(i), i + 1));
+            mappedEvents.add(mapEvent(xmlEvents.get(i), i + 1)); // Preserve the XML position
         }
         return mappedEvents;
     }
@@ -53,18 +52,17 @@ public class EventXmlMapper {
 
     // Builds one complete market event after checking its required XML data.
     private MarketEvent mapEvent(GMEvent source, int eventNumber) throws InvalidFileException {
-        String eventName = mapEventName(source, eventNumber);
+        String eventName = mapEventName(source, eventNumber); // Validate the event name
 
-        // JAXB may use zero when a primitive integer value is missing or invalid.
-        if (source.getId() <= 0) {
+        if (source.getId() <= 0) { // JAXB may use zero for a missing primitive value
             throw new InvalidFileException(FileErrorCode.INVALID_EVENT_ID, eventNumber);
         }
 
-        List<MarketOption> options = mapOptions(source, eventName);
+        List<MarketOption> options = mapOptions(source, eventName); // Map the event options
 
         String description = requireValue(source.getDescription(), eventName, DESCRIPTION_ELEMENT);
-        CommissionConfig commission = mapCommission(source, eventName, eventNumber);
-        return mapMarketEvent(source, eventName, description, options, commission);
+        CommissionConfig commission = mapCommission(source, eventName, eventNumber); // Map commission settings
+        return mapMarketEvent(source, eventName, description, options, commission); // Build the event subtype
     }
 
     private String mapEventName(GMEvent source, int eventNumber) throws InvalidFileException {
@@ -119,7 +117,7 @@ public class EventXmlMapper {
     // Chooses the event subtype at the XML boundary; no separate TradingMethod object is created.
     private MarketEvent mapMarketEvent(GMEvent source, String eventName, String description,
                                         List<MarketOption> options, CommissionConfig commission) throws InvalidFileException {
-        GMMethod methodElement = source.getGMMethod();
+        GMMethod methodElement = source.getGMMethod(); // Read the selected trading method
         if (methodElement == null) {
             throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, METHOD_ELEMENT);
         }

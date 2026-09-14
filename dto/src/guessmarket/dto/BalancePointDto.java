@@ -1,6 +1,6 @@
 package guessmarket.dto;
 
-// Represents the user's balance after one balance-changing operation.
+// Carries one point in a user's balance history for the balance history chart.
 public final class BalancePointDto {
     private final int sequence;
     private final double balance;

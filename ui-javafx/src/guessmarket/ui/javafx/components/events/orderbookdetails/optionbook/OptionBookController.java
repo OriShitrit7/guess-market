@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 
+// Displays market prices and the buy and sell depth for one event option.
 public class OptionBookController {
     private static final String NO_PRICE = "-";
     private static final String NO_ORDERS = "\u2014";
@@ -40,6 +41,7 @@ public class OptionBookController {
     @FXML
     private VBox sellOrdersBox;
 
+    // Refreshes the option prices and both sides of its order book.
     public void refresh(OptionBookDto book, int maximumOrderQuantity, String marketMakerName) {
         optionNameLabel.setText(book.getOptionName());
         lastLabel.setText(DisplayText.optionalAmount(book.getLastTradePrice()));
@@ -52,6 +54,7 @@ public class OptionBookController {
         showOrders(sellOrdersBox, book.getSellOrders(), maximumOrderQuantity, marketMakerName, false);
     }
 
+    // Resets prices and displays empty buy and sell books.
     public void clear() {
         optionNameLabel.setText(NO_PRICE);
         lastLabel.setText(NO_PRICE);
@@ -64,6 +67,7 @@ public class OptionBookController {
         showOrders(sellOrdersBox, List.of(), 1, null, false);
     }
 
+    // Rebuilds one side of the book or displays its empty-state marker.
     private void showOrders(VBox ordersBox, List<OrderEntryDto> orders, int maximumOrderQuantity,
                             String marketMakerName, boolean bid) {
         ordersBox.getChildren().clear();
@@ -80,10 +84,11 @@ public class OptionBookController {
                 .forEach(ordersBox.getChildren()::add);
     }
 
+    // Creates an order row whose depth bar is proportional to the largest visible order.
     private StackPane createOrderRow(OrderEntryDto order, int maximumOrderQuantity,
                                      String marketMakerName, boolean bid) {
         double barRatio = Math.min(1.0, Math.max(MINIMUM_BAR_RATIO,
-                (double) order.getQuantity() / Math.max(1, maximumOrderQuantity)));
+                (double) order.getQuantity() / Math.max(1, maximumOrderQuantity))); // Keep small orders visible
 
         StackPane row = new StackPane();
         row.setAlignment(Pos.CENTER_LEFT);
@@ -94,7 +99,7 @@ public class OptionBookController {
 
         Region bar = new Region();
         bar.setMaxHeight(Double.MAX_VALUE);
-        bar.prefWidthProperty().bind(row.widthProperty().multiply(barRatio));
+        bar.prefWidthProperty().bind(row.widthProperty().multiply(barRatio)); // Scale depth with row width
         bar.maxWidthProperty().bind(row.widthProperty().multiply(barRatio));
         bar.getStyleClass().addAll("order-depth-bar", bid ? "bid-depth-bar" : "ask-depth-bar");
         StackPane.setAlignment(bar, Pos.CENTER_LEFT);
@@ -104,13 +109,14 @@ public class OptionBookController {
         return row;
     }
 
+    // Builds the labels placed above an order's depth bar.
     private HBox createOrderContent(OrderEntryDto order, String marketMakerName, boolean bid) {
         Label userLabel = new Label(order.getUserName());
         userLabel.getStyleClass().add("order-user");
 
         HBox user = new HBox(5.0, userLabel);
         user.setAlignment(Pos.CENTER_LEFT);
-        if (order.getUserName().equals(marketMakerName)) {
+        if (order.getUserName().equals(marketMakerName)) { // Mark liquidity supplied by the market maker
             Label marketMakerTag = new Label(MARKET_MAKER_TAG);
             marketMakerTag.getStyleClass().add("order-mm-tag");
             user.getChildren().add(marketMakerTag);

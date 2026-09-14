@@ -1,6 +1,6 @@
 package guessmarket.engine.model;
 
-// Represents a completed share purchase, including its share cost and commission.
+// Represents the cost details of an LMSR quote or completed purchase.
 public class Trade {
     private final String buyerName;
     private final MarketOption option;

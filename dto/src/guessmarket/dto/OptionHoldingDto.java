@@ -1,9 +1,10 @@
 package guessmarket.dto;
 
-// Represents one user's current holding in an event option.
+// Carries one user's position in an event option for holdings tables and result summaries.
 public final class OptionHoldingDto {
     private final String optionName;
     private final int quantity;
+    // The purchase cost of the shares still held, excluding commission.
     private final double amountPaid;
     // What the holding is worth right now, or null while the option has no price.
     private final Double currentValue;

@@ -6,14 +6,16 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.layout.Region;
 
 import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-// Loads and shows the DialogPane based dialogs, and reports whether the user confirmed.
+// Centralizes loading, styling and showing the application's dialogs.
 public abstract class Dialogs {
     private static final String APP_CSS = "/guessmarket/ui/javafx/components/main/app.css";
+    private static final String DIALOGS_CSS = "/guessmarket/ui/javafx/components/users/dialogs/dialogs.css";
 
     // Returns the dialog's controller when the user confirms, and nothing when they cancel.
     public static <C> Optional<C> show(Class<?> owner, String fxmlName, String title, Consumer<C> setup) {
@@ -22,7 +24,7 @@ public abstract class Dialogs {
 
         try {
             pane = loader.load();
-            pane.getStylesheets().add(Dialogs.class.getResource(APP_CSS).toExternalForm());
+            applyStyles(pane);
         } catch (IOException exception) {
             showError(title, "The dialog could not be opened: " + exception.getMessage());
             return Optional.empty();
@@ -39,12 +41,19 @@ public abstract class Dialogs {
         show(owner, fxmlName, title, setup);
     }
 
+    // Shows a warning alert with no separate header.
     public static void showWarning(String title, String message) {
         show(Alert.AlertType.WARNING, title, message);
     }
 
+    // Shows an error alert with no separate header.
     public static void showError(String title, String message) {
-        show(Alert.AlertType.ERROR, title, message);
+        show(Alert.AlertType.ERROR, title, null, message);
+    }
+
+    // Shows an error alert with separate header and detail text.
+    public static void showError(String title, String header, String message) {
+        show(Alert.AlertType.ERROR, title, header, message);
     }
 
     // Asks the user to approve an action, and reports whether they did.
@@ -54,6 +63,7 @@ public abstract class Dialogs {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        applyAlertStyles(alert, "confirmation-alert");
 
         Optional<ButtonType> choice = alert.showAndWait();
 
@@ -61,12 +71,30 @@ public abstract class Dialogs {
     }
 
     private static void show(Alert.AlertType type, String title, String message) {
+        show(type, title, null, message);
+    }
+
+    private static void show(Alert.AlertType type, String title, String header, String message) {
         Alert alert = new Alert(type);
 
         alert.setTitle(title);
-        alert.setHeaderText(null);
+        alert.setHeaderText(header);
         alert.setContentText(message);
+        applyAlertStyles(alert, type == Alert.AlertType.WARNING ? "warning-alert" : "error-alert");
         alert.showAndWait();
+    }
+
+    private static void applyAlertStyles(Alert alert, String alertStyleClass) {
+        DialogPane pane = alert.getDialogPane();
+
+        applyStyles(pane);
+        pane.getStyleClass().addAll("app-alert", alertStyleClass);
+        pane.setMinHeight(Region.USE_PREF_SIZE);
+    }
+
+    private static void applyStyles(DialogPane pane) {
+        pane.getStylesheets().add(Dialogs.class.getResource(APP_CSS).toExternalForm());
+        pane.getStylesheets().add(Dialogs.class.getResource(DIALOGS_CSS).toExternalForm());
     }
 
     private static boolean isConfirmed(DialogPane pane, String title) {

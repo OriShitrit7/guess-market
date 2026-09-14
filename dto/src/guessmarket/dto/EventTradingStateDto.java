@@ -2,7 +2,7 @@ package guessmarket.dto;
 
 import java.util.List;
 
-// Carries a complete snapshot of an event's current trading and account state.
+// Carries an event's summary, option state, LMSR history and participants for its detail views.
 public final class EventTradingStateDto {
     private final EventSummaryDto summary;
     private final List<OptionStateDto> options;

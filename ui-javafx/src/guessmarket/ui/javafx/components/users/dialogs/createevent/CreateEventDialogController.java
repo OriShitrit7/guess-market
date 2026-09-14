@@ -3,6 +3,7 @@ package guessmarket.ui.javafx.components.users.dialogs.createevent;
 import guessmarket.dto.CommissionPolicyDto;
 import guessmarket.dto.NewEventDto;
 import guessmarket.dto.TradingMethodTypeDto;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableStringValue;
@@ -18,9 +19,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.util.List;
 
+// Collects and validates the values needed to create a new market event.
 public class CreateEventDialogController {
     private static final int MIN_COMMISSION = 0;
     private static final int MAX_COMMISSION = 90;
@@ -76,6 +79,7 @@ public class CreateEventDialogController {
     private final ToggleGroup tradingMethod = new ToggleGroup();
 
     @FXML
+    // Configures the choices, method-specific fields, spinners and form validation.
     private void initialize() {
         onPurchaseRadio.setToggleGroup(commissionPolicy);
         onCloseRadio.setToggleGroup(commissionPolicy);
@@ -104,8 +108,9 @@ public class CreateEventDialogController {
                 .or(blank(secondOptionField.textProperty()));
     }
 
+    // Builds an event request from the values currently entered in the form.
     public NewEventDto getRequest() {
-        boolean lmsr = lmsrRadio.isSelected();
+        boolean lmsr = lmsrRadio.isSelected(); // Select the matching method-specific values
 
         return new NewEventDto(eventNameField.getText(), descriptionArea.getText(),
                 List.of(firstOptionField.getText(), secondOptionField.getText()),
@@ -122,8 +127,20 @@ public class CreateEventDialogController {
 
         lmsrFields.setVisible(lmsr);
         orderBookFields.setVisible(!lmsr);
+        Platform.runLater(this::resizeDialogToContent);
     }
 
+    private void resizeDialogToContent() {
+        dialogPane.applyCss();
+        dialogPane.layout();
+
+        if (dialogPane.getScene() != null
+                && dialogPane.getScene().getWindow() instanceof Stage) {
+            ((Stage) dialogPane.getScene().getWindow()).sizeToScene();
+        }
+    }
+
+    // Configures the allowed ranges and editable behavior of every numeric field.
     private void initSpinners() {
         commissionSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
                 MIN_COMMISSION, MAX_COMMISSION, INITIAL_COMMISSION));

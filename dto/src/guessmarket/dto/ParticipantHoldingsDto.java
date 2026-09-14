@@ -2,7 +2,8 @@ package guessmarket.dto;
 
 import java.util.List;
 
-// Represents one participant in an event, including a user whose orders have not executed yet.
+// Carries one participant's holdings and order activity for the event holdings table.
+// A user with only waiting orders is still considered a participant.
 public final class ParticipantHoldingsDto {
     private final String userName;
     private final List<OptionHoldingDto> holdings;

@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxWidth="1.7976931348623157E308" spacing="6.0" styleClass="result-block" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.eventresult.EventResultController">
+<VBox maxWidth="1.7976931348623157E308" spacing="6.0" styleClass="result-block" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.events.eventresult.EventResultController">
    <children>
       <Label styleClass="section-title" text="RESULT" />
       <Separator maxWidth="1.7976931348623157E308" />

@@ -1,4 +1,4 @@
-package guessmarket.engine.exception;
+package guessmarket.engine.exception.request;
 
 // Parent exception for invalid operations requested from the market engine.
 public abstract class InvalidRequestException extends RuntimeException {

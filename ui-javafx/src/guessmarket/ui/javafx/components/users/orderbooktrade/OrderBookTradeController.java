@@ -12,7 +12,7 @@ import guessmarket.ui.javafx.components.DisplayText;
 import guessmarket.ui.javafx.components.StatusStyle;
 import guessmarket.ui.javafx.components.main.MainController;
 import guessmarket.dto.OrderActionDto;
-import guessmarket.engine.exception.InvalidRequestException;
+import guessmarket.engine.exception.request.InvalidRequestException;
 import guessmarket.ui.javafx.components.users.ResultCardController;
 import guessmarket.ui.javafx.components.users.dialogs.Dialogs;
 import guessmarket.ui.javafx.components.users.dialogs.closeevent.CloseEventDialogController;
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+// Manages one user's view, holdings, pending orders and actions for an Order Book event.
 public class OrderBookTradeController {
     private static final String NO_SELECTION = "-";
     private static final String EMPTY_TEXT = "";
@@ -158,11 +159,11 @@ public class OrderBookTradeController {
         this.eventId = eventId;
         this.marketMaker = marketMaker;
 
-        state = mainController.getMarketManager().getOrderBookState(eventId);
+        state = mainController.getMarketManager().getOrderBookState(eventId); // Load event state
         UserInvolvementDto involvement =
                 mainController.getMarketManager().getUserInvolvement(userName, eventId);
 
-        showEventSummary(state.getSummary());
+        showEventSummary(state.getSummary()); // Refresh visible event and user data
         showBookPrices(state.getOptionBooks());
         showActionButtons(state.getSummary().getStatus(), marketMaker, isBlocked());
         showHoldings(involvement);
@@ -170,6 +171,7 @@ public class OrderBookTradeController {
         showResultCard(state.getSummary(), involvement);
     }
 
+    // Resets the panel when no Order Book event is selected.
     public void clear() {
         eventNameLabel.setText(NO_SELECTION);
         eventStatusLabel.setText(EMPTY_TEXT);
@@ -192,6 +194,7 @@ public class OrderBookTradeController {
     }
 
     @FXML
+    // Opens an inactive event or asks the market maker to choose its winner.
     public void changeEventStatusButtonAction() {
         if (state.getSummary().getStatus() == EventStatusDto.NOT_STARTED) {
             confirmAndOpenEvent();
@@ -216,6 +219,7 @@ public class OrderBookTradeController {
     }
 
     @FXML
+    // Opens the order form and submits the confirmed buy or sell request.
     public void submitOrderButtonAction() {
         EventSummaryDto summary = state.getSummary();
         String dialogTitle = summary.getEventName() + " - " + SUBMIT_ORDER;
@@ -280,15 +284,15 @@ public class OrderBookTradeController {
         boolean wasBlocked = isBlocked();
         T result;
 
-        try {
+        try { // Execute the requested engine operation
             result = action.get();
         } catch (InvalidRequestException exception) {
             Dialogs.showError(ACTION_FAILED, exception.getMessage());
             return Optional.empty();
         }
-        mainController.refreshAll();
+        mainController.refreshAll(); // Publish the updated system state
         refresh(userName, eventId, marketMaker);
-        warnIfNewlyBlocked(wasBlocked);
+        warnIfNewlyBlocked(wasBlocked); // Report a new account restriction
 
         return Optional.of(result);
     }
@@ -382,18 +386,20 @@ public class OrderBookTradeController {
         secondOptionAskLabel.setText(NO_PRICE);
     }
 
-    // A blocked user keeps seeing the event but can no longer act on it.
+    // A blocked user keeps seeing the event but can no longer act on it, except for closing it.
     private void showActionButtons(EventStatusDto status, boolean marketMaker, boolean blocked) {
         boolean closed = status == EventStatusDto.CLOSED;
+        boolean opening = status == EventStatusDto.NOT_STARTED;
 
-        changeEventStatusButton.setText(status == EventStatusDto.NOT_STARTED ? OPEN_EVENT : CLOSE_EVENT);
+        changeEventStatusButton.setText(opening ? OPEN_EVENT : CLOSE_EVENT);
         changeEventStatusButton.setVisible(!closed);
         changeEventStatusButton.setManaged(!closed);
-        changeEventStatusButton.setDisable(!marketMaker || blocked);
+        changeEventStatusButton.setDisable(!marketMaker || (blocked && opening));
 
         submitOrderButton.setDisable(status != EventStatusDto.ACTIVE || blocked);
     }
 
+    // Shows only positive holdings and updates the user's total paid commission.
     private void showHoldings(UserInvolvementDto involvement) {
         userHoldings.setAll(involvement.getHoldings().stream()
                 .filter(holding -> holding.getQuantity() > 0)
@@ -403,11 +409,12 @@ public class OrderBookTradeController {
                 DisplayText.amount(involvement.getTotalCommissionPaid()));
     }
 
+    // Collects the user's buy and sell orders from both option books.
     private void showPendingOrders(String userName, OrderBookStateDto state) {
         boolean closed = state.getSummary().getStatus() == EventStatusDto.CLOSED;
         List<OrderTableRow> rows = new ArrayList<>();
 
-        for (OptionBookDto book : state.getOptionBooks()) {
+        for (OptionBookDto book : state.getOptionBooks()) { // Combine both sides of every option book
             addOrdersOf(userName, book, book.getBuyOrders(), BUY_SIDE, rows);
             addOrdersOf(userName, book, book.getSellOrders(), SELL_SIDE, rows);
         }

@@ -3,9 +3,9 @@ package guessmarket.ui.javafx.components.main;
 import guessmarket.engine.api.MarketManager;
 import guessmarket.ui.javafx.components.events.EventsController;
 import guessmarket.ui.javafx.components.users.UsersController;
+import guessmarket.ui.javafx.components.users.dialogs.Dialogs;
 import guessmarket.ui.javafx.tasks.LoadSystemFileTask;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 
+// Coordinates the main window, shared engine and top-level Events and Users views.
 public class MainController {
     @FXML private EventsController eventsComponentController;
     @FXML private UsersController usersComponentController;
@@ -26,6 +27,7 @@ public class MainController {
     private MarketManager marketManager;
 
     @FXML
+    // Configures visibility bindings and connects the included tab controllers.
     public void initialize() {
         loadFileProgressBar.managedProperty().bind(loadFileProgressBar.visibleProperty());
         filePathLabel.managedProperty().bind(filePathLabel.visibleProperty());
@@ -59,33 +61,35 @@ public class MainController {
     }
 
     @FXML
+    // Lets the user choose an XML file and starts loading it in the background.
     public void loadFileButtonAction() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select a Guess Market XML File");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Files", "*.xml"));
         File selectedFile = fileChooser.showOpenDialog(primaryStage);
         if (selectedFile == null) {
-            return;
+            return; // User cancelled the selection
         }
 
         String absolutePath = selectedFile.getAbsolutePath();
         LoadSystemFileTask task = new LoadSystemFileTask(marketManager, absolutePath);
 
-        loadFileProgressBar.progressProperty().bind(task.progressProperty());
+        loadFileProgressBar.progressProperty().bind(task.progressProperty()); // Show loading progress
         filePathLabel.setVisible(false);
         loadFileProgressBar.setVisible(true);
         loadFileButton.setDisable(true);
-        task.valueProperty().addListener((observable, oldValue, newValue) -> onLoadFinished(task, absolutePath));
+        task.valueProperty().addListener((observable, oldValue, newValue) -> onLoadFinished(task, absolutePath)); // Handle completion
 
-        new Thread(task).start();
+        new Thread(task).start(); // Keep file loading off the UI thread
     }
 
+    // Restores the controls and refreshes both tabs after a successful load.
     private void onLoadFinished(LoadSystemFileTask task, String absolutePath) {
         loadFileProgressBar.progressProperty().unbind();
         loadFileProgressBar.setVisible(false);
         loadFileButton.setDisable(false);
 
-        if (task.getValue()) {
+        if (task.getValue()) { // Publish the newly loaded system
             filePathLabel.setText(absolutePath);
             filePathLabel.setVisible(true);
             eventsComponentController.refreshEvents();
@@ -94,14 +98,10 @@ public class MainController {
         }
 
         filePathLabel.setVisible(!filePathLabel.getText().isBlank());
-        showLoadError(task.getErrorMessage());
+        showLoadError(task.getErrorMessage()); // Keep the previous system visible after failure
     }
 
     private void showLoadError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Load Failed");
-        alert.setHeaderText("The file could not be loaded");
-        alert.setContentText(message);
-        alert.showAndWait();
+        Dialogs.showError("Load Failed", "The file could not be loaded", message);
     }
 }

@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 
 import java.util.List;
 
+// Presents the winning option and final share totals for a closed event.
 public class EventResultController {
     private static final String NO_WINNER = "-";
     private static final String EMPTY_TEXT = "";

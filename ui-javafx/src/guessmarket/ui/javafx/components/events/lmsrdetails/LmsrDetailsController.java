@@ -6,7 +6,6 @@ import guessmarket.dto.EventTradingStateDto;
 import guessmarket.dto.OptionStateDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import guessmarket.ui.javafx.components.StatusStyle;
-import guessmarket.ui.javafx.components.events.eventholdings.EventHoldingsController;
 import guessmarket.ui.javafx.components.events.eventresult.EventResultController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,6 +26,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 
+// Displays summary, prices, history, trades and results for the selected LMSR event.
 public class LmsrDetailsController {
     private static final String NO_SELECTION = "-";
     private static final String EMPTY_TEXT = "";
@@ -112,9 +112,6 @@ public class LmsrDetailsController {
     private VBox eventResultComponent;
     @FXML
     private EventResultController eventResultComponentController;
-    @FXML
-    private EventHoldingsController eventHoldingsComponentController;
-
     private final ObservableList<EventTradeTableRow> trades = FXCollections.observableArrayList();
     private boolean closedEvent;
 
@@ -131,18 +128,19 @@ public class LmsrDetailsController {
         clear();
     }
 
+    // Refreshes every section of the panel from one event trading snapshot.
     public void refresh(EventTradingStateDto state) {
-        EventSummaryDto summary = state.getSummary();
+        EventSummaryDto summary = state.getSummary(); // Read the shared event details
 
-        showEventSummary(summary);
+        showEventSummary(summary); // Update the event header
         showOptions(state.getOptions());
         showPriceHistory(summary.getOptionNames(), state.getSharePriceHistory());
-        showResult(summary, state.getOptions());
+        showResult(summary, state.getOptions()); // Replace option cards with the result when closed
 
-        trades.setAll(state.getTradeHistory().stream().map(EventTradeTableRow::new).toList());
-        eventHoldingsComponentController.refresh(summary.getOptionNames(), state.getParticipants());
+        trades.setAll(state.getTradeHistory().stream().map(EventTradeTableRow::new).toList()); // Refresh trade history
     }
 
+    // Resets the panel when no LMSR event is selected.
     public void clear() {
         marketMakerLabel.setText(NO_SELECTION);
         eventNameLabel.setText(NO_SELECTION);
@@ -162,7 +160,6 @@ public class LmsrDetailsController {
         updateOptionsLayout(optionsAndPriceChartPane.getWidth());
 
         trades.clear();
-        eventHoldingsComponentController.clear();
     }
 
     private void initTradeHistoryTable() {
@@ -220,8 +217,9 @@ public class LmsrDetailsController {
         secondOptionSharesLabel.setText("0");
     }
 
+    // Rebuilds one chart series per option using the trade sequence as the horizontal axis.
     private void showPriceHistory(List<String> optionNames, List<List<Double>> history) {
-        priceHistoryChart.getData().clear();
+        priceHistoryChart.getData().clear(); // Remove data from the previous event
 
         for (int optionIndex = 0; optionIndex < optionNames.size(); optionIndex++) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
@@ -234,7 +232,7 @@ public class LmsrDetailsController {
                     series.getData().add(new XYChart.Data<>(tradeNumber, optionHistory.get(tradeNumber)));
                 }
             }
-            priceHistoryChart.getData().add(series);
+            priceHistoryChart.getData().add(series); // Keep a series even when it has no history
         }
         configurePriceHistoryXAxis(history);
     }
@@ -246,6 +244,7 @@ public class LmsrDetailsController {
         priceHistoryXAxis.setTickUnit(1);
     }
 
+    // Scales the horizontal axis to the longest option history with readable tick spacing.
     private void configurePriceHistoryXAxis(List<List<Double>> history) {
         int maximumTrade = history.stream()
                 .mapToInt(optionHistory -> optionHistory.size() - 1)
@@ -258,6 +257,7 @@ public class LmsrDetailsController {
         priceHistoryXAxis.setTickUnit(Math.max(1, Math.ceil(upperBound / 6.0)));
     }
 
+    // Selects the responsive layout according to the panel width and event state.
     private void updateOptionsLayout(double width) {
         if (closedEvent) {
             if (width < COMPACT_CLOSED_LAYOUT_BREAKPOINT) {
@@ -349,6 +349,7 @@ public class LmsrDetailsController {
         column.setHgrow(Priority.ALWAYS);
     }
 
+    // Shows either the live option cards or the final result according to event status.
     private void showResult(EventSummaryDto summary, List<OptionStateDto> options) {
         boolean closed = summary.getStatus() == EventStatusDto.CLOSED;
 

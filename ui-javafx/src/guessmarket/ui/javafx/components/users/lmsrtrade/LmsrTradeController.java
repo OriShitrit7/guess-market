@@ -11,7 +11,7 @@ import guessmarket.dto.UserSummaryDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import guessmarket.ui.javafx.components.StatusStyle;
 import guessmarket.ui.javafx.components.main.MainController;
-import guessmarket.engine.exception.InvalidRequestException;
+import guessmarket.engine.exception.request.InvalidRequestException;
 import guessmarket.ui.javafx.components.users.ResultCardController;
 import guessmarket.ui.javafx.components.users.dialogs.Dialogs;
 import guessmarket.ui.javafx.components.users.dialogs.buyshares.BuySharesDialogController;
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+// Manages one user's view and available actions for an LMSR event.
 public class LmsrTradeController {
     private static final String NO_SELECTION = "-";
     private static final String EMPTY_TEXT = "";
@@ -129,18 +130,19 @@ public class LmsrTradeController {
         this.eventId = eventId;
         this.marketMaker = marketMaker;
 
-        EventTradingStateDto state = mainController.getMarketManager().getEventTradingState(eventId);
+        EventTradingStateDto state = mainController.getMarketManager().getEventTradingState(eventId); // Load event state
         this.summary = state.getSummary();
         UserInvolvementDto involvement =
                 mainController.getMarketManager().getUserInvolvement(userName, eventId);
 
-        showEventSummary(state.getSummary());
+        showEventSummary(state.getSummary()); // Refresh visible event and user data
         showOptionPrices(state.getOptions());
         showActionButtons(state.getSummary().getStatus(), marketMaker, isBlocked());
         showUserTrades(involvement);
         showResultCard(state, involvement);
     }
 
+    // Resets the panel when no LMSR event is selected.
     public void clear() {
         eventNameLabel.setText(NO_SELECTION);
         eventStatusLabel.setText(EMPTY_TEXT);
@@ -162,6 +164,7 @@ public class LmsrTradeController {
     }
 
     @FXML
+    // Opens an inactive event or asks the market maker to choose its winner.
     public void changeEventStatusButtonAction() {
         if (summary.getStatus() == EventStatusDto.NOT_STARTED) {
             confirmAndOpenEvent();
@@ -184,6 +187,7 @@ public class LmsrTradeController {
     }
 
     @FXML
+    // Opens the purchase dialog and executes the confirmed LMSR purchase.
     public void buySharesButtonAction() {
         String dialogTitle = summary.getEventName() + " - " + BUY_SHARES;
 
@@ -223,15 +227,15 @@ public class LmsrTradeController {
         boolean wasBlocked = isBlocked();
         T result;
 
-        try {
+        try { // Execute the requested engine operation
             result = action.get();
         } catch (InvalidRequestException exception) {
             Dialogs.showError(ACTION_FAILED, exception.getMessage());
             return Optional.empty();
         }
-        mainController.refreshAll();
+        mainController.refreshAll(); // Publish the updated system state
         refresh(userName, eventId, marketMaker);
-        warnIfNewlyBlocked(wasBlocked);
+        warnIfNewlyBlocked(wasBlocked); // Report a new account restriction
 
         return Optional.of(result);
     }
@@ -308,14 +312,15 @@ public class LmsrTradeController {
         secondOptionPriceLabel.setText(EMPTY_TEXT);
     }
 
-    // A blocked user keeps seeing the event but can no longer act on it.
+    // A blocked user keeps seeing the event but can no longer act on it, except for closing it.
     private void showActionButtons(EventStatusDto status, boolean marketMaker, boolean blocked) {
         boolean closed = status == EventStatusDto.CLOSED;
+        boolean opening = status == EventStatusDto.NOT_STARTED;
 
-        changeEventStatusButton.setText(status == EventStatusDto.NOT_STARTED ? OPEN_EVENT : CLOSE_EVENT);
+        changeEventStatusButton.setText(opening ? OPEN_EVENT : CLOSE_EVENT);
         changeEventStatusButton.setVisible(!closed);
         changeEventStatusButton.setManaged(!closed);
-        changeEventStatusButton.setDisable(!marketMaker || blocked);
+        changeEventStatusButton.setDisable(!marketMaker || (blocked && opening));
 
         buySharesButton.setDisable(status != EventStatusDto.ACTIVE || blocked);
     }

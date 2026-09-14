@@ -2,8 +2,8 @@ package guessmarket.dto;
 
 import java.util.List;
 
-// Carries one option's waiting orders and its price statistics.
-// Every statistic is null while the side it depends on is empty.
+// Carries one option's waiting orders and price statistics for the Order Book views.
+// A statistic is null while the order or trade data needed to calculate it is unavailable.
 public final class OptionBookDto {
     private final String optionName;
     private final List<OrderEntryDto> buyOrders;

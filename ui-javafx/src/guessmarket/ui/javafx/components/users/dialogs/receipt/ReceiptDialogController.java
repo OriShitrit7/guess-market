@@ -5,11 +5,13 @@ import guessmarket.dto.OrderResultDto;
 import guessmarket.dto.TradeDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import javafx.fxml.FXML;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 
+// Presents the executed portions, totals and resulting balance of a trading action.
 public class ReceiptDialogController {
     private static final String ORDER_SUMMARY_FORMAT = "%s %d \"%s\" at %s";
     private static final String PURCHASE_SUMMARY_FORMAT = "Bought %d \"%s\"";
@@ -30,6 +32,8 @@ public class ReceiptDialogController {
     private static final String TOTAL_RECEIVED = "Total received";
     private static final String NEW_BALANCE = "New balance";
     private static final String BALANCE_UNCHANGED = "Balance unchanged";
+    private static final String ORDER_SUBMITTED = "Order Submitted";
+    private static final String PURCHASE_COMPLETED = "Purchase Completed";
 
     private static final int LABEL_COLUMN = 0;
     private static final int QUANTITY_COLUMN = 1;
@@ -37,6 +41,8 @@ public class ReceiptDialogController {
     private static final int FULL_WIDTH = 3;
     private static final double NOTE_FONT_SIZE = 12.0;
 
+    @FXML
+    private DialogPane dialogPane;
     @FXML
     private Label summaryLabel;
     @FXML
@@ -70,6 +76,7 @@ public class ReceiptDialogController {
                                 double pricePerShare, double newBalance) {
         boolean buy = result.getAction() == OrderActionDto.BUY;
 
+        dialogPane.setHeaderText(ORDER_SUBMITTED);
         summaryLabel.setText(String.format(ORDER_SUMMARY_FORMAT, buy ? BUY : SELL, quantity,
                 optionName, DisplayText.amount(pricePerShare)));
 
@@ -81,6 +88,7 @@ public class ReceiptDialogController {
 
     // Reports a completed LMSR purchase, which always executes in full.
     public void setPurchaseReceipt(TradeDto trade, int commissionPercent, double newBalance) {
+        dialogPane.setHeaderText(PURCHASE_COMPLETED);
         summaryLabel.setText(String.format(PURCHASE_SUMMARY_FORMAT, trade.getQuantity(), trade.getOptionName()));
         linesGrid.setVisible(false);
 
@@ -91,6 +99,7 @@ public class ReceiptDialogController {
         showBalance(newBalance, true);
     }
 
+    // Lists each executed or waiting portion of an Order Book request.
     private void showOrderLines(OrderResultDto result, double pricePerShare) {
         if (executedQuantity(result) == 0) {
             addNote(NO_MATCH);
@@ -134,10 +143,17 @@ public class ReceiptDialogController {
 
     private void addLine(String label, int quantity, String value) {
         int row = linesGrid.getRowCount();
+        Label labelCell = new Label(label);
+        Label quantityCell = new Label(String.format(SHARES_FORMAT, quantity));
+        Label valueCell = new Label(value);
 
-        linesGrid.add(new Label(label), LABEL_COLUMN, row);
-        linesGrid.add(new Label(String.format(SHARES_FORMAT, quantity)), QUANTITY_COLUMN, row);
-        linesGrid.add(new Label(value), VALUE_COLUMN, row);
+        labelCell.getStyleClass().add("receipt-line-label");
+        quantityCell.getStyleClass().add("receipt-line-quantity");
+        valueCell.getStyleClass().add("receipt-line-value");
+
+        linesGrid.add(labelCell, LABEL_COLUMN, row);
+        linesGrid.add(quantityCell, QUANTITY_COLUMN, row);
+        linesGrid.add(valueCell, VALUE_COLUMN, row);
     }
 
     private void addNote(String text) {
@@ -145,14 +161,20 @@ public class ReceiptDialogController {
 
         note.setFont(Font.font(null, NOTE_FONT_SIZE));
         note.setWrapText(true);
+        note.getStyleClass().add("receipt-note");
         linesGrid.add(note, LABEL_COLUMN, linesGrid.getRowCount(), FULL_WIDTH, 1);
     }
 
     private void addTotal(String label, String value) {
         int row = totalsGrid.getRowCount();
+        Label labelCell = new Label(label);
+        Label valueCell = new Label(value);
 
-        totalsGrid.add(new Label(label), 0, row);
-        totalsGrid.add(new Label(value), 1, row);
+        labelCell.getStyleClass().add("receipt-total-label");
+        valueCell.getStyleClass().add("receipt-total-value");
+
+        totalsGrid.add(labelCell, 0, row);
+        totalsGrid.add(valueCell, 1, row);
     }
 
 }

@@ -2,7 +2,7 @@ package guessmarket.dto;
 
 import java.util.List;
 
-// Carries the general details of a market event from the engine to its clients.
+// Carries the general event details displayed in event lists and summary sections in the UI.
 public final class EventSummaryDto {
     private final int eventId;
     private final String eventName;
@@ -10,10 +10,14 @@ public final class EventSummaryDto {
     private final String marketMakerName;
     private final EventStatusDto status;
     private final TradingMethodTypeDto methodType;
+
+    // The commission rate as a whole-number percentage.
     private final int commissionPercent;
     private final CommissionPolicyDto commissionPolicy;
+
     private final List<String> optionNames;
     private final double accountBalance;
+
     // What the market maker is charged when the event is opened.
     private final double openingCost;
     // What one winning share pays when the event closes: 1.00 in LMSR, d in Order Book.

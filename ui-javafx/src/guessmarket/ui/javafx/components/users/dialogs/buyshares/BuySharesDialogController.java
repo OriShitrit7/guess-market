@@ -3,6 +3,10 @@ package guessmarket.ui.javafx.components.users.dialogs.buyshares;
 import guessmarket.dto.OptionStateDto;
 import guessmarket.dto.TradeDto;
 import guessmarket.ui.javafx.components.DisplayText;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
@@ -10,10 +14,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.List;
 import java.util.function.BiFunction;
 
+// Collects an LMSR purchase and previews its current cost before confirmation.
 public class BuySharesDialogController {
     private static final String HEADER_FORMAT = "%s - Buy Shares";
     private static final String OPTION_FORMAT = "%s   %s";
@@ -23,6 +30,7 @@ public class BuySharesDialogController {
     private static final int FIRST_OPTION_INDEX = 0;
     private static final int SECOND_OPTION_INDEX = 1;
     private static final int NO_QUANTITY = 0;
+    private static final double OPTION_ANIMATION_MILLIS = 220;
 
     @FXML
     private DialogPane dialogPane;
@@ -57,8 +65,11 @@ public class BuySharesDialogController {
         secondOptionToggle.setToggleGroup(selectedOption);
 
         insufficientBalanceLabel.managedProperty().bind(insufficientBalanceLabel.visibleProperty());
+        insufficientBalanceLabel.visibleProperty().addListener(
+                (observable, oldValue, newValue) -> Platform.runLater(this::resizeDialogToContent));
 
         keepOneOptionSelected();
+        animateOptionChanges();
         recalculateOnChange();
     }
 
@@ -98,6 +109,41 @@ public class BuySharesDialogController {
         });
     }
 
+    private void animateOptionChanges() {
+        selectedOption.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue instanceof ToggleButton) {
+                playOptionTransition((ToggleButton) oldValue);
+            }
+            if (newValue instanceof ToggleButton) {
+                playOptionTransition((ToggleButton) newValue);
+            }
+        });
+    }
+
+    private void playOptionTransition(ToggleButton option) {
+        FadeTransition fade = new FadeTransition(Duration.millis(OPTION_ANIMATION_MILLIS), option);
+        fade.setFromValue(0.65);
+        fade.setToValue(1.0);
+
+        ScaleTransition scale = new ScaleTransition(Duration.millis(OPTION_ANIMATION_MILLIS), option);
+        scale.setFromX(0.985);
+        scale.setFromY(0.985);
+        scale.setToX(1.0);
+        scale.setToY(1.0);
+
+        new ParallelTransition(fade, scale).play();
+    }
+
+    private void resizeDialogToContent() {
+        dialogPane.applyCss();
+        dialogPane.layout();
+
+        if (dialogPane.getScene() != null
+                && dialogPane.getScene().getWindow() instanceof Stage) {
+            ((Stage) dialogPane.getScene().getWindow()).sizeToScene();
+        }
+    }
+
     private void recalculateOnChange() {
         sharesField.textProperty().addListener((observable, oldValue, newValue) -> recalculate());
         selectedOption.selectedToggleProperty().addListener((observable, oldValue, newValue) -> recalculate());
@@ -117,6 +163,7 @@ public class BuySharesDialogController {
         showAmounts(quote.apply(getSelectedOptionIndex(), quantity));
     }
 
+    // Updates the displayed quote and warns when the purchase exceeds the user's balance.
     private void showAmounts(TradeDto trade) {
         if (trade == null) {
             sharesCostLabel.setText(EMPTY_AMOUNT);

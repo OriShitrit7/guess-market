@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ButtonType?>
 <?import javafx.scene.control.DialogPane?>
 <?import javafx.scene.control.Label?>
@@ -8,16 +7,16 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.VBox?>
 
-<DialogPane fx:id="dialogPane" headerText="Trade in New Event" minWidth="430.0" prefWidth="470.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.tradeinevent.TradeInEventDialogController">
+<DialogPane fx:id="dialogPane" headerText="Trade in New Event" minWidth="430.0" prefWidth="500.0" styleClass="app-dialog, trade-in-event-dialog" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.tradeinevent.TradeInEventDialogController">
    <buttonTypes>
       <ButtonType fx:constant="CANCEL" />
       <ButtonType fx:id="continueButtonType" buttonData="OK_DONE" text="Continue" />
    </buttonTypes>
    <content>
-      <VBox spacing="10.0">
+      <VBox spacing="12.0" styleClass="dialog-content">
          <children>
-            <Label text="Select an active event to trade in:" />
-            <TableView fx:id="eventsTable" prefHeight="230.0">
+            <Label styleClass="dialog-instruction" text="Select an active event to trade in:" />
+            <TableView fx:id="eventsTable" prefHeight="230.0" styleClass="dialog-table">
                <placeholder>
                   <Label text="No active events are available" />
                </placeholder>
@@ -30,12 +29,6 @@
                </columnResizePolicy>
             </TableView>
          </children>
-         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </padding>
       </VBox>
    </content>
-   <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-   </padding>
 </DialogPane>

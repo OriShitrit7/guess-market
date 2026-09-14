@@ -1,6 +1,6 @@
 package guessmarket.engine.model;
 
-// Represents one possible outcome of a market event and tracks its purchased shares.
+// Represents one possible event outcome and tracks the total shares issued for it.
 public class MarketOption {
     private final String name;
     private int totalSharesBought;
@@ -18,7 +18,7 @@ public class MarketOption {
         return totalSharesBought;
     }
 
-    // Adds a validated positive quantity to the shares purchased for this option.
+    // Adds a validated positive quantity to the option's issued share total.
     void addShares(int quantity) {
         totalSharesBought += quantity;
     }

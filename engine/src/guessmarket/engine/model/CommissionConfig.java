@@ -15,6 +15,11 @@ public class CommissionConfig {
         this.commissionPolicy = commissionPolicy;
     }
 
+    // Checks whether a percentage is within the supported commission range.
+    public static boolean isValidPercent(int commissionPercent) {
+        return commissionPercent >= MIN_COMMISSION_PERCENT && commissionPercent <= MAX_COMMISSION_PERCENT;
+    }
+
     public int getCommissionPercent() {
         return commissionPercent;
     }

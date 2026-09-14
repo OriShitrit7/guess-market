@@ -1,9 +1,9 @@
 package guessmarket.dto;
 
-// Carries the current value and purchased share total of one market option.
+// Carries an option's current price and share total for event details and trading controls.
 public final class OptionStateDto {
     private final String optionName;
-    // Current market value between zero and one.
+    // The current price of one share, or null when an Order Book option has no market price.
     private final Double currentValue;
     private final int totalSharesBought;
 

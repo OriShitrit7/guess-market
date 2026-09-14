@@ -4,6 +4,7 @@ import guessmarket.engine.api.MarketManager;
 import guessmarket.engine.exception.file.InvalidFileException;
 import javafx.concurrent.Task;
 
+// Loads a system file on a background thread and exposes progress and validation errors.
 public class LoadSystemFileTask extends Task<Boolean> {
 
     private static final int PROGRESS_STEP_COUNT = 3;
@@ -18,6 +19,7 @@ public class LoadSystemFileTask extends Task<Boolean> {
         this.pathName = pathName;
     }
 
+    // Loads the selected file while reporting progress without blocking the UI thread.
     @Override
     protected Boolean call() throws Exception {
         updateProgress(0, PROGRESS_STEP_COUNT);
@@ -25,11 +27,11 @@ public class LoadSystemFileTask extends Task<Boolean> {
         updateProgress(1, PROGRESS_STEP_COUNT);
 
         try {
-            marketManager.loadSystemFile(pathName);
+            marketManager.loadSystemFile(pathName); // Validate and replace the current system
         }
         catch (InvalidFileException e) {
             errorMessage = e.getMessage();
-            return false;
+            return false; // Let the controller present the validation message
         }
 
         updateProgress(2, PROGRESS_STEP_COUNT);

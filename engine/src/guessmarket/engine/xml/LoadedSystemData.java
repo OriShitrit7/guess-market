@@ -5,6 +5,7 @@ import guessmarket.engine.model.UsersRegistry;
 
 import java.util.List;
 
+// Groups the events and users produced by a successful system file load.
 public class LoadedSystemData {
     private final List<MarketEvent> events;
     private final UsersRegistry usersRegistry;

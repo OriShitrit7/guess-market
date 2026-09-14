@@ -6,6 +6,7 @@ import guessmarket.dto.TradingMethodTypeDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import javafx.beans.property.SimpleStringProperty;
 
+// Adapts a user's event participation to properties used by the user events table.
 public class UserEventTableRow {
     private static final String MARKET_MAKER = "Market Maker";
     private static final String PARTICIPANT = "Participant";

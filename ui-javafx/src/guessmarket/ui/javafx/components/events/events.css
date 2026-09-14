@@ -125,8 +125,8 @@
 }
 
 .method-lmsr {
-    -fx-background-color: #fbe8d5;
-    -fx-text-fill: #96500f;
+    -fx-background-color: #d5e8ee;
+    -fx-text-fill: #245b6b;
 }
 
 .method-order-book {
@@ -321,9 +321,54 @@
 }
 
 .details-scroll,
-.details-scroll:focused,
-.details-scroll > .viewport {
-    -fx-background-color: transparent;
+.details-scroll:focused {
+    -fx-background-color: #f4f6f8;
     -fx-background-insets: 0;
+    -fx-background-radius: 8px;
+    -fx-border-color: #d0d5dd;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
     -fx-padding: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.details-scroll > .viewport {
+    -fx-background-color: #f4f6f8;
+    -fx-background-radius: 8px;
+}
+
+.holdings-section-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-alignment: center-left;
+    -fx-padding: 0 2px;
+}
+
+#holdingsTable .column-header {
+    -fx-size: 29px;
+}
+
+#holdingsTable .column-header .label {
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+    -fx-padding: 0 5px;
+}
+
+#holdingsTable .table-cell {
+    -fx-alignment: center;
+}
+
+#holdingsTable .holdings-user-column {
+    -fx-alignment: center-left;
+}
+
+#holdingsTable .first-holdings-option .label {
+    -fx-text-fill: #168fbd;
+}
+
+#holdingsTable .second-holdings-option .label {
+    -fx-text-fill: #d97745;
 }

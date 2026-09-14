@@ -12,8 +12,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 
+// Converts internal model objects into detached DTO snapshots that are safe for the UI to read.
 public class DtoMapper {
 
+    // Creates the general event information shared by event lists and detail views.
     EventSummaryDto createEventSummary(MarketEvent event) {
         List<String> optionNames = event.getOptions().stream()
                 .map(MarketOption::getName)
@@ -28,22 +30,26 @@ public class DtoMapper {
                 winner == null ? null : winner.getName());
     }
 
+    // Builds a complete event snapshot, including LMSR history when the event uses that method.
     EventTradingStateDto createEventTradingState(MarketEvent event, Collection<User> users) {
         return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
                 createSharePriceHistory(event), createTradeDtos(getLmsrTrades(event)),
                 createParticipants(event, users));
     }
 
+    // Builds the books, price history and participant data needed by the Order Book views.
     OrderBookStateDto createOrderBookState(OrderBookMarketEvent event, Collection<User> users) {
         return new OrderBookStateDto(createEventSummary(event), createOptionBooks(event),
                 createOrderBookPriceHistory(event), createOptionStates(event),
                 createParticipants(event, users));
     }
 
+    // Creates the account summary displayed for one user.
     public UserSummaryDto createUserSummary(User user) {
         return new UserSummaryDto(user.getName(), user.getBalance(), user.isBlocked());
     }
 
+    // Numbers the user's recorded balances in chronological order for the history chart.
     List<BalancePointDto> createBalanceHistory(User user) {
         List<Double> balances = user.getBalanceHistory();
         List<BalancePointDto> history = new ArrayList<>();
@@ -54,6 +60,7 @@ public class DtoMapper {
         return List.copyOf(history);
     }
 
+    // Collects one user's trades, holdings, commission and final result in an event.
     UserInvolvementDto createUserInvolvement(MarketEvent event, User user) {
         List<Trade> userTrades = getLmsrTrades(event).stream()
                 .filter(trade -> trade.getBuyerName().equals(user.getName()))
@@ -66,11 +73,13 @@ public class DtoMapper {
                 position == null ? 0 : position.calcProfitLoss());
     }
 
+    // Describes whether the user owns or participates in an event for the user events table.
     EventParticipationDto createEventParticipation(MarketEvent event, User user) {
         return new EventParticipationDto(createEventSummary(event), event.isMarketMaker(user.getName()),
                 user.getPositions().containsKey(event.getEventId()));
     }
 
+    // Summarizes the matched, minted and waiting portions of an executed order.
     OrderResultDto createOrderResult(OrderExecution execution) {
         return new OrderResultDto(OrderActionDto.valueOf(execution.getAction().name()),
                 execution.getMatchedQuantity(), execution.getMintedQuantity(),
@@ -108,7 +117,7 @@ public class DtoMapper {
                 .toList();
     }
 
-    // Anyone holding shares or waiting with an order counts as a participant.
+    // Anyone with a position, including one created only for a waiting order, counts as a participant.
     private List<ParticipantHoldingsDto> createParticipants(MarketEvent event, Collection<User> users) {
         return users.stream()
                 .filter(user -> user.getPositions().containsKey(event.getEventId()))
@@ -183,10 +192,12 @@ public class DtoMapper {
         }
 
         List<MarketOption> options = event.getOptions();
-        List<List<Double>> history = options.stream()
-                .<List<Double>>map(option -> new ArrayList<>())
-                .toList();
+        List<List<Double>> history = new ArrayList<>();
         int[] quantities = new int[options.size()];
+
+        for (int i = 0; i < options.size(); i++) {
+            history.add(new ArrayList<>());
+        }
 
         addSharePriceSnapshot(history, lmsrEvent, quantities);
 

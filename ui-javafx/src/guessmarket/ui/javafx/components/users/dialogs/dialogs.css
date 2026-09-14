@@ -1,0 +1,722 @@
+.submit-order-dialog {
+    -fx-background-color: white;
+    -fx-padding: 0;
+}
+
+.submit-order-dialog > .header-panel {
+    -fx-background-color: white;
+    -fx-padding: 20px 22px 12px 22px;
+}
+
+.submit-order-dialog > .header-panel > .label {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog > .content {
+    -fx-background-color: white;
+    -fx-padding: 4px 22px 14px 22px;
+}
+
+.submit-order-dialog .dialog-content,
+.submit-order-dialog .label {
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog .order-side-selector {
+    -fx-border-color: transparent transparent #d0d5dd transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.submit-order-dialog .order-side-toggle {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 3px 0;
+    -fx-padding: 7px 14px 8px 14px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #667085;
+    -fx-cursor: hand;
+}
+
+.submit-order-dialog .order-side-toggle:hover {
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog .order-side-toggle:selected {
+    -fx-border-color: transparent transparent #2c3e50 transparent;
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog .option-toggle {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+    -fx-background-insets: 0;
+    -fx-border-radius: 7px;
+    -fx-border-width: 2px;
+    -fx-padding: 10px 12px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.submit-order-dialog .option-toggle:pressed {
+    -fx-scale-x: 0.985;
+    -fx-scale-y: 0.985;
+}
+
+.submit-order-dialog .first-option-toggle {
+    -fx-border-color: #168fbd;
+    -fx-text-fill: #168fbd;
+}
+
+.submit-order-dialog .first-option-toggle:hover {
+    -fx-background-color: rgba(22, 143, 189, 0.10);
+}
+
+.submit-order-dialog .first-option-toggle:selected {
+    -fx-background-color: #168fbd;
+    -fx-text-fill: white;
+}
+
+.submit-order-dialog .second-option-toggle {
+    -fx-border-color: #d97745;
+    -fx-text-fill: #d97745;
+}
+
+.submit-order-dialog .second-option-toggle:hover {
+    -fx-background-color: rgba(217, 119, 69, 0.10);
+}
+
+.submit-order-dialog .second-option-toggle:selected {
+    -fx-background-color: #d97745;
+    -fx-text-fill: white;
+}
+
+.submit-order-dialog .order-input,
+.submit-order-dialog .price-spinner {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+    -fx-border-color: #d0d5dd;
+    -fx-border-radius: 7px;
+    -fx-border-width: 1px;
+}
+
+.submit-order-dialog .order-input {
+    -fx-padding: 9px 11px;
+    -fx-prompt-text-fill: #667085;
+}
+
+.submit-order-dialog .order-input:focused,
+.submit-order-dialog .price-spinner:focused {
+    -fx-border-color: #2c3e50;
+}
+
+.submit-order-dialog .price-spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog .price-spinner .increment-arrow-button,
+.submit-order-dialog .price-spinner .decrement-arrow-button {
+    -fx-background-color: #f4f5f7;
+    -fx-background-insets: 0;
+    -fx-cursor: hand;
+}
+
+.submit-order-dialog .price-spinner .increment-arrow-button:hover,
+.submit-order-dialog .price-spinner .decrement-arrow-button:hover {
+    -fx-background-color: #e4e7ec;
+}
+
+.submit-order-dialog .price-spinner .increment-arrow-button:pressed,
+.submit-order-dialog .price-spinner .decrement-arrow-button:pressed {
+    -fx-background-color: #2c3e50;
+}
+
+.submit-order-dialog .price-spinner .increment-arrow,
+.submit-order-dialog .price-spinner .decrement-arrow {
+    -fx-background-color: #2c3e50;
+}
+
+.submit-order-dialog .price-spinner .increment-arrow-button:pressed .increment-arrow,
+.submit-order-dialog .price-spinner .decrement-arrow-button:pressed .decrement-arrow {
+    -fx-background-color: white;
+}
+
+.submit-order-dialog .available-row {
+    -fx-alignment: center-right;
+}
+
+.submit-order-dialog .secondary-text,
+.submit-order-dialog .summary-label {
+    -fx-text-fill: #667085;
+}
+
+.submit-order-dialog .available-value,
+.submit-order-dialog .summary-value {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog .field-label {
+    -fx-font-weight: bold;
+}
+
+.submit-order-dialog .order-summary-card {
+    -fx-background-color: #f4f5f7;
+    -fx-background-radius: 7px;
+    -fx-padding: 12px;
+}
+
+.submit-order-dialog .dialog-warning {
+    -fx-background-color: #fff1f0;
+    -fx-background-radius: 6px;
+    -fx-border-color: #e6a39f;
+    -fx-border-radius: 6px;
+    -fx-padding: 9px 11px;
+    -fx-text-fill: #a33a35;
+    -fx-wrap-text: true;
+}
+
+.submit-order-dialog .total-label,
+.submit-order-dialog .total-value {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog > .button-bar > .container {
+    -fx-background-color: white;
+    -fx-padding: 4px 22px 20px 22px;
+}
+
+.submit-order-dialog .button-bar .button {
+    -fx-background-radius: 6px;
+    -fx-background-insets: 0;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 18px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.submit-order-dialog .button-bar .button:default {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #2c3e50;
+    -fx-text-fill: white;
+}
+
+.submit-order-dialog .button-bar .button:default:hover {
+    -fx-background-color: #34495e;
+    -fx-border-color: #34495e;
+}
+
+.submit-order-dialog .button-bar .button:cancel {
+    -fx-background-color: white;
+    -fx-border-color: #2c3e50;
+    -fx-text-fill: #2c3e50;
+}
+
+.submit-order-dialog .button-bar .button:cancel:hover {
+    -fx-background-color: #f4f5f7;
+}
+
+/* Shared dialog appearance */
+
+.app-dialog {
+    -fx-background-color: white;
+    -fx-padding: 0;
+}
+
+.app-dialog > .header-panel {
+    -fx-background-color: white;
+    -fx-padding: 20px 22px 12px 22px;
+}
+
+.app-dialog > .header-panel > .label {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-dialog > .content {
+    -fx-background-color: white;
+    -fx-padding: 4px 22px 14px 22px;
+}
+
+.app-dialog .dialog-content,
+.app-dialog .label,
+.app-dialog .radio-button,
+.app-dialog .check-box {
+    -fx-text-fill: #2c3e50;
+}
+
+.app-dialog .dialog-instruction,
+.app-dialog .field-label,
+.app-dialog .dialog-section-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-dialog .dialog-section-title {
+    -fx-font-size: 14px;
+}
+
+.app-dialog .secondary-text,
+.app-dialog .summary-label {
+    -fx-text-fill: #667085;
+}
+
+.app-dialog .available-value,
+.app-dialog .summary-value {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-dialog .separator .line {
+    -fx-border-color: transparent transparent #d0d5dd transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.app-dialog .dialog-input,
+.app-dialog .text-field,
+.app-dialog .spinner {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+    -fx-border-color: #d0d5dd;
+    -fx-border-radius: 7px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-dialog .dialog-input,
+.app-dialog .text-field {
+    -fx-padding: 9px 11px;
+    -fx-prompt-text-fill: #667085;
+}
+
+.app-dialog .dialog-input:focused,
+.app-dialog .text-field:focused,
+.app-dialog .spinner:focused,
+.app-dialog .text-area:focused {
+    -fx-border-color: #2c3e50;
+}
+
+.app-dialog .spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+}
+
+.app-dialog .spinner .increment-arrow-button,
+.app-dialog .spinner .decrement-arrow-button {
+    -fx-background-color: #f4f5f7;
+    -fx-background-insets: 0;
+    -fx-cursor: hand;
+}
+
+.app-dialog .spinner .increment-arrow-button:hover,
+.app-dialog .spinner .decrement-arrow-button:hover {
+    -fx-background-color: #e4e7ec;
+}
+
+.app-dialog .spinner .increment-arrow-button:pressed,
+.app-dialog .spinner .decrement-arrow-button:pressed {
+    -fx-background-color: #2c3e50;
+}
+
+.app-dialog .spinner .increment-arrow,
+.app-dialog .spinner .decrement-arrow {
+    -fx-background-color: #2c3e50;
+}
+
+.app-dialog .spinner .increment-arrow-button:pressed .increment-arrow,
+.app-dialog .spinner .decrement-arrow-button:pressed .decrement-arrow {
+    -fx-background-color: white;
+}
+
+.app-dialog .dialog-text-area {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+    -fx-border-color: #d0d5dd;
+    -fx-border-radius: 7px;
+    -fx-border-width: 1px;
+    -fx-prompt-text-fill: #667085;
+}
+
+.app-dialog .dialog-text-area .scroll-pane,
+.app-dialog .dialog-text-area .viewport,
+.app-dialog .dialog-text-area .content {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+}
+
+.app-dialog .option-toggle {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+    -fx-background-insets: 0;
+    -fx-border-radius: 7px;
+    -fx-border-width: 2px;
+    -fx-padding: 10px 12px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.app-dialog .option-toggle:pressed {
+    -fx-scale-x: 0.985;
+    -fx-scale-y: 0.985;
+}
+
+.app-dialog .first-option-toggle {
+    -fx-border-color: #168fbd;
+    -fx-text-fill: #168fbd;
+}
+
+.app-dialog .first-option-toggle:hover {
+    -fx-background-color: rgba(22, 143, 189, 0.10);
+}
+
+.app-dialog .first-option-toggle:selected {
+    -fx-background-color: #168fbd;
+    -fx-text-fill: white;
+}
+
+.app-dialog .second-option-toggle {
+    -fx-border-color: #d97745;
+    -fx-text-fill: #d97745;
+}
+
+.app-dialog .second-option-toggle:hover {
+    -fx-background-color: rgba(217, 119, 69, 0.10);
+}
+
+.app-dialog .second-option-toggle:selected {
+    -fx-background-color: #d97745;
+    -fx-text-fill: white;
+}
+
+.app-dialog .dialog-summary-card,
+.app-dialog .order-summary-card,
+.app-dialog .form-inline-section,
+.app-dialog .method-parameters {
+    -fx-background-color: #f4f5f7;
+    -fx-background-radius: 7px;
+    -fx-padding: 12px;
+}
+
+.app-dialog .dialog-warning {
+    -fx-background-color: #fff1f0;
+    -fx-background-radius: 6px;
+    -fx-border-color: #e6a39f;
+    -fx-border-radius: 6px;
+    -fx-padding: 9px 11px;
+    -fx-text-fill: #a33a35;
+    -fx-wrap-text: true;
+}
+
+.app-dialog .total-label,
+.app-dialog .total-value {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-dialog .radio-button .radio {
+    -fx-background-color: white;
+    -fx-border-color: #9aa4b2;
+    -fx-border-radius: 50%;
+}
+
+.app-dialog .radio-button:selected .radio {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #2c3e50;
+}
+
+.app-dialog .radio-button:selected .radio .dot {
+    -fx-background-color: white;
+}
+
+.app-dialog .check-box .box {
+    -fx-background-color: white;
+    -fx-border-color: #9aa4b2;
+    -fx-border-radius: 4px;
+}
+
+.app-dialog .check-box:selected .box {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #2c3e50;
+}
+
+.app-dialog .check-box:selected .mark {
+    -fx-background-color: white;
+}
+
+.app-dialog > .button-bar > .container {
+    -fx-background-color: white;
+    -fx-padding: 4px 22px 20px 22px;
+}
+
+.app-dialog .button-bar .button {
+    -fx-background-radius: 6px;
+    -fx-background-insets: 0;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 18px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.app-dialog .button-bar .button:default {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #2c3e50;
+    -fx-text-fill: white;
+}
+
+.app-dialog .button-bar .button:default:hover {
+    -fx-background-color: #34495e;
+    -fx-border-color: #34495e;
+}
+
+.app-dialog .button-bar .button:default:pressed {
+    -fx-background-color: #22313f;
+    -fx-border-color: #22313f;
+}
+
+.app-dialog .button-bar .button:cancel {
+    -fx-background-color: white;
+    -fx-border-color: #2c3e50;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-dialog .button-bar .button:cancel:hover {
+    -fx-background-color: #f4f5f7;
+}
+
+.app-dialog .button-bar .button:disabled {
+    -fx-opacity: 0.48;
+}
+
+/* Trade in a new event */
+
+.trade-in-event-dialog .dialog-table {
+    -fx-background-color: white;
+}
+
+.trade-in-event-dialog .dialog-table .table-row-cell:selected {
+    -fx-background-color: #eef4ff;
+}
+
+/* Create event */
+
+.create-event-dialog .form-row {
+    -fx-alignment: center-left;
+}
+
+.create-event-dialog .method-parameters {
+    -fx-padding: 10px 12px;
+}
+
+/* Close event */
+
+.close-event-dialog .winner-option {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+    -fx-border-radius: 7px;
+    -fx-border-width: 1.5px;
+    -fx-padding: 10px 12px;
+    -fx-cursor: hand;
+}
+
+.close-event-dialog .first-winner-option {
+    -fx-border-color: #168fbd;
+}
+
+.close-event-dialog .first-winner-option:selected {
+    -fx-background-color: rgba(22, 143, 189, 0.12);
+}
+
+.close-event-dialog .second-winner-option {
+    -fx-border-color: #d97745;
+}
+
+.close-event-dialog .second-winner-option:selected {
+    -fx-background-color: rgba(217, 119, 69, 0.12);
+}
+
+.close-event-dialog .first-winner-option:selected .radio {
+    -fx-background-color: #168fbd;
+    -fx-border-color: #168fbd;
+}
+
+.close-event-dialog .second-winner-option:selected .radio {
+    -fx-background-color: #d97745;
+    -fx-border-color: #d97745;
+}
+
+.close-event-dialog .permanent-warning {
+    -fx-background-color: #fff1f0;
+    -fx-background-radius: 7px;
+    -fx-border-color: #e6a39f;
+    -fx-border-radius: 7px;
+    -fx-padding: 10px 12px;
+}
+
+.close-event-dialog .warning-icon,
+.close-event-dialog .warning-text {
+    -fx-text-fill: #a33a35;
+}
+
+.close-event-dialog .warning-text {
+    -fx-font-style: italic;
+}
+
+/* Confirmation, warning and error alerts */
+
+.app-alert {
+    -fx-background-color: white;
+    -fx-padding: 0;
+}
+
+.app-alert > .header-panel {
+    -fx-background-color: white;
+    -fx-padding: 20px 22px 12px 22px;
+}
+
+.app-alert > .header-panel > .label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-alert > .content,
+.app-alert > .content.label {
+    -fx-background-color: white;
+    -fx-padding: 12px 22px 16px 22px;
+    -fx-text-fill: #2c3e50;
+    -fx-wrap-text: true;
+}
+
+.app-alert > .button-bar > .container {
+    -fx-background-color: white;
+    -fx-padding: 4px 22px 20px 22px;
+}
+
+.app-alert .button-bar .button {
+    -fx-background-radius: 6px;
+    -fx-background-insets: 0;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 18px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.app-alert .button-bar .button:default {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #2c3e50;
+    -fx-text-fill: white;
+}
+
+.app-alert .button-bar .button:default:hover {
+    -fx-background-color: #34495e;
+    -fx-border-color: #34495e;
+}
+
+.app-alert .button-bar .button:default:pressed {
+    -fx-background-color: #22313f;
+    -fx-border-color: #22313f;
+}
+
+.app-alert .button-bar .button:cancel {
+    -fx-background-color: white;
+    -fx-border-color: #2c3e50;
+    -fx-text-fill: #2c3e50;
+}
+
+.app-alert .button-bar .button:cancel:hover {
+    -fx-background-color: #f4f5f7;
+}
+
+.warning-alert > .header-panel {
+    -fx-border-color: transparent transparent #e6a39f transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.error-alert > .header-panel {
+    -fx-border-color: transparent transparent #d0d5dd transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+/* Purchase and order receipt */
+
+.receipt-dialog .dialog-content {
+    -fx-spacing: 7px;
+}
+
+.receipt-dialog .receipt-summary {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.receipt-dialog .receipt-lines-card,
+.receipt-dialog .receipt-totals-card {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-vgap: 4px;
+}
+
+.receipt-dialog .receipt-line-label,
+.receipt-dialog .receipt-total-label {
+    -fx-text-fill: #667085;
+}
+
+.receipt-dialog .receipt-line-quantity {
+    -fx-text-fill: #4a525c;
+}
+
+.receipt-dialog .receipt-line-value,
+.receipt-dialog .receipt-total-value {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.receipt-dialog .receipt-note {
+    -fx-text-fill: #667085;
+    -fx-font-style: italic;
+}
+
+.receipt-dialog .receipt-balance-card {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 2px 0;
+}
+
+.receipt-dialog .receipt-balance-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #667085;
+}
+
+.receipt-dialog .receipt-balance-value {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.receipt-dialog .button-bar .button {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #2c3e50;
+    -fx-text-fill: white;
+}
+
+.receipt-dialog .button-bar .button:hover {
+    -fx-background-color: #34495e;
+    -fx-border-color: #34495e;
+}
+
+.receipt-dialog .button-bar .button:pressed {
+    -fx-background-color: #22313f;
+    -fx-border-color: #22313f;
+}

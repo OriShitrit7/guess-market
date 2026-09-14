@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+// Tracks user's holdings and cumulative financial activity in a single event.
 public class Position {
     private final Map<MarketOption, OptionHolding> holdings = new LinkedHashMap<>();
     private double totalCommissionPaid;
@@ -34,10 +35,12 @@ public class Position {
         return totalPayoutReceived;
     }
 
+    // Calculates the user's net result from purchases, sales, payout and commission.
     public double calcProfitLoss() {
         return totalSaleProceeds + totalPayoutReceived - totalPurchaseCost - totalCommissionPaid;
     }
 
+    // Returns the number of shares held in one option, or zero when there is no holding.
     public int getPositionQuantityByOption(MarketOption option) {
         if (holdings.containsKey(option)) {
             return holdings.get(option).getQuantity();
@@ -45,6 +48,7 @@ public class Position {
         return 0;
     }
 
+    // Records the shares, cost and commission of a completed LMSR purchase.
     void recordPurchase(Trade trade) {
         addShares(trade.getOption(), trade.getQuantity(), trade.getSharesCost());
         recordCommission(trade.getCommissionCost());

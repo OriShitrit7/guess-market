@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ButtonType?>
 <?import javafx.scene.control.DialogPane?>
 <?import javafx.scene.control.Label?>
@@ -10,22 +9,16 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-
-<DialogPane fx:id="dialogPane" headerText="Order Submitted" minWidth="380.0" prefWidth="430.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.receipt.ReceiptDialogController">
+<DialogPane fx:id="dialogPane" headerText="Order Submitted" minWidth="380.0" prefWidth="450.0" styleClass="app-dialog, receipt-dialog" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.receipt.ReceiptDialogController">
    <buttonTypes>
       <ButtonType fx:constant="CLOSE" />
    </buttonTypes>
    <content>
-      <VBox spacing="12.0">
+      <VBox spacing="12.0" styleClass="dialog-content">
          <children>
-            <Label fx:id="summaryLabel" maxWidth="1.7976931348623157E308" text="Summary" wrapText="true">
-               <font>
-                  <Font name="System Bold" size="14.0" />
-               </font>
-            </Label>
+            <Label fx:id="summaryLabel" maxWidth="1.7976931348623157E308" minHeight="-Infinity" styleClass="receipt-summary" text="Summary" wrapText="true" />
             <Separator fx:id="linesSeparator" maxWidth="1.7976931348623157E308" />
-            <GridPane fx:id="linesGrid" hgap="10.0" vgap="6.0">
+            <GridPane fx:id="linesGrid" hgap="10.0" styleClass="receipt-lines-card" vgap="8.0">
                <columnConstraints>
                   <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="80.0" />
                   <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
@@ -33,31 +26,21 @@
                </columnConstraints>
             </GridPane>
             <Separator fx:id="totalsSeparator" maxWidth="1.7976931348623157E308" />
-            <GridPane fx:id="totalsGrid" hgap="10.0" vgap="6.0">
+            <GridPane fx:id="totalsGrid" hgap="10.0" styleClass="receipt-totals-card" vgap="8.0">
                <columnConstraints>
                   <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                   <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
                </columnConstraints>
             </GridPane>
             <Separator maxWidth="1.7976931348623157E308" />
-            <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+            <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="receipt-balance-card">
                <children>
-                  <Label fx:id="balanceTitleLabel" text="New balance" />
+                  <Label fx:id="balanceTitleLabel" styleClass="receipt-balance-label" text="New balance" />
                   <Region maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                  <Label fx:id="balanceLabel" text="\$0.00">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
-                     </font>
-                  </Label>
+                  <Label fx:id="balanceLabel" styleClass="receipt-balance-value" text="\$0.00" />
                </children>
             </HBox>
          </children>
-         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </padding>
       </VBox>
    </content>
-   <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-   </padding>
 </DialogPane>

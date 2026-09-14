@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
-// Loads market events from an XML file and coordinates file checks, mapping and validation.
+// Loads system data from XML and coordinates file checks, mapping and validation.
 public class SystemFileLoader {
     private static final String JAXB_GENERATED_PACKAGE = "guessmarket.engine.xml.generated";
     private static final String XML_EXTENSION = ".xml";
@@ -30,12 +30,12 @@ public class SystemFileLoader {
 
     // Returns the loaded events and users only after the file and all mapped data pass validation.
     public LoadedSystemData load(String rawPath) throws InvalidFileException {
-        Path path = validateFile(rawPath);
-        GuessMarket xmlRoot = deserializeFrom(path);
-        List<MarketEvent> events = mapper.mapEvents(xmlRoot);
-        UsersRegistry users = buildRegistry(userMapper.mapUsers(xmlRoot, events));
+        Path path = validateFile(rawPath); // Validate the path and file type
+        GuessMarket xmlRoot = deserializeFrom(path); // Read the JAXB structure
+        List<MarketEvent> events = mapper.mapEvents(xmlRoot); // Build event models
+        UsersRegistry users = buildRegistry(userMapper.mapUsers(xmlRoot, events)); // Build users and ownership
 
-        validator.validate(events, users);
+        validator.validate(events, users); // Validate cross-object business rules
 
         return new LoadedSystemData(events, users);
     }
@@ -53,7 +53,7 @@ public class SystemFileLoader {
     // Uses JAXB to convert the XML document into the generated object structure.
     private GuessMarket deserializeFrom(Path path) throws InvalidFileException {
         try {
-            JAXBContext context = JAXBContext.newInstance(JAXB_GENERATED_PACKAGE);
+            JAXBContext context = JAXBContext.newInstance(JAXB_GENERATED_PACKAGE); // Load generated JAXB classes
             Unmarshaller unmarshaller = context.createUnmarshaller();
             Object root = unmarshaller.unmarshal(path.toFile());
 
@@ -76,10 +76,10 @@ public class SystemFileLoader {
 
         if (cause instanceof SAXParseException parseError) {
             return new InvalidFileException(FileErrorCode.MALFORMED_XML_AT_LOCATION, parseError,
-                    path.getFileName(), parseError.getLineNumber(), parseError.getColumnNumber(), parseError.getMessage());
+                    path.getFileName(), parseError.getLineNumber(), parseError.getColumnNumber(), parseError.getMessage()); // Include the XML location
         }
         if (cause instanceof IOException) {
-            return new InvalidFileException(FileErrorCode.FILE_READ_FAILED, cause, path);
+            return new InvalidFileException(FileErrorCode.FILE_READ_FAILED, cause, path); // Preserve the read failure
         }
         return new InvalidFileException(FileErrorCode.UNEXPECTED_XML_STRUCTURE_DETAILS, e, path.getFileName(), e.getMessage());
     }

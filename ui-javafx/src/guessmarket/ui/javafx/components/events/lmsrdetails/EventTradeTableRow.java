@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+// Adapts a trade to JavaFX properties used by an event's trade history table.
 public class EventTradeTableRow {
     private final SimpleStringProperty userName;
     private final SimpleStringProperty optionName;

@@ -31,11 +31,13 @@ public interface MarketManager {
     // Returns the books, statistics and participants of the requested order book event.
     OrderBookStateDto getOrderBookState(int eventId);
 
+    // Returns the current balance and blocked state of every user.
     List<UserSummaryDto> getUserSummaries();
 
     // Returns the named user's balance from its initial value through every balance change.
     List<BalancePointDto> getUserBalanceHistory(String userName);
 
+    // Returns every event in which the named user is the market maker or a participant.
     List<EventParticipationDto> getUserEvents(String userName);
 
     // Returns the named user's own trades in the requested event, newest first.
@@ -47,9 +49,11 @@ public interface MarketManager {
     // Purchases a positive quantity of shares for the named user, using the zero-based option index.
     PurchaseResultDto buyShares(String userName, int eventId, int optionIndex, int quantity);
 
+    // Submits an Order Book request and reports the quantities matched, minted and left waiting.
     OrderResultDto submitOrder(String userName, int eventId, int optionIndex, OrderActionDto action,
                                int quantity, double pricePerShare);
 
+    // Charges the named market maker and opens an event that has not started yet.
     EventTradingStateDto openEvent(String userName, int eventID);
 
     // Closes an active event using the zero-based index of its winning option.

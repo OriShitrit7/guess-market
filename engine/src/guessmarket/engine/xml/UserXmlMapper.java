@@ -11,21 +11,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+// Maps JAXB user data to model users and links their market maker event references.
 public class UserXmlMapper {
     private static final String USER_ENTITY = "User";
     private static final String USER_ELEMENT = "GM-user";
 
     private static final String NAME_ATTRIBUTE = "name";
 
+    // Maps every XML user and assigns the events declared under their market maker section.
     public List<User> mapUsers(GuessMarket xmlRoot, List<MarketEvent> events) throws InvalidFileException {
         List<User> mappedUsers = new ArrayList<>();
-        List<GMUser> xmlUsers = extractUsers(xmlRoot);
-        Map<Integer, MarketEvent> eventsById = indexById(events);
+        List<GMUser> xmlUsers = extractUsers(xmlRoot); // Require at least one user
+        Map<Integer, MarketEvent> eventsById = indexById(events); // Enable event lookup by ID
 
         for (int i = 0; i < xmlUsers.size(); i++) {
-            User user = mapUser(xmlUsers.get(i), i + 1);
+            User user = mapUser(xmlUsers.get(i), i + 1); // Validate and map one user
 
-            assignMarketMakerEvents(xmlUsers.get(i), user, eventsById);
+            assignMarketMakerEvents(xmlUsers.get(i), user, eventsById); // Link owned events
             mappedUsers.add(user);
         }
         return mappedUsers;
@@ -40,6 +42,7 @@ public class UserXmlMapper {
         return usersElement.getGMUser();
     }
 
+    // Maps a user's required name and initial cash value.
     private User mapUser(GMUser xmlUser, int userNumber) throws InvalidFileException {
         String userName = xmlUser.getName();
 

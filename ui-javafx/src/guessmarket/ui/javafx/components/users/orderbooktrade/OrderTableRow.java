@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+// Adapts a pending order to JavaFX properties used by the user orders table.
 public class OrderTableRow {
     private final SimpleStringProperty optionName;
     private final SimpleStringProperty side;

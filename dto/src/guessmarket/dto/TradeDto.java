@@ -1,13 +1,13 @@
 package guessmarket.dto;
 
-// Carries the share and commission details of a completed purchase.
+// Carries the cost details of an LMSR quote or purchase for trade rows and dialogs.
 public final class TradeDto {
     private final String buyerName;
     private final String optionName;
     private final int quantity;
-    // Cost of the purchased shares in dollars, excluding commission.
+    // Cost of the purchased shares, excluding commission.
     private final double sharesCost;
-    // Commission charged for the purchase in dollars.
+    // Commission charged for the purchase.
     private final double commissionCost;
 
     public TradeDto(String buyerName, String optionName, int quantity, double sharesCost,

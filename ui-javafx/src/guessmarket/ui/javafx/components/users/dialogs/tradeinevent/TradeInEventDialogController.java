@@ -13,6 +13,7 @@ import javafx.scene.control.TableView;
 
 import java.util.List;
 
+// Lets a user select an available event before opening its trading panel.
 public class TradeInEventDialogController {
     @FXML
     private DialogPane dialogPane;
@@ -35,11 +36,11 @@ public class TradeInEventDialogController {
                 new SimpleStringProperty(DisplayText.of(cell.getValue().getMethodType())));
         eventsTable.setItems(events);
 
-        // Continue is meaningful only after the user explicitly selects an event.
         dialogPane.lookupButton(continueButtonType).disableProperty()
-                .bind(eventsTable.getSelectionModel().selectedItemProperty().isNull());
+                .bind(eventsTable.getSelectionModel().selectedItemProperty().isNull()); // Require an event selection
     }
 
+    // Replaces the table contents with events available to the selected user.
     public void setEvents(List<EventSummaryDto> availableEvents) {
         events.setAll(availableEvents);
     }

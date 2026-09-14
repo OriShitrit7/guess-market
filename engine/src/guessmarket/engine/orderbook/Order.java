@@ -1,11 +1,12 @@
 package guessmarket.engine.orderbook;
 
+// A single order a user submitted to one option's book, and the unit that matching consumes.
 public class Order {
     private final String userName;
     private final OrderAction action;
-    private int remainingQuantity;
+    private int remainingQuantity; // shrinks as the order fills, and reaching 0 takes it out of the book
     private final double pricePerShare;
-    private final long sequence;
+    private final long sequence; // submission order, which breaks ties between equal prices
 
     public Order(String userName, OrderAction action, int quantity, double pricePerShare, long sequence) {
         this.userName = userName;

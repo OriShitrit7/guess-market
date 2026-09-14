@@ -3,6 +3,7 @@ package guessmarket.engine.model;
 import java.util.ArrayList;
 import java.util.List;
 
+// Represents an LMSR event and handles its pricing, purchases and trade history.
 public class LmsrMarketEvent extends MarketEvent {
 
     // Each winning share pays one dollar when the event closes.
@@ -29,11 +30,13 @@ public class LmsrMarketEvent extends MarketEvent {
         return calcCost(new int[getOptionCount()]);
     }
 
+    // LMSR uses a subsidy instead of issuing initial shares to the market maker.
     @Override
     public int calcInitialSharesPerOption() {
         return 0;
     }
 
+    // No opening payment is assigned to holdings because no initial shares are issued.
     @Override
     public double calcInitialAmountPerOption() {
         return 0;
@@ -43,24 +46,25 @@ public class LmsrMarketEvent extends MarketEvent {
         return List.copyOf(tradeHistory);
     }
 
+    // Returns the current price of every option in event order.
     public double[] getOptionsValues() {
         return calcOptionsValues(getSharesCountPerOption());
     }
 
-    // Prices a purchase without changing anything, so the caller can preview it.
+    // Prices a purchase without changing the event, so the caller can preview it.
     public Trade quotePurchase(String buyerName, int optionIndex, int quantity) {
         MarketOption option = getOptions().get(optionIndex);
-        double sharesCost = calcSharesCost(getSharesCountPerOption(), optionIndex, quantity);
+        double sharesCost = calcSharesCost(getSharesCountPerOption(), optionIndex, quantity); // Apply LMSR pricing
 
-        return new Trade(buyerName, option, quantity, sharesCost, calcPurchaseCommission(sharesCost));
+        return new Trade(buyerName, option, quantity, sharesCost, calcPurchaseCommission(sharesCost)); // Include purchase commission
     }
 
     // Prices the purchase and records it. The caller moves the money.
     public Trade buyShares(String buyerName, int optionIndex, int quantity) {
-        Trade trade = quotePurchase(buyerName, optionIndex, quantity);
+        Trade trade = quotePurchase(buyerName, optionIndex, quantity); // Price before changing state
 
-        getOptions().get(optionIndex).addShares(quantity);
-        tradeHistory.add(trade);
+        getOptions().get(optionIndex).addShares(quantity); // Update the option quantity
+        tradeHistory.add(trade); // Record the completed purchase
         return trade;
     }
 
@@ -77,12 +81,12 @@ public class LmsrMarketEvent extends MarketEvent {
     // Calculates normalized option values from exp(q_i / b).
     // Each value is between zero and one, and all values sum to one.
     public double[] calcOptionsValues(int[] quantities) {
-        double maximumExponent = findMaximumExponent(quantities);
-        double[] values = calcExponents(quantities, maximumExponent);
-        double sum = sumOf(values);
+        double maximumExponent = findMaximumExponent(quantities); // Choose a stable reference
+        double[] values = calcExponents(quantities, maximumExponent); // Calculate relative exponents
+        double sum = sumOf(values); // Prepare normalization
 
         for (int i = 0; i < values.length; i++) {
-            values[i] /= sum;
+            values[i] /= sum; // Normalize all prices to sum to one
         }
         return values;
     }
@@ -92,8 +96,7 @@ public class LmsrMarketEvent extends MarketEvent {
         double maximumExponent = findMaximumExponent(quantities);
         double[] exponents = calcExponents(quantities, maximumExponent);
 
-        // Adding the maximum back after the logarithm preserves the original LMSR formula.
-        return b * (maximumExponent + Math.log(sumOf(exponents)));
+        return b * (maximumExponent + Math.log(sumOf(exponents))); // Restore the original exponent scale
     }
 
     // Calculates a purchase price as the difference between the market cost before and after it.
@@ -110,8 +113,7 @@ public class LmsrMarketEvent extends MarketEvent {
 
         for (int i = 0; i < quantities.length; i++) {
             double exponent = quantities[i] / (double) b;
-            // Subtracting the same maximum preserves the ratios while preventing overflow.
-            exponents[i] = Math.exp(exponent - maximumExponent);
+            exponents[i] = Math.exp(exponent - maximumExponent); // Preserve ratios without overflow
         }
         return exponents;
     }

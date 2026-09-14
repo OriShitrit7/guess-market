@@ -85,27 +85,30 @@ public abstract class MarketEvent {
         return userName != null && userName.equals(marketMakerName);
     }
 
-    // Hands the market maker's initial shares to the options and opens the event for trading.
+    // Adds the initial liquidity shares and opens the event for trading.
     public final void open() {
-        int sharesPerOption = calcInitialSharesPerOption();
+        int sharesPerOption = calcInitialSharesPerOption(); // Determine the opening liquidity
 
         if (sharesPerOption > 0) {
-            options.forEach(option -> option.addShares(sharesPerOption));
+            options.forEach(option -> option.addShares(sharesPerOption)); // Update market totals
         }
-        status = EventStatus.ACTIVE;
+        status = EventStatus.ACTIVE; // Enable trading
     }
 
     // Marks the event as resolved. The payouts themselves are performed by the caller.
     public final void close(int winningOptionIndex) {
-        winningOption = options.get(winningOptionIndex);
-        status = EventStatus.CLOSED;
-        afterClose();
+        winningOption = options.get(winningOptionIndex); // Record the result
+        status = EventStatus.CLOSED; // Stop trading
+        afterClose(); // Clear method-specific state
     }
 
+    // Returns the trading method used by this event.
     public abstract TradingMethodType getMethodType();
 
+    // Calculates the amount the market maker must fund when opening the event.
     public abstract double calcOpeningCost();
 
+    // Calculates the gross payout for a quantity of winning shares.
     public abstract double calcWinningPayout(int winningShares);
 
     // Shares of every option the market maker receives in return for the opening payment.
@@ -114,7 +117,11 @@ public abstract class MarketEvent {
     // The part of the opening payment attributed to each option's holding.
     public abstract double calcInitialAmountPerOption();
 
+    // Allows a trading method to clear method-specific state after closing.
     protected void afterClose() {
-        // Most events have no outstanding orders to clear.
+    }
+
+    // Removes the user's waiting buy orders when the trading method supports order books.
+    public void cancelBuyOrdersOf(String userName) {
     }
 }

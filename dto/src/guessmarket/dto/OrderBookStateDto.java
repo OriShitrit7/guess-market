@@ -2,7 +2,7 @@ package guessmarket.dto;
 
 import java.util.List;
 
-// Carries a complete snapshot of an order book event: its books and everyone taking part in it.
+// Carries a complete Order Book event snapshot for its event details and user trading views.
 public final class OrderBookStateDto {
     private final EventSummaryDto summary;
     private final List<OptionBookDto> optionBooks;

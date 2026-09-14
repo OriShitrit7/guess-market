@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ButtonType?>
 <?import javafx.scene.control.DialogPane?>
 <?import javafx.scene.control.Label?>
@@ -14,26 +13,20 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-
-<DialogPane fx:id="dialogPane" headerText="Submit Order" prefWidth="430.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.submitorder.SubmitOrderDialogController">
-   <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-   </padding>
+<DialogPane fx:id="dialogPane" headerText="Submit Order" prefWidth="430.0" styleClass="app-dialog, submit-order-dialog" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.ui.javafx.components.users.dialogs.submitorder.SubmitOrderDialogController">
    <buttonTypes>
       <ButtonType fx:constant="CANCEL" />
       <ButtonType fx:id="submitOrderButtonType" buttonData="OK_DONE" text="Submit Order" />
    </buttonTypes>
    <content>
-      <VBox spacing="15.0">
+      <VBox spacing="15.0" styleClass="dialog-content">
          <children>
-            <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="20.0">
+            <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="20.0" styleClass="order-side-selector">
                <children>
-                  <ToggleButton fx:id="buyToggle" mnemonicParsing="false" selected="true" text="Buy" />
-                  <ToggleButton fx:id="sellToggle" mnemonicParsing="false" text="Sell" />
+                  <ToggleButton fx:id="buyToggle" mnemonicParsing="false" selected="true" styleClass="order-side-toggle" text="Buy" />
+                  <ToggleButton fx:id="sellToggle" mnemonicParsing="false" styleClass="order-side-toggle" text="Sell" />
                </children>
             </HBox>
-            <Separator maxWidth="1.7976931348623157E308" />
             <GridPane hgap="10.0" maxWidth="1.7976931348623157E308">
               <columnConstraints>
                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
@@ -43,26 +36,26 @@
                 <RowConstraints minHeight="10.0" vgrow="NEVER" />
               </rowConstraints>
                <children>
-                  <ToggleButton fx:id="firstOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Option1" />
-                  <ToggleButton fx:id="secondOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Option2" GridPane.columnIndex="1" />
+                  <ToggleButton fx:id="firstOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" styleClass="option-toggle, first-option-toggle" text="Option1" />
+                  <ToggleButton fx:id="secondOptionToggle" maxWidth="1.7976931348623157E308" mnemonicParsing="false" styleClass="option-toggle, second-option-toggle" text="Option2" GridPane.columnIndex="1" />
                </children>
             </GridPane>
-            <TextField fx:id="sharesField" maxWidth="1.7976931348623157E308" promptText="Shares" />
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <TextField fx:id="sharesField" maxWidth="1.7976931348623157E308" promptText="Number of shares" styleClass="order-input" />
+            <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="available-row">
                <children>
-                  <Label fx:id="availableTitleLabel" text="Available Balance :" />
-                  <Label fx:id="availableLabel" text="\$0.00" />
+                  <Label fx:id="availableTitleLabel" styleClass="secondary-text" text="Available Balance :" />
+                  <Label fx:id="availableLabel" styleClass="available-value" text="\$0.00" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
                <children>
-                  <Label text="Limit Price" />
+                  <Label styleClass="field-label" text="Limit Price" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <Spinner fx:id="priceSpinner" prefWidth="130.0" />
+                  <Spinner fx:id="priceSpinner" prefWidth="130.0" styleClass="price-spinner" />
                </children>
             </HBox>
             <Separator maxWidth="1.7976931348623157E308" />
-            <GridPane vgap="10.0">
+            <GridPane styleClass="order-summary-card" vgap="10.0">
               <columnConstraints>
                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
@@ -72,15 +65,15 @@
                 <RowConstraints minHeight="10.0" vgrow="NEVER" />
               </rowConstraints>
                <children>
-                  <Label fx:id="orderValueTitleLabel" text="Maximum order value :" />
-                  <Label fx:id="commissionTitleLabel" text="Commission :" GridPane.rowIndex="1" />
-                  <Label fx:id="orderValueLabel" text="\$0.00" GridPane.columnIndex="1" />
-                  <Label fx:id="commissionLabel" text="\$0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label fx:id="orderValueTitleLabel" styleClass="summary-label" text="Maximum order value :" />
+                  <Label fx:id="commissionTitleLabel" styleClass="summary-label" text="Commission :" GridPane.rowIndex="1" />
+                  <Label fx:id="orderValueLabel" styleClass="summary-value" text="\$0.00" GridPane.columnIndex="1" />
+                  <Label fx:id="commissionLabel" styleClass="summary-value" text="\$0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                </children>
             </GridPane>
-            <Label fx:id="insufficientBalanceLabel" managed="false" maxWidth="1.7976931348623157E308" text="This order exceeds your balance. Your account will be blocked if it executes." textFill="#c1272d" visible="false" wrapText="true" />
+            <Label fx:id="availabilityWarningLabel" managed="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" styleClass="dialog-warning" visible="false" wrapText="true" />
             <Separator maxWidth="1.7976931348623157E308" />
-            <GridPane>
+            <GridPane styleClass="order-total-row">
                <columnConstraints>
                   <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                   <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
@@ -89,16 +82,8 @@
                   <RowConstraints minHeight="10.0" vgrow="NEVER" />
                </rowConstraints>
                <children>
-                  <Label fx:id="totalTitleLabel" text="Maximum Total :">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Label>
-                  <Label fx:id="totalLabel" text="\$0.00" GridPane.columnIndex="1">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Label>
+                  <Label fx:id="totalTitleLabel" styleClass="total-label" text="Maximum Total :" />
+                  <Label fx:id="totalLabel" styleClass="total-value" text="\$0.00" GridPane.columnIndex="1" />
                </children>
             </GridPane>
          </children>

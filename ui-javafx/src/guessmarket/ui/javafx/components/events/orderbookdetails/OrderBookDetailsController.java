@@ -7,7 +7,6 @@ import guessmarket.dto.OrderEntryDto;
 import guessmarket.dto.OrderBookStateDto;
 import guessmarket.ui.javafx.components.DisplayText;
 import guessmarket.ui.javafx.components.StatusStyle;
-import guessmarket.ui.javafx.components.events.eventholdings.EventHoldingsController;
 import guessmarket.ui.javafx.components.events.eventresult.EventResultController;
 import guessmarket.ui.javafx.components.events.orderbookdetails.optionbook.OptionBookController;
 import javafx.fxml.FXML;
@@ -23,6 +22,7 @@ import javafx.scene.layout.VBox;
 import java.util.List;
 import java.util.stream.Stream;
 
+// Displays order books, price history and results for the selected Order Book event.
 public class OrderBookDetailsController {
     private static final String NO_SELECTION = "-";
     private static final String EMPTY_TEXT = "";
@@ -79,9 +79,6 @@ public class OrderBookDetailsController {
     @FXML
     private EventResultController eventResultComponentController;
     @FXML
-    private EventHoldingsController eventHoldingsComponentController;
-
-    @FXML
     private void initialize() {
         closedResultCard.managedProperty().bind(closedResultCard.visibleProperty());
         optionBooksSection.managedProperty().bind(optionBooksSection.visibleProperty());
@@ -91,8 +88,9 @@ public class OrderBookDetailsController {
         clear();
     }
 
+    // Refreshes the event summary, option books and price history from one snapshot.
     public void refresh(OrderBookStateDto state) {
-        EventSummaryDto summary = state.getSummary();
+        EventSummaryDto summary = state.getSummary(); // Read the shared event details
 
         marketMakerLabel.setText(summary.getMarketMakerName());
         eventNameLabel.setText(summary.getEventName());
@@ -105,11 +103,11 @@ public class OrderBookDetailsController {
         totalCommissionCollectedLabel.setText(
                 DisplayText.amount(summary.getTotalCommissionCollected()));
 
-        showBooks(state);
+        showBooks(state); // Show live books or the result for a closed event
         showPriceHistory(summary, state.getPriceHistory());
-        eventHoldingsComponentController.refresh(summary.getOptionNames(), state.getParticipants());
     }
 
+    // Resets the panel when no Order Book event is selected.
     public void clear() {
         marketMakerLabel.setText(NO_SELECTION);
         eventNameLabel.setText(NO_SELECTION);
@@ -127,7 +125,6 @@ public class OrderBookDetailsController {
         firstOptionBookComponentController.clear();
         secondOptionBookComponentController.clear();
         clearPriceHistory();
-        eventHoldingsComponentController.clear();
     }
 
     // A closed event has empty books, so the result replaces them.
@@ -163,10 +160,11 @@ public class OrderBookDetailsController {
                 .orElse(1);
     }
 
+    // Rebuilds one price series per option and updates the chart scale.
     private void showPriceHistory(EventSummaryDto summary, List<List<Double>> history) {
         List<String> optionNames = summary.getOptionNames();
 
-        priceHistoryChart.getData().clear();
+        priceHistoryChart.getData().clear(); // Remove data from the previous event
         for (int optionIndex = 0; optionIndex < optionNames.size(); optionIndex++) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
             series.setName(optionNames.get(optionIndex));
@@ -175,7 +173,7 @@ public class OrderBookDetailsController {
                 List<Double> optionHistory = history.get(optionIndex);
 
                 for (int tradeIndex = 0; tradeIndex < optionHistory.size(); tradeIndex++) {
-                    series.getData().add(new XYChart.Data<>(tradeIndex + 1, optionHistory.get(tradeIndex)));
+                    series.getData().add(new XYChart.Data<>(tradeIndex + 1, optionHistory.get(tradeIndex))); // Trades start at one
                 }
             }
             priceHistoryChart.getData().add(series);
@@ -193,6 +191,7 @@ public class OrderBookDetailsController {
         priceHistoryYAxis.setTickUnit(0.25);
     }
 
+    // Scales the trade axis to the longest history and the price axis to the event payout.
     private void configurePriceHistoryAxes(double maximumPrice, List<List<Double>> history) {
         int maximumTrade = history.stream()
                 .mapToInt(List::size)
@@ -208,6 +207,7 @@ public class OrderBookDetailsController {
         priceHistoryYAxis.setTickUnit(maximumPrice / 4);
     }
 
+    // Selects the chart and result layout according to panel width and event state.
     private void updateResultAndChartLayout(double width, boolean closed) {
         if (!closed) {
             configureFullWidthChart();

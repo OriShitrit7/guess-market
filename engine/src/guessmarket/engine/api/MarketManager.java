@@ -14,13 +14,16 @@ import guessmarket.dto.UserInvolvementDto;
 import guessmarket.dto.UserSummaryDto;
 import guessmarket.engine.exception.file.InvalidFileException;
 
+import java.io.InputStream;
 import java.util.List;
 
 // Defines the operations available to clients of the market engine.
 public interface MarketManager {
 
+    void registerUser(String username);
+
     // Loads and validates events from an XML file. Existing events are replaced only after a successful load.
-    void loadSystemFile(String path) throws InvalidFileException;
+    void loadSystemFile(InputStream content, String uploaderName) throws InvalidFileException;
 
     // Returns a summary of every loaded event.
     List<EventSummaryDto> getEventSummaries();

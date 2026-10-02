@@ -10,6 +10,6 @@
     <orderEntry type="module" module-name="dto" />
     <orderEntry type="library" name="javafx-25.0.4" level="project" />
     <orderEntry type="module" module-name="engine" />
-    <orderEntry type="library" name="controlsfx-11.2.1" level="project" />
+    <orderEntry type="library" name="controlsfx" level="project" />
   </component>
 </module>

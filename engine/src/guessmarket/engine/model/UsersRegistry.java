@@ -1,11 +1,12 @@
 package guessmarket.engine.model;
 
-import guessmarket.engine.exception.file.FileErrorCode;
-import guessmarket.engine.exception.file.InvalidFileException;
+import guessmarket.engine.exception.request.InvalidUserRequestException;
+import guessmarket.engine.exception.request.UserRequestErrorCode;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 // Stores the system's users by name.
@@ -17,14 +18,20 @@ public class UsersRegistry {
     }
 
     public User getUserByName(String username) {
-        return users.get(username);
+        return username == null ? null : users.get(toKey(username));
     }
 
     // Adds a user unless another user already has the same name.
-    public void addUser(User user) throws InvalidFileException {
-        if (users.containsKey(user.getName())) {
-            throw new InvalidFileException(FileErrorCode.DUPLICATE_USER_NAME, user.getName());
+    public void addUser(User user) throws InvalidUserRequestException {
+        String key = toKey(user.getName());
+
+        if (users.containsKey(key)) {
+            throw new InvalidUserRequestException(UserRequestErrorCode.USER_NAME_TAKEN);
         }
-        users.put(user.getName(), user);
+        users.put(key, user);
+    }
+
+    private static String toKey(String username) {
+        return username.toLowerCase(Locale.ROOT);
     }
 }

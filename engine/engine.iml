@@ -8,6 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="dto" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="jaxb-ri-4.0.5" level="project" />
+    <orderEntry type="library" name="jaxb" level="project" />
   </component>
 </module>

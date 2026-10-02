@@ -8,8 +8,10 @@ import java.util.Map;
 
 // Represents a system user and manages their balance and positions in market events.
 public class User {
+    private static final int INITIAL_BALANCE = 0;
+
     private final String name;
-    private double balance;
+    private double balance = INITIAL_BALANCE;
     // Becomes true after the balance first drops below zero.
     private boolean blocked;
 
@@ -17,9 +19,8 @@ public class User {
     // Contains the initial balance followed by every updated balance.
     private final List<Double> balanceHistory = new ArrayList<>();
 
-    public User(String name, double balance) {
+    public User(String name) {
         this.name = name;
-        this.balance = balance;
         balanceHistory.add(balance);
     }
 

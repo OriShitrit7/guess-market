@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GuessMarketClient" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="guessmarket.client.main.GuessMarketClient" />
+    <module name="javafx-client" />
+    <option name="VM_PARAMETERS" value="--module-path lib/javafx-sdk-25.0.4/lib --add-modules javafx.controls,javafx.fxml --enable-native-access=javafx.graphics" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

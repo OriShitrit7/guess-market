@@ -1,6 +1,7 @@
 package guessmarket.engine.api;
 
 import guessmarket.dto.*;
+import guessmarket.engine.exception.file.FileErrorCode;
 import guessmarket.engine.exception.file.InvalidFileException;
 import guessmarket.engine.exception.request.EventRequestErrorCode;
 import guessmarket.engine.exception.request.InvalidEventRequestException;
@@ -9,37 +10,45 @@ import guessmarket.engine.exception.request.UserRequestErrorCode;
 import guessmarket.engine.model.*;
 import guessmarket.engine.exception.request.NonPositiveQuantityException;
 import guessmarket.engine.orderbook.*;
-import guessmarket.engine.xml.LoadedSystemData;
 import guessmarket.engine.xml.SystemFileLoader;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 // Manages loaded market events and exposes their operations through data transfer objects.
 public class MarketManagerImpl implements MarketManager {
 
-    private Map<Integer, MarketEvent> events = new LinkedHashMap<>();
-    private UsersRegistry users = new UsersRegistry();
-    private SettlementService settlement = new SettlementService(users);
+    private final Map<Integer, MarketEvent> events = new LinkedHashMap<>();
+    private final UsersRegistry users = new UsersRegistry();
+    private final SettlementService settlement = new SettlementService(users);
     private final SystemFileLoader loader = new SystemFileLoader();
     private final DtoMapper dtoMapper = new DtoMapper();
+    private int nextEventId = 1;
+
+    @Override
+    public synchronized void registerUser(String username) {
+        users.addUser(new User(username));
+    }
 
     // Loads all candidate events before replacing the current state, so a failed load leaves it unchanged.
     @Override
-    public void loadSystemFile(String path) throws InvalidFileException {
-        LoadedSystemData loaded = loader.load(path); // Load and validate the new data
-        List<MarketEvent> loadedEvents = loaded.getEvents();
+    public void loadSystemFile(InputStream content, String uploaderName) throws InvalidFileException {
+        getUserByName(uploaderName); // Confirm that the uploader exists
+        List<MarketEvent> loadedEvents = loader.load(content, nextEventId); // Load and validate the new data
 
-        Map<Integer, MarketEvent> loadedEventMap = buildEventMap(loadedEvents); // Prepare the new state
-        UsersRegistry loadedUsers = loaded.getUsersRegistry();
-        SettlementService loadedSettlement = new SettlementService(loadedUsers);
+        validateNewEventNames(loadedEvents); // Reject names already in the system
 
-        events = loadedEventMap; // Replace state only after loading succeeds
-        users = loadedUsers; // Replace the user registry
-        settlement = loadedSettlement; // Connect settlement to the new users
+        for (MarketEvent event : loadedEvents) {
+            event.setMarketMakerName(uploaderName);
+            events.put(event.getEventId(), event);
+        }
+        nextEventId += loadedEvents.size();
     }
 
     // Creates a summary for every event in its original file order.
@@ -187,15 +196,11 @@ public class MarketManagerImpl implements MarketManager {
 
         validateNewEvent(request); // Validate all event details
 
-        MarketEvent event = buildEvent(nextEventId(), request); // Build the selected event type
+        MarketEvent event = buildEvent(nextEventId++, request); // Build the selected event type
         event.setMarketMakerName(creator.getName()); // Assign event ownership
         events.put(event.getEventId(), event); // Add the event without opening it
 
         return dtoMapper.createEventSummary(event);
-    }
-
-    private int nextEventId() {
-        return events.keySet().stream().max(Integer::compareTo).orElse(0) + 1;
     }
 
     // Creates the concrete event type selected in the request and ignores the other method's values.
@@ -224,6 +229,19 @@ public class MarketManagerImpl implements MarketManager {
                 .map(users::getUserByName)
                 .filter(User::isBlocked)
                 .forEach(user -> events.values().forEach(event -> event.cancelBuyOrdersOf(user.getName())));
+    }
+
+
+    private void validateNewEventNames(List<MarketEvent> loadedEvents) throws InvalidFileException {
+        Set<String> existingNames = events.values().stream()
+                .map(event -> event.getEventName().toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+
+        for (MarketEvent event : loadedEvents) {
+            if (existingNames.contains(event.getEventName().toLowerCase(Locale.ROOT))) {
+                throw new InvalidFileException(FileErrorCode.EVENT_NAME_ALREADY_EXISTS, event.getEventName());
+            }
+        }
     }
 
     // The XSD guards a loaded event; a created one is guarded here.
@@ -271,42 +289,6 @@ public class MarketManagerImpl implements MarketManager {
         if (request.getInitialInvestment() < 0) {
             throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_INITIAL_INVESTMENT);
         }
-    }
-
-    private CommissionPolicy toCommissionPolicy(CommissionPolicyDto policy) {
-        if (policy == null) {
-            throw new InvalidEventRequestException(EventRequestErrorCode.COMMISSION_OUT_OF_RANGE);
-        }
-        return CommissionPolicy.valueOf(policy.name());
-    }
-
-    private TradingMethodType toTradingMethodType(TradingMethodTypeDto methodType) {
-        if (methodType == null) {
-            throw new InvalidEventRequestException(EventRequestErrorCode.MISSING_TRADING_METHOD);
-        }
-        return TradingMethodType.valueOf(methodType.name());
-    }
-
-    private OrderAction toOrderAction(OrderActionDto action) {
-        if (action == null) {
-            throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_ORDER_ACTION);
-        }
-        return OrderAction.valueOf(action.name());
-    }
-
-
-    private LmsrMarketEvent getLmsrEvent(int eventId) {
-        if (getEventById(eventId) instanceof LmsrMarketEvent lmsrEvent) {
-            return lmsrEvent;
-        }
-        throw new InvalidEventRequestException(EventRequestErrorCode.WRONG_TRADING_METHOD);
-    }
-
-    private OrderBookMarketEvent getOrderBookEvent(int eventId) {
-        if (getEventById(eventId) instanceof OrderBookMarketEvent orderBookEvent) {
-            return orderBookEvent;
-        }
-        throw new InvalidEventRequestException(EventRequestErrorCode.WRONG_TRADING_METHOD);
     }
 
     private void validateTradeRequest(MarketEvent event, int optionIndex, int quantity) {
@@ -380,7 +362,6 @@ public class MarketManagerImpl implements MarketManager {
         return user;
     }
 
-
     private User getActiveUserByName(String userName) {
         User user = getUserByName(userName);
 
@@ -390,12 +371,39 @@ public class MarketManagerImpl implements MarketManager {
         return user;
     }
 
-    private Map<Integer, MarketEvent> buildEventMap(List<MarketEvent> loadedEvents) {
-        Map<Integer, MarketEvent> eventMap = new LinkedHashMap<>();
-
-        for (MarketEvent event : loadedEvents) {
-            eventMap.put(event.getEventId(), event);
+    private LmsrMarketEvent getLmsrEvent(int eventId) {
+        if (getEventById(eventId) instanceof LmsrMarketEvent lmsrEvent) {
+            return lmsrEvent;
         }
-        return eventMap;
+        throw new InvalidEventRequestException(EventRequestErrorCode.WRONG_TRADING_METHOD);
     }
+
+    private OrderBookMarketEvent getOrderBookEvent(int eventId) {
+        if (getEventById(eventId) instanceof OrderBookMarketEvent orderBookEvent) {
+            return orderBookEvent;
+        }
+        throw new InvalidEventRequestException(EventRequestErrorCode.WRONG_TRADING_METHOD);
+    }
+
+    private CommissionPolicy toCommissionPolicy(CommissionPolicyDto policy) {
+        if (policy == null) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.COMMISSION_OUT_OF_RANGE);
+        }
+        return CommissionPolicy.valueOf(policy.name());
+    }
+
+    private TradingMethodType toTradingMethodType(TradingMethodTypeDto methodType) {
+        if (methodType == null) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.MISSING_TRADING_METHOD);
+        }
+        return TradingMethodType.valueOf(methodType.name());
+    }
+
+    private OrderAction toOrderAction(OrderActionDto action) {
+        if (action == null) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.INVALID_ORDER_ACTION);
+        }
+        return OrderAction.valueOf(action.name());
+    }
+
 }

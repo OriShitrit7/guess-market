@@ -24,7 +24,7 @@ import jakarta.xml.bind.annotation.XmlValue;
  * <complexType>
  *   <simpleContent>
  *     <extension base="<http://www.w3.org/2001/XMLSchema>int">
- *       <attribute name="action" use="required">
+ *       <attribute name="type" use="required">
  *         <simpleType>
  *           <restriction base="{http://www.w3.org/2001/XMLSchema}string">
  *             <enumeration value="on-close"/>
@@ -48,8 +48,8 @@ public class Commission {
 
     @XmlValue
     protected int value;
-    @XmlAttribute(name = "action", required = true)
-    protected String action;
+    @XmlAttribute(name = "type", required = true)
+    protected String type;
 
     /**
      * Gets the value of the value property.
@@ -68,27 +68,27 @@ public class Commission {
     }
 
     /**
-     * Gets the value of the action property.
+     * Gets the value of the type property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getAction() {
-        return action;
+    public String getType() {
+        return type;
     }
 
     /**
-     * Sets the value of the action property.
+     * Sets the value of the type property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setAction(String value) {
-        this.action = value;
+    public void setType(String value) {
+        this.type = value;
     }
 
 }

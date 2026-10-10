@@ -25,7 +25,7 @@ public class EventXmlMapper {
     private static final String TRADING_METHOD_ELEMENTS = "GM-LMSR> or <GM-order-book";
 
     private static final String NAME_ATTRIBUTE = "name";
-    private static final String ACTION_ATTRIBUTE = "action";
+    private static final String TYPE_ATTRIBUTE = "type";
 
     private static final String ON_PURCHASE_VALUE = "on-purchase";
     private static final String ON_CLOSE_VALUE = "on-close";
@@ -83,12 +83,12 @@ public class EventXmlMapper {
         if (commissionElement == null) {
             throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, COMMISSION_ELEMENT);
         }
-        if (commissionElement.getAction() == null) {
+        if (commissionElement.getType() == null) {
             throw new InvalidFileException(FileErrorCode.MISSING_ATTRIBUTE, EVENT_ENTITY, eventNumber,
-                    COMMISSION_ELEMENT, ACTION_ATTRIBUTE);
+                    COMMISSION_ELEMENT, TYPE_ATTRIBUTE);
         }
 
-        String policyValue = commissionElement.getAction().trim();
+        String policyValue = commissionElement.getType().trim();
 
         CommissionPolicy policy = switch (policyValue) {
             case ON_PURCHASE_VALUE -> CommissionPolicy.ON_PURCHASE;

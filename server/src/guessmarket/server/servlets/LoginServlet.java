@@ -36,7 +36,9 @@ public class LoginServlet extends HttpServlet {
         usernameFromParameter = usernameFromParameter.trim();
         MarketManager marketManager = ServletUtils.getMarketManager(getServletContext());
         try {
-            marketManager.registerUser(usernameFromParameter);
+            synchronized (marketManager) {
+                marketManager.registerUser(usernameFromParameter);
+            }
             request.getSession(true).setAttribute(Constants.USERNAME, usernameFromParameter);
             response.setStatus(HttpServletResponse.SC_OK);
         }

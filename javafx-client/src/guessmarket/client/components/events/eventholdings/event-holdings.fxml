@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxWidth="1.7976931348623157E308" spacing="7.0" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.client.components.events.eventholdings.EventHoldingsController">
+   <children>
+      <Label maxWidth="1.7976931348623157E308" minHeight="24.0" prefHeight="24.0" styleClass="holdings-section-title" text="EVENT HOLDINGS" />
+      <TableView fx:id="holdingsTable" maxWidth="1.7976931348623157E308" styleClass="holdings-table">
+        <columns>
+            <TableColumn fx:id="userColumn" minWidth="70.0" prefWidth="100.0" reorderable="false" styleClass="holdings-user-column" text="User" />
+            <TableColumn fx:id="firstOptionColumn" reorderable="false" styleClass="first-holdings-option">
+               <columns>
+                  <TableColumn fx:id="firstOptionQuantityColumn" minWidth="60.0" prefWidth="80.0" reorderable="false" styleClass="holdings-number-column" text="Shares" />
+                  <TableColumn fx:id="firstOptionValueColumn" minWidth="60.0" prefWidth="80.0" reorderable="false" styleClass="holdings-number-column" text="Value" />
+               </columns>
+            </TableColumn>
+            <TableColumn fx:id="secondOptionColumn" reorderable="false" styleClass="second-holdings-option">
+               <columns>
+                  <TableColumn fx:id="secondOptionQuantityColumn" minWidth="60.0" prefWidth="80.0" reorderable="false" styleClass="holdings-number-column" text="Shares" />
+                  <TableColumn fx:id="secondOptionValueColumn" minWidth="60.0" prefWidth="80.0" reorderable="false" styleClass="holdings-number-column" text="Value" />
+               </columns>
+            </TableColumn>
+            <TableColumn fx:id="openOrdersColumn" minWidth="65.0" prefWidth="75.0" reorderable="false" styleClass="holdings-number-column" text="Open Orders" />
+        </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+   </children>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" />
+   </padding>
+</VBox>

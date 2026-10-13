@@ -1,0 +1,46 @@
+.account-details-card {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #d4d8de;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.account-details-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.account-balance {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.account-load-button {
+    -fx-background-color: #2980b9;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-padding: 6px 10px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.account-load-button:hover {
+    -fx-background-color: #3498db;
+}
+
+.account-activity-table {
+    -fx-border-color: #dfe3e9;
+    -fx-border-radius: 6;
+}
+
+.account-amount-column {
+    -fx-alignment: CENTER-RIGHT;
+}
+
+.account-empty-state {
+    -fx-text-fill: #667085;
+}

@@ -13,16 +13,19 @@ import guessmarket.engine.orderbook.*;
 import guessmarket.engine.xml.SystemFileLoader;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 // Manages loaded market events and exposes their operations through data transfer objects.
 public class MarketManagerImpl implements MarketManager {
+    private static final Pattern ENGLISH_TEXT = Pattern.compile("[\\x20-\\x7E]+");
 
     private final Map<Integer, MarketEvent> events = new LinkedHashMap<>();
     private final UsersRegistry users = new UsersRegistry();
@@ -32,8 +35,15 @@ public class MarketManagerImpl implements MarketManager {
     private int nextEventId = 1;
 
     @Override
-    public synchronized void registerUser(String username) {
+    public void registerUser(String username) {
+        validateUserName(username);
         users.addUser(new User(username));
+    }
+
+    private void validateUserName(String username) {
+        if (!ENGLISH_TEXT.matcher(username).matches()) {
+            throw new InvalidUserRequestException(UserRequestErrorCode.USER_NAME_NOT_ENGLISH);
+        }
     }
 
     // Loads all candidate events before replacing the current state, so a failed load leaves it unchanged.
@@ -61,28 +71,30 @@ public class MarketManagerImpl implements MarketManager {
 
     // Creates a complete snapshot of the requested event
     @Override
-    public EventTradingStateDto getEventTradingState(int eventId) {
-        return dtoMapper.createEventTradingState(getEventById(eventId), users.getAllUsers());
-    }
-
-    // Creates a complete snapshot of the requested Order Book event.
-    @Override
-    public OrderBookStateDto getOrderBookState(int eventId) {
-        return dtoMapper.createOrderBookState(getOrderBookEvent(eventId), users.getAllUsers());
+    public EventStateDto getEventState(int eventId) {
+        return dtoMapper.createEventState(getEventById(eventId), users.getAllUsers());
     }
 
     // Creates an account summary for every registered user.
     @Override
     public List<UserSummaryDto> getUserSummaries() {
         return users.getAllUsers().stream()
-                .map(dtoMapper::createUserSummary)
+                .map(user -> dtoMapper.createUserSummary(user, isMarketMakerOfAnyEvent(user.getName())))
                 .toList();
     }
 
-    // Returns the recorded balances of one user in chronological order.
+    private boolean isMarketMakerOfAnyEvent(String userName) {
+        return events.values().stream().anyMatch(event -> event.isMarketMaker(userName));
+    }
+
     @Override
-    public List<BalancePointDto> getUserBalanceHistory(String userName) {
-        return dtoMapper.createBalanceHistory(getUserByName(userName));
+    public AccountDetailsDto getAccountDetails(String userName, int fromTransaction) {
+        return dtoMapper.createAccountDetails(getUserByName(userName), getUserEvents(userName), fromTransaction);
+    }
+
+    @Override
+    public int getTransactionCount(String userName) {
+        return getUserByName(userName).getTransactions().size();
     }
 
     // Selects events in which the user is either the market maker or a participant.
@@ -104,7 +116,7 @@ public class MarketManagerImpl implements MarketManager {
 
     // Charges the opening cost, changes the event status and returns its updated state.
     @Override
-    public EventTradingStateDto openEvent(String userName, int eventId) {
+    public EventStateDto openEvent(String userName, int eventId) {
         User marketMaker = getActiveUserByName(userName); // Require an active user
         MarketEvent event = getEventById(eventId);
 
@@ -116,12 +128,12 @@ public class MarketManagerImpl implements MarketManager {
         event.open(); // Activate the event
         cancelBuyOrdersOfBlocked(Set.of(userName)); // Clear invalid buy orders after the charge
 
-        return dtoMapper.createEventTradingState(event, users.getAllUsers());
+        return dtoMapper.createEventState(event, users.getAllUsers());
     }
 
     // Settles the winning option before closing the event and returning its final state.
     @Override
-    public EventTradingStateDto closeEvent(String userName, int eventId, int winningOptionIndex) {
+    public EventStateDto closeEvent(String userName, int eventId, int winningOptionIndex) {
         getUserByName(userName); // Confirm that the user exists
         MarketEvent event = getEventById(eventId);
 
@@ -132,12 +144,12 @@ public class MarketManagerImpl implements MarketManager {
         settlement.settleClose(event, event.getOptions().get(winningOptionIndex)); // Pay the winners
         event.close(winningOptionIndex); // Record the result and close trading
 
-        return dtoMapper.createEventTradingState(event, users.getAllUsers());
+        return dtoMapper.createEventState(event, users.getAllUsers());
     }
 
     // Calculates an LMSR purchase without changing the event or user account.
     @Override
-    public TradeDto quotePurchase(String userName, int eventId, int optionIndex, int quantity) {
+    public TradeDto quoteLmsrPurchase(String userName, int eventId, int optionIndex, int quantity) {
         LmsrMarketEvent event = getLmsrEvent(eventId); // Require an LMSR event
 
         validateTradeRequest(event, optionIndex, quantity);
@@ -145,10 +157,20 @@ public class MarketManagerImpl implements MarketManager {
         return dtoMapper.createTradeDto(event.quotePurchase(userName, optionIndex, quantity)); // Calculate the quote
     }
 
+    @Override
+    public void loadFunds(String userName, double amount) {
+        User user = getUserByName(userName);
+        if (!Double.isFinite(amount) || amount <= 0 || BigDecimal.valueOf(amount).scale() > 2
+                || !Double.isFinite(user.getBalance() + amount)) {
+            throw new InvalidUserRequestException(UserRequestErrorCode.INVALID_LOAD_AMOUNT);
+        }
+        settlement.settleLoadFunds(userName, amount);
+    }
+
     // Performs and settles an LMSR purchase, then returns the trade and updated event state.
     @Override
-    public PurchaseResultDto buyShares(String userName, int eventId, int optionIndex, int quantity) {
-        getActiveUserByName(userName); // Require an active user
+    public PurchaseResultDto buyLmsrShares(String userName, int eventId, int optionIndex, int quantity) {
+        User user = getActiveUserByName(userName); // Require an active user
         LmsrMarketEvent event = getLmsrEvent(eventId); // Require an LMSR event
 
         validateTradeRequest(event, optionIndex, quantity);
@@ -157,7 +179,7 @@ public class MarketManagerImpl implements MarketManager {
         settlement.settlePurchase(event, trade); // Update balances and holdings
         cancelBuyOrdersOfBlocked(Set.of(userName)); // Clear invalid buy orders after the charge
 
-        return new PurchaseResultDto(dtoMapper.createTradeDto(trade), dtoMapper.createEventTradingState(event, users.getAllUsers()));
+        return new PurchaseResultDto(dtoMapper.createTradeDto(trade), dtoMapper.createLmsrState(event, users.getAllUsers()), user.getBalance());
     }
 
     // Plans, settles and commits an Order Book request, then summarizes its execution.
@@ -186,7 +208,7 @@ public class MarketManagerImpl implements MarketManager {
         cancelBuyOrdersOfBlocked(plan.getParticipantNames()); // Remove blocked users' buy orders
 
         return dtoMapper.createOrderResult(
-                new OrderExecution(action, plan, order.getRemainingQuantity(), commissionPaid));
+                new OrderExecution(action, plan, order.getRemainingQuantity(), commissionPaid), user.getBalance());
     }
 
     // The creator becomes the market maker, and pays nothing until the event is opened.
@@ -257,6 +279,13 @@ public class MarketManagerImpl implements MarketManager {
         if (text == null || text.isBlank()) {
             throw new InvalidEventRequestException(errorCode);
         }
+        if (!isEnglish(text)) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.TEXT_NOT_ENGLISH);
+        }
+    }
+
+    private boolean isEnglish(String text) {
+        return text.lines().allMatch(line -> line.isEmpty() || ENGLISH_TEXT.matcher(line).matches());
     }
 
     private void validateOptionNames(List<String> optionNames) {

@@ -5,11 +5,13 @@ public final class UserSummaryDto {
     private final String name;
     private final double balance;
     private final boolean blocked;
+    private final boolean marketMaker;
 
-    public UserSummaryDto(String name, double balance, boolean blocked) {
+    public UserSummaryDto(String name, double balance, boolean blocked, boolean marketMaker) {
         this.name = name;
         this.balance = balance;
         this.blocked = blocked;
+        this.marketMaker = marketMaker;
     }
 
     public String getName() {
@@ -22,5 +24,9 @@ public final class UserSummaryDto {
 
     public boolean isBlocked() {
         return blocked;
+    }
+
+    public boolean isMarketMaker() {
+        return marketMaker;
     }
 }

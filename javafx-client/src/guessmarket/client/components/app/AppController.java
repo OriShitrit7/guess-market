@@ -31,6 +31,7 @@ public class AppController {
 
     public void switchToMain(String userName) {
         mainController.setUserName(userName);
+        mainController.setActive();
         setContent(mainComponent);
     }
 
@@ -45,5 +46,9 @@ public class AppController {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(Constants.MAIN_FXML));
         mainComponent = loader.load();
         mainController = loader.getController();
+    }
+
+    public void close() {
+        mainController.close();
     }
 }

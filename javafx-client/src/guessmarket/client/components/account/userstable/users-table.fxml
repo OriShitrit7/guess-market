@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" styleClass="user-cards-scroll" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.client.components.account.userstable.UsersTableController">
+   <content>
+      <StackPane alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="user-cards-viewport">
+         <children>
+            <VBox fx:id="userCardsPane" fillWidth="true" maxWidth="1.7976931348623157E308" spacing="10.0">
+               <padding>
+                  <Insets bottom="8.0" left="2.0" right="2.0" top="2.0" />
+               </padding>
+            </VBox>
+            <VBox fx:id="emptyUsersState" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="empty-state" StackPane.alignment="CENTER">
+               <children>
+                  <Label fx:id="emptyUsersTitleLabel" styleClass="empty-state-title" text="No users to display" textAlignment="CENTER" wrapText="true" />
+                  <Label fx:id="emptyUsersLabel" styleClass="empty-state-message" text="Load an XML file to get started." textAlignment="CENTER" wrapText="true" />
+               </children>
+            </VBox>
+         </children>
+      </StackPane>
+   </content>
+</ScrollPane>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ButtonType?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<DialogPane fx:id="dialogPane" headerText="Load Funds" prefWidth="430.0"
+            styleClass="app-dialog, load-funds-dialog" stylesheets="@load-funds-dialog.css"
+            xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="guessmarket.client.components.account.dialogs.loadfunds.LoadFundsDialogController">
+    <buttonTypes>
+        <ButtonType fx:constant="CANCEL" />
+        <ButtonType fx:id="loadFundsButtonType" buttonData="OK_DONE" text="Load Funds" />
+    </buttonTypes>
+    <content>
+        <VBox spacing="15.0" styleClass="dialog-content">
+            <children>
+                <GridPane hgap="10.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints halignment="RIGHT" />
+                    </columnConstraints>
+                    <children>
+                        <Label styleClass="secondary-text" text="Current balance" />
+                        <Label fx:id="currentBalanceLabel" styleClass="available-value" text="—"
+                               GridPane.columnIndex="1" />
+                    </children>
+                </GridPane>
+                <VBox spacing="7.0">
+                    <children>
+                        <Label styleClass="field-label" text="Amount to load" />
+                        <TextField fx:id="amountField" promptText="0.00" styleClass="dialog-input" />
+                        <Label fx:id="validationLabel" managed="false" visible="false"
+                               maxWidth="1.7976931348623157E308" minHeight="-Infinity"
+                               styleClass="dialog-warning" wrapText="true" />
+                    </children>
+                </VBox>
+                <Separator />
+                <GridPane styleClass="dialog-summary-card" hgap="10.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints halignment="RIGHT" />
+                    </columnConstraints>
+                    <children>
+                        <Label styleClass="total-label" text="New balance" />
+                        <Label fx:id="newBalanceLabel" styleClass="total-value" text="—"
+                               GridPane.columnIndex="1" />
+                    </children>
+                </GridPane>
+                <Label fx:id="availabilityLabel" maxWidth="1.7976931348623157E308"
+                       minHeight="-Infinity" styleClass="secondary-text" wrapText="true"
+                       text="Loading funds is temporarily unavailable." />
+            </children>
+        </VBox>
+    </content>
+</DialogPane>

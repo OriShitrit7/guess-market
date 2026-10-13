@@ -14,10 +14,11 @@ public final class OrderResultDto {
     // Amount paid for minted shares, before commission.
     private final double mintedAmount;
     private final double totalCommissionPaid;
+    private final double balanceAfter;
 
     public OrderResultDto(OrderActionDto action, int matchedQuantity, int mintedQuantity,
                           int remainingQuantity, double matchedAmount, double mintedAmount,
-                          double totalCommissionPaid) {
+                          double totalCommissionPaid, double balanceAfter) {
         this.action = action;
         this.matchedQuantity = matchedQuantity;
         this.mintedQuantity = mintedQuantity;
@@ -25,6 +26,7 @@ public final class OrderResultDto {
         this.matchedAmount = matchedAmount;
         this.mintedAmount = mintedAmount;
         this.totalCommissionPaid = totalCommissionPaid;
+        this.balanceAfter = balanceAfter;
     }
 
     public OrderActionDto getAction() {
@@ -53,5 +55,9 @@ public final class OrderResultDto {
 
     public double getTotalCommissionPaid() {
         return totalCommissionPaid;
+    }
+
+    public double getBalanceAfter() {
+        return balanceAfter;
     }
 }

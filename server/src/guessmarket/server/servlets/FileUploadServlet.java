@@ -27,10 +27,8 @@ public class FileUploadServlet extends HttpServlet {
         response.setContentType("text/plain;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
-        String userName = SessionUtils.getUsername(request);
+        String userName = SessionUtils.getUsernameOrSendUnauthorized(request, response);
         if (userName == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            out.print("You must log in before uploading a file.");
             return;
         }
 
@@ -43,7 +41,9 @@ public class FileUploadServlet extends HttpServlet {
 
         MarketManager marketManager = ServletUtils.getMarketManager(getServletContext());
         try (InputStream content = filePart.getInputStream()) {
-            marketManager.loadSystemFile(content, userName);
+            synchronized (marketManager) {
+                marketManager.loadSystemFile(content, userName);
+            }
             out.println("File successfully uploaded!");
         }
         catch (InvalidFileException e) {

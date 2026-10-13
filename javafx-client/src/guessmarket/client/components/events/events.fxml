@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.controlsfx.control.SegmentedButton?>
+
+<SplitPane dividerPositions="0.42" minHeight="320.0" minWidth="720.0" prefHeight="650.0" prefWidth="1001.0" stylesheets="@events.css" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.client.components.events.EventsController">
+   <items>
+      <VBox minWidth="320.0" spacing="10.0">
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+         <children>
+            <FlowPane hgap="15.0" vgap="10.0">
+               <children>
+                  <VBox spacing="4.0">
+                     <children>
+                        <Label styleClass="filter-caption" text="Method " />
+                        <SegmentedButton fx:id="methodFilter">
+                           <buttons>
+                              <ToggleButton text="LMSR" />
+                              <ToggleButton text="Order Book" />
+                           </buttons>
+                        </SegmentedButton>
+                     </children>
+                  </VBox>
+                  <VBox spacing="4.0">
+                     <children>
+                        <Label styleClass="filter-caption" text="Status " />
+                        <SegmentedButton fx:id="statusFilter">
+                           <buttons>
+                              <ToggleButton text="Not Started" />
+                              <ToggleButton text="Active" />
+                              <ToggleButton text="Closed" />
+                           </buttons>
+                        </SegmentedButton>
+                     </children>
+                  </VBox>
+                  <VBox spacing="4.0">
+                     <children>
+                        <Label styleClass="filter-caption" text="Commission Policy " />
+                        <SegmentedButton fx:id="commissionFilter">
+                           <buttons>
+                              <ToggleButton text="On Close" />
+                              <ToggleButton text="On Purchase" />
+                           </buttons>
+                        </SegmentedButton>
+                     </children>
+                  </VBox>
+               </children>
+            </FlowPane>
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" styleClass="event-cards-scroll" VBox.vgrow="ALWAYS">
+               <content>
+                  <StackPane alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="event-cards-viewport">
+                     <children>
+                        <FlowPane fx:id="eventCardsPane" columnHalignment="LEFT" hgap="14.0" maxWidth="1.7976931348623157E308" orientation="HORIZONTAL" rowValignment="TOP" vgap="14.0">
+                           <padding>
+                              <Insets bottom="8.0" left="2.0" right="2.0" top="2.0" />
+                           </padding>
+                        </FlowPane>
+                        <VBox fx:id="emptyEventsState" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="empty-state" StackPane.alignment="CENTER">
+                           <children>
+                              <Label fx:id="emptyEventsTitleLabel" styleClass="empty-state-title" text="No events to display" textAlignment="CENTER" wrapText="true" />
+                              <Label fx:id="emptyEventsLabel" styleClass="empty-state-message" text="Load an XML file to get started." textAlignment="CENTER" wrapText="true" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </StackPane>
+               </content>
+            </ScrollPane>
+         </children>
+      </VBox>
+      <VBox minWidth="400.0" spacing="10.0">
+         <children>
+            <ScrollPane fx:id="detailsScroll" fitToWidth="true" styleClass="details-scroll" VBox.vgrow="ALWAYS">
+               <content>
+                  <VBox fx:id="eventDetailsContent" maxHeight="1.7976931348623157E308" minHeight="300.0" spacing="10.0">
+                     <children>
+                        <VBox fx:id="noEventSelectedState" alignment="CENTER" maxWidth="1.7976931348623157E308" minHeight="260.0" styleClass="empty-state">
+                           <children>
+                              <Label styleClass="empty-state-title" text="No event selected" textAlignment="CENTER" wrapText="true" />
+                              <Label styleClass="empty-state-message" text="Select an event from the list to view its details." textAlignment="CENTER" wrapText="true" />
+                           </children>
+                        </VBox>
+                        <fx:include fx:id="lmsrDetailsComponent" managed="false" source="lmsrdetails/lmsr-details.fxml" visible="false" />
+                        <fx:include fx:id="orderBookDetailsComponent" managed="false" source="orderbookdetails/order-book-details.fxml" visible="false" />
+                        <Region VBox.vgrow="ALWAYS" />
+                        <fx:include fx:id="eventHoldingsComponent" source="eventholdings/event-holdings.fxml" />
+                     </children>
+                  </VBox>
+               </content>
+            </ScrollPane>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+   </items>
+</SplitPane>

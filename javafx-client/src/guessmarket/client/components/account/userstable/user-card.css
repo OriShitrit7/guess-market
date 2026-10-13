@@ -1,0 +1,59 @@
+.user-card {
+    -fx-background-color: white;
+    -fx-background-radius: 9;
+    -fx-border-color: #d4d8de;
+    -fx-border-radius: 9;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+
+.user-card:hover {
+    -fx-border-color: #8ca6c9;
+    -fx-effect: dropshadow(gaussian, rgba(31, 54, 81, 0.14), 8, 0.12, 0, 2);
+}
+
+.user-card:selected,
+.user-card:focused {
+    -fx-border-color: #168fbd;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(22, 143, 189, 0.18), 8, 0.12, 0, 2);
+}
+
+.user-card-name {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #25282c;
+}
+
+.user-card-market-maker {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #25282c;
+}
+
+.user-card-balance-caption {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8a939f;
+}
+
+.user-card-balance-value {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #25282c;
+}
+
+.user-status-badge {
+    -fx-background-radius: 12;
+    -fx-padding: 4 9;
+    -fx-font-weight: bold;
+}
+
+.user-status-active {
+    -fx-background-color: #e3eef8;
+    -fx-text-fill: #2071a3;
+}
+
+.user-status-blocked {
+    -fx-background-color: #cfd5dd;
+    -fx-text-fill: #4a525c;
+}

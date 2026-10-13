@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane minHeight="516.0" minWidth="740.0" prefHeight="650.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/25.0.4" xmlns:fx="http://javafx.com/fxml/1" fx:controller="guessmarket.client.components.main.MainController">
@@ -23,17 +19,6 @@
                   <Label styleClass="app-title" text="Guess Market" />
                </children>
             </VBox>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-               <children>
-                  <Button fx:id="loadFileButton" mnemonicParsing="false" onAction="#loadFileButtonAction" styleClass="load-file-button" text="Load File" />
-                  <StackPane alignment="CENTER_LEFT">
-                     <children>
-                        <Label fx:id="filePathLabel" maxWidth="1.7976931348623157E308" styleClass="file-path-label" visible="false" />
-                        <ProgressBar fx:id="loadFileProgressBar" prefWidth="240.0" progress="0.0" styleClass="file-load-progress" visible="false" />
-                     </children>
-                  </StackPane>
-               </children>
-            </HBox>
          </children>
          <BorderPane.margin>
             <Insets />
@@ -43,8 +28,16 @@
    <center>
       <TabPane minHeight="400.0" minWidth="720.0" styleClass="main-tab-pane" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
         <tabs>
-            <Tab text="Events" />
-            <Tab text="Account" />
+            <Tab text="Events">
+               <content>
+                  <fx:include fx:id="eventsComponent" source="../events/events.fxml" />
+               </content>
+            </Tab>
+            <Tab text="Account">
+               <content>
+                  <fx:include fx:id="accountComponent" source="../account/account.fxml" />
+               </content>
+            </Tab>
         </tabs>
       </TabPane>
    </center>

@@ -1,5 +1,6 @@
 package guessmarket.engine.model;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -16,12 +17,10 @@ public class User {
     private boolean blocked;
 
     private final Map<Integer, Position> positions = new LinkedHashMap<>();
-    // Contains the initial balance followed by every updated balance.
-    private final List<Double> balanceHistory = new ArrayList<>();
+    private final List<AccountTransaction> transactions = new ArrayList<>();
 
     public User(String name) {
         this.name = name;
-        balanceHistory.add(balance);
     }
 
     public String getName() {
@@ -36,12 +35,12 @@ public class User {
         return blocked;
     }
 
-    public List<Double> getBalanceHistory() {
-        return List.copyOf(balanceHistory);
-    }
-
     public Map<Integer, Position> getPositions() {
         return Collections.unmodifiableMap(positions);
+    }
+
+    public List<AccountTransaction> getTransactions() {
+        return Collections.unmodifiableList(transactions);
     }
 
     // Returns the shares held in one event option, or zero when no position exists.
@@ -54,16 +53,20 @@ public class User {
     // Adds money and records the updated balance.
     public void deposit(double amount) {
         balance += amount; // Update the account
-        balanceHistory.add(balance); // Record the new balance
     }
 
     // Removes money, records the balance and blocks the user after an overdraft.
     public void withdraw(double amount) {
         balance -= amount; // Update the account
-        balanceHistory.add(balance); // Record the new balance
 
         if (balance < 0) {
             blocked = true; // Prevent further trading
+        }
+    }
+
+    public void releaseBlockIfSolvent() {
+        if (balance >= 0) {
+            blocked = false;
         }
     }
 
@@ -89,6 +92,13 @@ public class User {
     // Creates an empty position so a user with only a resting order still counts as a participant.
     public void joinEvent(int eventId) {
         positionFor(eventId);
+    }
+
+    public void recordTransaction(AccountTransactionType type, double amount) {
+        if (amount == 0) {
+            return;
+        }
+        transactions.add(new AccountTransaction(type, amount, balance, Instant.now()));
     }
 
     // Records commission paid by the user in one event.

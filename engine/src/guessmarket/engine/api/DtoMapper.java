@@ -30,34 +30,28 @@ public class DtoMapper {
                 winner == null ? null : winner.getName());
     }
 
+    EventStateDto createEventState(MarketEvent event, Collection<User> users) {
+        if (event instanceof LmsrMarketEvent lmsrEvent) {
+            return createLmsrState(lmsrEvent, users);
+        }
+        return createOrderBookState((OrderBookMarketEvent) event, users);
+    }
+
     // Builds a complete event snapshot, including LMSR history when the event uses that method.
-    EventTradingStateDto createEventTradingState(MarketEvent event, Collection<User> users) {
-        return new EventTradingStateDto(createEventSummary(event), createOptionStates(event),
-                createSharePriceHistory(event), createTradeDtos(getLmsrTrades(event)),
-                createParticipants(event, users));
+    LmsrStateDto createLmsrState(LmsrMarketEvent event, Collection<User> users) {
+        return new LmsrStateDto(createEventSummary(event), createOptionStates(event), createParticipants(event, users),
+                createSharePriceHistory(event), createTradeDtos(event.getTradeHistory()));
     }
 
     // Builds the books, price history and participant data needed by the Order Book views.
     OrderBookStateDto createOrderBookState(OrderBookMarketEvent event, Collection<User> users) {
-        return new OrderBookStateDto(createEventSummary(event), createOptionBooks(event),
-                createOrderBookPriceHistory(event), createOptionStates(event),
-                createParticipants(event, users));
+        return new OrderBookStateDto(createEventSummary(event), createOptionStates(event), createParticipants(event, users),
+                createOptionBooks(event), createOrderBookPriceHistory(event));
     }
 
     // Creates the account summary displayed for one user.
-    public UserSummaryDto createUserSummary(User user) {
-        return new UserSummaryDto(user.getName(), user.getBalance(), user.isBlocked());
-    }
-
-    // Numbers the user's recorded balances in chronological order for the history chart.
-    List<BalancePointDto> createBalanceHistory(User user) {
-        List<Double> balances = user.getBalanceHistory();
-        List<BalancePointDto> history = new ArrayList<>();
-
-        for (int i = 0; i < balances.size(); i++) {
-            history.add(new BalancePointDto(i, balances.get(i)));
-        }
-        return List.copyOf(history);
+    public UserSummaryDto createUserSummary(User user, boolean marketMaker) {
+        return new UserSummaryDto(user.getName(), user.getBalance(), user.isBlocked(), marketMaker);
     }
 
     // Collects one user's trades, holdings, commission and final result in an event.
@@ -79,12 +73,28 @@ public class DtoMapper {
                 user.getPositions().containsKey(event.getEventId()));
     }
 
+    AccountDetailsDto createAccountDetails(User user, List<EventParticipationDto> events, int fromTransaction) {
+        List<AccountTransaction> transactions = user.getTransactions();
+        int firstNewTransaction = fromTransaction < 0 || fromTransaction > transactions.size() ? 0 : fromTransaction;
+
+        List<AccountTransactionDto> newTransactions = transactions.subList(firstNewTransaction, transactions.size()).stream()
+                .map(this::createAccountTransaction)
+                .toList();
+        boolean marketMaker = events.stream().anyMatch(EventParticipationDto::isMarketMaker);
+        return new AccountDetailsDto(createUserSummary(user, marketMaker), newTransactions, events);
+    }
+
+    private AccountTransactionDto createAccountTransaction(AccountTransaction transaction) {
+        return new AccountTransactionDto(toDto(transaction.getType()), transaction.getAmount(),
+                transaction.getBalanceAfter(), transaction.getOccurredAt().toEpochMilli());
+    }
+
     // Summarizes the matched, minted and waiting portions of an executed order.
-    OrderResultDto createOrderResult(OrderExecution execution) {
+    OrderResultDto createOrderResult(OrderExecution execution, double balanceAfter) {
         return new OrderResultDto(OrderActionDto.valueOf(execution.getAction().name()),
                 execution.getMatchedQuantity(), execution.getMintedQuantity(),
                 execution.getRemainingQuantity(), execution.getMatchedAmount(),
-                execution.getMintedAmount(), execution.getCommissionPaid());
+                execution.getMintedAmount(), execution.getCommissionPaid(), balanceAfter);
     }
 
     // The existing UI DTO represents LMSR purchases only; OB details will receive their own DTO later.
@@ -186,11 +196,7 @@ public class DtoMapper {
     }
 
     // Replays LMSR purchases in chronological order and records both option values after each one.
-    private List<List<Double>> createSharePriceHistory(MarketEvent event) {
-        if (!(event instanceof LmsrMarketEvent lmsrEvent)) {
-            return List.of();
-        }
-
+    private List<List<Double>> createSharePriceHistory(LmsrMarketEvent event) {
         List<MarketOption> options = event.getOptions();
         List<List<Double>> history = new ArrayList<>();
         int[] quantities = new int[options.size()];
@@ -199,14 +205,14 @@ public class DtoMapper {
             history.add(new ArrayList<>());
         }
 
-        addSharePriceSnapshot(history, lmsrEvent, quantities);
+        addSharePriceSnapshot(history, event, quantities);
 
-        for (Trade trade : lmsrEvent.getTradeHistory()) {
+        for (Trade trade : event.getTradeHistory()) {
             int optionIndex = options.indexOf(trade.getOption());
 
             if (optionIndex >= 0) {
                 quantities[optionIndex] += trade.getQuantity();
-                addSharePriceSnapshot(history, lmsrEvent, quantities);
+                addSharePriceSnapshot(history, event, quantities);
             }
         }
         return history.stream()
@@ -258,6 +264,18 @@ public class DtoMapper {
             case NOT_STARTED -> EventStatusDto.NOT_STARTED;
             case ACTIVE -> EventStatusDto.ACTIVE;
             case CLOSED -> EventStatusDto.CLOSED;
+        };
+    }
+
+    private AccountTransactionTypeDto toDto(AccountTransactionType type) {
+        return switch (type) {
+            case LOAD_FUNDS -> AccountTransactionTypeDto.LOAD_FUNDS;
+            case EVENT_OPENING -> AccountTransactionTypeDto.EVENT_OPENING;
+            case SHARES_PURCHASE -> AccountTransactionTypeDto.SHARES_PURCHASE;
+            case SHARES_SALE -> AccountTransactionTypeDto.SHARES_SALE;
+            case COMMISSION_RECEIVED -> AccountTransactionTypeDto.COMMISSION_RECEIVED;
+            case WINNING_PAYOUT -> AccountTransactionTypeDto.WINNING_PAYOUT;
+            case EVENT_CLOSING -> AccountTransactionTypeDto.EVENT_CLOSING;
         };
     }
 }

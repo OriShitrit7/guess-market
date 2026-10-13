@@ -11,6 +11,7 @@ public enum EventRequestErrorCode {
     MISSING_EVENT_NAME("An event name is required."),
     MISSING_EVENT_DESCRIPTION("An event description is required."),
     MISSING_OPTION_NAME("Both options must be named."),
+    TEXT_NOT_ENGLISH("The event name, description and option names must be in English: letters, digits, spaces and punctuation only."),
     DUPLICATE_OPTION_NAMES("The two options must have different names."),
     WRONG_OPTION_COUNT("An event must have exactly two options."),
     COMMISSION_OUT_OF_RANGE("The commission percent is outside the allowed range."),

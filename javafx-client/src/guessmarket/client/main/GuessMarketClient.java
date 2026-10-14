@@ -12,7 +12,10 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Objects;
 
+// Starts the JavaFX client on the login screen, and stops the refreshers and the HTTP client when the window closes.
 public class GuessMarketClient extends Application {
+    private static final int INITIAL_WIDTH = 1000;
+    private static final int INITIAL_HEIGHT = 600;
     private static final int MIN_WIDTH = 740;
     private static final int MIN_HEIGHT = 560;
     private AppController appController;
@@ -23,7 +26,7 @@ public class GuessMarketClient extends Application {
         Parent root = loader.load();
         appController = loader.getController();
 
-        Scene scene = new Scene(root, 1000, 600);
+        Scene scene = new Scene(root, INITIAL_WIDTH, INITIAL_HEIGHT);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(Constants.APP_CSS), "Missing stylesheet: " + Constants.APP_CSS).toExternalForm());
 
         primaryStage.setTitle("Guess Market");

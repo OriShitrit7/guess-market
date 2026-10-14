@@ -32,15 +32,14 @@ import org.controlsfx.control.SegmentedButton;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
+// Shows the logged-in user's balance and account history, as a table or as a balance chart, and loads funds.
 public class WalletController {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
     private static final String LOAD_FUNDS_FAILED = "Load Funds Failed";
@@ -100,7 +99,7 @@ public class WalletController {
 
     public void setBalance(BigDecimal balance) {
         this.balance = Objects.requireNonNull(balance);
-        accountBalanceLabel.setText("Balance: " + NumberFormat.getCurrencyInstance(Locale.US).format(balance));
+        accountBalanceLabel.setText("Balance: " + DisplayText.amount(balance.doubleValue()));
     }
 
     @FXML
@@ -139,16 +138,18 @@ public class WalletController {
         HttpClientUtil.runAsyncOrShowError(request, LOAD_FUNDS_FAILED);
     }
 
+    // Appends the transactions that arrived in the latest pull to the table and to the chart.
     public void addTransactions(List<AccountTransactionDto> newTransactions) {
         if (newTransactions.isEmpty()) {
             return;
         }
-        transactions.addAll(newTransactions);
+        transactions.addAll(0, newTransactions.reversed()); // The newest transaction is shown first
         newTransactions.forEach(this::addBalancePoint);
         configureBalanceXAxis();
         emptyBalanceHistoryState.setVisible(false);
     }
 
+    // The chart starts from the balance before the first transaction, so that the first change shows too.
     private void addBalancePoint(AccountTransactionDto transaction) {
         List<XYChart.Data<Number, Number>> points = balanceSeries.getData();
 

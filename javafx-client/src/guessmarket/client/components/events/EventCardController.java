@@ -2,6 +2,7 @@ package guessmarket.client.components.events;
 
 import guessmarket.client.components.DisplayText;
 import guessmarket.client.components.StatusStyle;
+import guessmarket.dto.CommissionPolicyDto;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -81,7 +82,7 @@ public class EventCardController {
     }
 
     private String commissionTiming(String policy) {
-        return "On Purchase".equals(policy) ? ON_PURCHASE_TEXT : ON_CLOSE_TEXT;
+        return DisplayText.of(CommissionPolicyDto.ON_PURCHASE).equals(policy) ? ON_PURCHASE_TEXT : ON_CLOSE_TEXT;
     }
 
     private void updateMethodStyle(boolean orderBook) {

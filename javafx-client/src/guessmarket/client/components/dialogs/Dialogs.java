@@ -42,6 +42,11 @@ public abstract class Dialogs {
         show(owner, fxmlName, title, setup);
     }
 
+    // Shows an information alert with no separate header.
+    public static void showInfo(String title, String message) {
+        show(Alert.AlertType.INFORMATION, title, message);
+    }
+
     // Shows a warning alert with no separate header.
     public static void showWarning(String title, String message) {
         show(Alert.AlertType.WARNING, title, message);
@@ -107,9 +112,5 @@ public abstract class Dialogs {
         Optional<ButtonType> choice = dialog.showAndWait();
 
         return choice.isPresent() && choice.get().getButtonData() == ButtonBar.ButtonData.OK_DONE;
-    }
-
-    public static void showInfo(String title, String message) {
-        show(Alert.AlertType.INFORMATION, title, message);
     }
 }

@@ -2,8 +2,10 @@ package guessmarket.dto;
 
 public final class AccountTransactionDto {
     private final AccountTransactionTypeDto type;
+    // Positive when money entered the account, negative when it left.
     private final double amount;
     private final double balanceAfter;
+    // When the transaction happened, in milliseconds since the epoch.
     private final long timestamp;
 
     public AccountTransactionDto(AccountTransactionTypeDto type, double amount, double balanceAfter, long timestamp) {

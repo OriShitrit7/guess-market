@@ -28,7 +28,7 @@ public class UserCardController {
         marketMakerLabel.managedProperty().bind(marketMakerLabel.visibleProperty());
     }
 
-    // Populates the card and registers the action used when it is selected.
+    // Fills the card with the user's name, status, market maker role and balance.
     public void setUser(UserTableRow user) {
         userNameLabel.setText(user.getName());
         userBalanceLabel.setText(DisplayText.amount(user.getBalance()));
@@ -39,7 +39,7 @@ public class UserCardController {
                 + ", Balance " + DisplayText.amount(user.getBalance()));
 
         userStatusLabel.getStyleClass().removeAll(STATUS_STYLE_CLASSES);
-        userStatusLabel.getStyleClass().add("Blocked".equals(user.getStatus())
+        userStatusLabel.getStyleClass().add(user.isBlocked()
                 ? "user-status-blocked" : "user-status-active");
     }
 }

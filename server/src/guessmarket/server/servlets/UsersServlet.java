@@ -2,7 +2,9 @@ package guessmarket.server.servlets;
 
 import com.google.gson.Gson;
 import guessmarket.dto.UserSummaryDto;
+import guessmarket.dto.VersionedDto;
 import guessmarket.engine.api.MarketManager;
+import guessmarket.server.constants.Constants;
 import guessmarket.server.utils.ServletUtils;
 import guessmarket.server.utils.SessionUtils;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
+// Returns the name, balance and market maker status of every user as JSON.
 @WebServlet(
         name = "UsersServlet",
         urlPatterns = {"/users"})
@@ -26,10 +29,17 @@ public class UsersServlet extends HttpServlet {
             return;
         }
 
+        int clientVersion = ServletUtils.parseVersion(request.getParameter(Constants.VERSION));
         MarketManager marketManager = ServletUtils.getMarketManager(getServletContext());
-        List<UserSummaryDto> userSummaries;
+
+        VersionedDto<List<UserSummaryDto>> userSummaries;
         synchronized (marketManager) {
-            userSummaries = marketManager.getUserSummaries();
+            int currentVersion = marketManager.getUsersChangeCount();
+            if (currentVersion == clientVersion) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                return;
+            }
+            userSummaries = new VersionedDto<>(marketManager.getUserSummaries(), currentVersion);
         }
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(userSummaries);

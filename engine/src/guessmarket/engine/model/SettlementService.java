@@ -6,7 +6,8 @@ import guessmarket.engine.orderbook.OrderMatch;
 
 import java.util.List;
 
-// Applies money and holding transfers.
+// Applies the money and share transfers of every market operation to the users and the event account,
+// and records them in the users' account history.
 public class SettlementService {
     private final UsersRegistry users;
 
@@ -19,6 +20,7 @@ public class SettlementService {
         users.getUserByName(userName).joinEvent(event.getEventId());
     }
 
+    // Adds loaded funds to the user's balance, which may release a blocked user.
     public void settleLoadFunds(String userName, double amount) {
         User user = users.getUserByName(userName);
 
@@ -73,6 +75,8 @@ public class SettlementService {
             totalCommission += restingCommission + incomingCommission;
         }
 
+        // The submitter gets one account line for the whole order, and the market maker one for its
+        // commission, so that every recorded balance matches the balance after the order.
         double submitterChange = submitter.getBalance() - balanceBefore;
         submitter.recordTransaction(submitterChange < 0 ? AccountTransactionType.SHARES_PURCHASE : AccountTransactionType.SHARES_SALE, submitterChange);
         payPurchaseCommission(event, totalCommission);
@@ -114,6 +118,7 @@ public class SettlementService {
         seller.recordSale(event.getEventId(), amount); // Record sale proceeds
         buyer.recordCommission(event.getEventId(), commission); // Record buyer commission
 
+        // Only the other side is recorded here. The submitter's line is written once, after the whole order.
         if (buyer.getName().equals(submittingUser)) {
             seller.recordTransaction(AccountTransactionType.SHARES_SALE, amount);
         } else {
@@ -122,6 +127,7 @@ public class SettlementService {
         return commission;
     }
 
+    // Settles the waiting side of a mint and records the purchase in that user's account history.
     private double settleRestingMintSide(MarketEvent event, MintMatch mint) {
         double commission = settleMintSide(event, mint.getRestingBuyerName(), mint.getRestingOptionIndex(), mint.getQuantity(), mint.getRestingTotalPaid());
 
@@ -171,6 +177,7 @@ public class SettlementService {
                 marketMaker.addShares(event.getEventId(), option, quantity, amountPaidPerOption));
     }
 
+    // Pays the commission and adds it to the market maker's account history.
     private void payPurchaseCommission(MarketEvent event, double commission) {
         payCommission(event, commission);
         users.getUserByName(event.getMarketMakerName()).recordTransaction(AccountTransactionType.COMMISSION_RECEIVED, commission);

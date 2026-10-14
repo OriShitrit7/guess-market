@@ -111,6 +111,8 @@ public class LmsrTradeController {
         clear();
     }
 
+    // Shows the event's details, prices and action buttons. The user's state decides which actions
+    // are available.
     public void showState(LmsrStateDto state, UserSummaryDto user, boolean marketMaker) {
         this.summary = state.getSummary();
         this.options = state.getOptionStates();
@@ -122,6 +124,7 @@ public class LmsrTradeController {
         showResultCard();
     }
 
+    // Shows the user's own activity in the event.
     public void showPosition(UserInvolvementDto position) {
         this.position = position;
 
@@ -261,7 +264,8 @@ public class LmsrTradeController {
         buySharesButton.setDisable(status != EventStatusDto.ACTIVE || blocked);
     }
 
-    // Swaps the trading card for the result card once the event is resolved.
+    // Swaps the trading card for the result card once the event is resolved. It waits until both the
+    // event state and the user's position have arrived.
     private void showResultCard() {
         if (summary == null || position == null) {
             return;

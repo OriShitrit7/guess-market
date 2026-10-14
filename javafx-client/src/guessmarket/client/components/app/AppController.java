@@ -10,6 +10,8 @@ import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
 
+// Switches the window between the login screen and the main screen. Both screens are loaded once,
+// at startup, so that switching later cannot fail on loading a file.
 public class AppController {
     @FXML private StackPane contentArea;
 
@@ -29,9 +31,9 @@ public class AppController {
         contentArea.getChildren().setAll(component);
     }
 
+    // Shows the main screen for the logged-in user and starts pulling its data from the server.
     public void switchToMain(String userName) {
-        mainController.setUserName(userName);
-        mainController.setActive();
+        mainController.setActive(userName);
         setContent(mainComponent);
     }
 

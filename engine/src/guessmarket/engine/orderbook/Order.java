@@ -4,9 +4,9 @@ package guessmarket.engine.orderbook;
 public class Order {
     private final String userName;
     private final OrderAction action;
-    private int remainingQuantity; // shrinks as the order fills, and reaching 0 takes it out of the book
+    private int remainingQuantity; // Shrinks as the order fills, and reaching 0 takes it out of the book
     private final double pricePerShare;
-    private final long sequence; // submission order, which breaks ties between equal prices
+    private final long sequence; // Submission order, which breaks ties between equal prices
 
     public Order(String userName, OrderAction action, int quantity, double pricePerShare, long sequence) {
         this.userName = userName;

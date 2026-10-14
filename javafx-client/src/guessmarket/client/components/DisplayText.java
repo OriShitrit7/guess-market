@@ -5,17 +5,21 @@ import guessmarket.dto.CommissionPolicyDto;
 import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.TradingMethodTypeDto;
 
+import java.util.Locale;
+
 // Formats domain values into consistent text used throughout the UI.
 public abstract class DisplayText {
-    private static final String AMOUNT_FORMAT = "$%.2f";
-    private static final String NEGATIVE_AMOUNT_FORMAT = "-$%.2f";
-    private static final String POSITIVE_AMOUNT_FORMAT = "+$%.2f";
+    private static final String AMOUNT_FORMAT = "$%,.2f";
+    private static final String NEGATIVE_AMOUNT_FORMAT = "-$%,.2f";
+    private static final String POSITIVE_AMOUNT_FORMAT = "+$%,.2f";
+    // A fixed locale, so that amounts look the same whatever the computer's regional settings are.
+    private static final Locale AMOUNT_LOCALE = Locale.US;
     private static final String NO_AMOUNT = "-";
 
     // Every amount of money in the UI goes through here, so the currency sign lives in one place.
     public static String amount(double value) {
-        return value < 0 ? String.format(NEGATIVE_AMOUNT_FORMAT, -value)
-                : String.format(AMOUNT_FORMAT, value);
+        return value < 0 ? String.format(AMOUNT_LOCALE, NEGATIVE_AMOUNT_FORMAT, -value)
+                : String.format(AMOUNT_LOCALE, AMOUNT_FORMAT, value);
     }
 
     // An amount that may be missing, such as a price in an empty order book.
@@ -25,7 +29,7 @@ public abstract class DisplayText {
 
     // A profit or loss, which is only meaningful together with its sign.
     public static String signedAmount(double value) {
-        return value < 0 ? amount(value) : String.format(POSITIVE_AMOUNT_FORMAT, value);
+        return value < 0 ? amount(value) : String.format(AMOUNT_LOCALE, POSITIVE_AMOUNT_FORMAT, value);
     }
 
     // Converts an event status to its user-facing label.
@@ -53,6 +57,7 @@ public abstract class DisplayText {
         };
     }
 
+    // Converts an account transaction type to its user-facing label.
     public static String of(AccountTransactionTypeDto type) {
         return switch (type) {
             case LOAD_FUNDS -> "Funds Loaded";

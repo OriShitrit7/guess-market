@@ -7,7 +7,6 @@
       <module fileurl="file://$PROJECT_DIR$/guessmarket.iml" filepath="$PROJECT_DIR$/guessmarket.iml" />
       <module fileurl="file://$PROJECT_DIR$/javafx-client/javafx-client.iml" filepath="$PROJECT_DIR$/javafx-client/javafx-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/server/server.iml" filepath="$PROJECT_DIR$/server/server.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ui-javafx/ui-javafx.iml" filepath="$PROJECT_DIR$/ui-javafx/ui-javafx.iml" />
     </modules>
   </component>
 </project>

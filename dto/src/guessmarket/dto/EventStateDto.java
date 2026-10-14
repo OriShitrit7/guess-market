@@ -2,6 +2,7 @@ package guessmarket.dto;
 
 import java.util.List;
 
+// Holds the event data shared by both trading methods. Each method adds its own details in a subclass.
 public abstract class EventStateDto {
     private final EventSummaryDto summary;
     private final List<OptionStateDto> optionStates;

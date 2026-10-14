@@ -13,7 +13,9 @@ public abstract class MarketEvent {
     private final CommissionConfig commissionConfig;
     private final EventAccount account = new EventAccount();
     private EventStatus status = EventStatus.NOT_STARTED;
+    // The user who loaded or created the event.
     private String marketMakerName;
+    // Stays null until the event is closed.
     private MarketOption winningOption;
 
     protected MarketEvent(int eventId, String eventName, String description, List<MarketOption> options,
@@ -121,7 +123,9 @@ public abstract class MarketEvent {
     protected void afterClose() {
     }
 
-    // Removes the user's waiting buy orders when the trading method supports order books.
-    public void cancelBuyOrdersOf(String userName) {
+    // Removes the user's waiting buy orders when the trading method supports order books, and reports
+    // whether any were removed.
+    public boolean cancelBuyOrdersOf(String userName) {
+        return false;
     }
 }

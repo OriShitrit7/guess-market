@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+// Handles the login screen: sends the user name to the server and moves to the main screen once it is accepted.
 public class LoginController {
     @FXML
     private TextField userNameTextField;

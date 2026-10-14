@@ -44,6 +44,7 @@ public final class MatchPlan {
         return matches.stream().mapToDouble(OrderMatch::getTotalPaid).sum();
     }
 
+    // What the submitting user pays for the minted shares. The waiting side's payments are not included.
     public double getMintedAmount() {
         return mints.stream().mapToDouble(MintMatch::getIncomingTotalPaid).sum();
     }

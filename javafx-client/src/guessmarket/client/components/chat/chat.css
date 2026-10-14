@@ -1,0 +1,92 @@
+.chat-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.chat-composer {
+    -fx-background-color: white;
+    -fx-background-radius: 9;
+    -fx-border-color: #d4d8de;
+    -fx-border-radius: 9;
+    -fx-padding: 6 6 6 14;
+}
+
+.chat-composer:focus-within {
+    -fx-border-color: #168fbd;
+}
+
+.chat-input,
+.chat-input:focused {
+    -fx-background-color: transparent;
+    -fx-font-size: 14px;
+    -fx-padding: 8 0 8 0;
+    -fx-prompt-text-fill: #8a939f;
+}
+
+.chat-send-button {
+    -fx-background-color: #2c3e50;
+    -fx-background-radius: 7;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 22 9 22;
+    -fx-cursor: hand;
+}
+
+.chat-send-button:hover {
+    -fx-background-color: #3b5168;
+}
+
+.chat-send-button:disabled {
+    -fx-opacity: 0.45;
+}
+
+.chat-list {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 9;
+    -fx-border-color: #d4d8de;
+    -fx-border-radius: 9;
+    -fx-padding: 1;
+}
+
+.chat-list .list-cell,
+.chat-list .list-cell:filled:hover,
+.chat-list .list-cell:filled:selected {
+    -fx-background-color: white;
+    -fx-padding: 12 16 12 16;
+    -fx-border-color: transparent transparent #eceff3 transparent;
+}
+
+.chat-list .list-cell:empty {
+    -fx-border-color: transparent;
+}
+
+.chat-list .list-cell.own-message,
+.chat-list .list-cell.own-message:filled:hover,
+.chat-list .list-cell.own-message:filled:selected {
+    -fx-background-color: #f1f6fb;
+}
+
+.chat-avatar-initial {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #25282c;
+}
+
+.chat-message-name {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #25282c;
+}
+
+.chat-message-time {
+    -fx-font-size: 11px;
+    -fx-text-fill: #8a939f;
+}
+
+.chat-message-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #3a3f45;
+}

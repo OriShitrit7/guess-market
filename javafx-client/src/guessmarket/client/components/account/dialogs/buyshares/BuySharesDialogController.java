@@ -73,7 +73,8 @@ public class BuySharesDialogController {
         recalculateOnChange();
     }
 
-    // Receives everything the dialog needs without giving it access to the engine.
+    // Receives everything the dialog needs. Prices are requested through quoteRequester, because only
+    // the server can calculate them.
     public void setEvent(String eventName, List<OptionStateDto> options, double balance,
                          int commissionPercent,
                          BiConsumer<Integer, Integer> quoteRequester) {
@@ -149,7 +150,8 @@ public class BuySharesDialogController {
         selectedOption.selectedToggleProperty().addListener((observable, oldValue, newValue) -> recalculate());
     }
 
-    // Asks the engine what the purchase would cost right now, and enables the button only when it can run.
+    // Asks for the current cost of the purchase, and enables the button only when the input is valid.
+    // The amounts appear once the quote arrives.
     private void recalculate() {
         int quantity = readQuantity();
         boolean valid = quantity > NO_QUANTITY && selectedOption.getSelectedToggle() != null;
@@ -162,6 +164,7 @@ public class BuySharesDialogController {
         }
     }
 
+    // Shows a quote from the server, unless the user has changed the option or quantity since it was requested.
     public void showQuote(int optionIndex, int quantity, TradeDto trade) {
         if (optionIndex == getSelectedOptionIndex() && quantity == readQuantity()) {
             showAmounts(trade);

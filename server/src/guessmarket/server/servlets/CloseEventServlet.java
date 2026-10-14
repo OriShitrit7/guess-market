@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+// Closes an active event with the winning option chosen by its market maker, and pays the winning holders.
 @WebServlet(
         name = "CloseEventServlet",
         urlPatterns = {"/close-event"})

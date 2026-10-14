@@ -1,5 +1,6 @@
 package guessmarket.client.components.account.dialogs.loadfunds;
 
+import guessmarket.client.components.DisplayText;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -8,10 +9,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.Objects;
 
+// Collects the amount of money to load and shows the balance it would lead to.
 public class LoadFundsDialogController {
     @FXML private DialogPane dialogPane;
     @FXML private ButtonType loadFundsButtonType;
@@ -33,7 +33,7 @@ public class LoadFundsDialogController {
 
     public void setCurrentBalance(BigDecimal balance) {
         currentBalance = Objects.requireNonNull(balance);
-        currentBalanceLabel.setText(formatMoney(balance));
+        currentBalanceLabel.setText(DisplayText.amount(balance.doubleValue()));
         updateState();
     }
 
@@ -48,6 +48,7 @@ public class LoadFundsDialogController {
         return amount;
     }
 
+    // Accepts only a positive amount with at most two decimal places, the same rule the server applies.
     private void updateState() {
         String input = amountField.getText().trim();
         amount = null;
@@ -64,13 +65,9 @@ public class LoadFundsDialogController {
         validationLabel.setVisible(showError);
         validationLabel.setManaged(showError);
         newBalanceLabel.setText(amount != null && currentBalance != null
-                ? formatMoney(currentBalance.add(amount)) : "—");
+                ? DisplayText.amount(currentBalance.add(amount).doubleValue()) : "—");
 
         Button confirmButton = (Button) dialogPane.lookupButton(loadFundsButtonType);
         confirmButton.setDisable(amount == null || currentBalance == null || !submissionEnabled);
-    }
-
-    private String formatMoney(BigDecimal value) {
-        return NumberFormat.getCurrencyInstance(Locale.US).format(value);
     }
 }

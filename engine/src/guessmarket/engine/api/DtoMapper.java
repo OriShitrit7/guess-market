@@ -1,6 +1,7 @@
 package guessmarket.engine.api;
 
 import guessmarket.dto.*;
+import guessmarket.engine.chat.ChatMessage;
 import guessmarket.engine.model.*;
 import guessmarket.engine.orderbook.OptionOrderBook;
 import guessmarket.engine.orderbook.Order;
@@ -12,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 
-// Converts internal model objects into detached DTO snapshots that are safe for the UI to read.
+// Converts internal model objects into detached DTO snapshots that are safe to hand to the engine's callers.
 public class DtoMapper {
 
     // Creates the general event information shared by event lists and detail views.
@@ -30,6 +31,7 @@ public class DtoMapper {
                 winner == null ? null : winner.getName());
     }
 
+    // Builds the state snapshot that matches the event's trading method.
     EventStateDto createEventState(MarketEvent event, Collection<User> users) {
         if (event instanceof LmsrMarketEvent lmsrEvent) {
             return createLmsrState(lmsrEvent, users);
@@ -37,16 +39,40 @@ public class DtoMapper {
         return createOrderBookState((OrderBookMarketEvent) event, users);
     }
 
-    // Builds a complete event snapshot, including LMSR history when the event uses that method.
+    // Builds an LMSR event snapshot. Its history is built separately, by createEventHistory.
     LmsrStateDto createLmsrState(LmsrMarketEvent event, Collection<User> users) {
-        return new LmsrStateDto(createEventSummary(event), createOptionStates(event), createParticipants(event, users),
-                createSharePriceHistory(event), createTradeDtos(event.getTradeHistory()));
+        return new LmsrStateDto(createEventSummary(event), createOptionStates(event), createParticipants(event, users));
     }
 
-    // Builds the books, price history and participant data needed by the Order Book views.
+    // Builds the books and participant data needed by the Order Book views. Its history is built separately.
     OrderBookStateDto createOrderBookState(OrderBookMarketEvent event, Collection<User> users) {
         return new OrderBookStateDto(createEventSummary(event), createOptionStates(event), createParticipants(event, users),
-                createOptionBooks(event), createOrderBookPriceHistory(event));
+                createOptionBooks(event));
+    }
+
+    // Builds only the part of the event's history that comes after the counts the caller already holds:
+    // the trades from tradesFrom, and for each option the price points from its entry in pricesFrom.
+    EventHistoryDto createEventHistory(MarketEvent event, int tradesFrom, List<Integer> pricesFrom) {
+        List<List<Double>> prices = event instanceof LmsrMarketEvent lmsrEvent
+                ? createSharePriceHistory(lmsrEvent)
+                : createOrderBookPriceHistory((OrderBookMarketEvent) event);
+        List<List<Double>> newPrices = new ArrayList<>();
+
+        for (int i = 0; i < prices.size(); i++) {
+            newPrices.add(itemsFrom(prices.get(i), i < pricesFrom.size() ? pricesFrom.get(i) : 0));
+        }
+        List<TradeDto> newTrades = itemsFrom(getLmsrTrades(event), tradesFrom).stream()
+                .map(this::createTradeDto)
+                .toList();
+
+        return new EventHistoryDto(newTrades, newPrices);
+    }
+
+    // An index outside the list returns all of it, as with account transactions.
+    private <T> List<T> itemsFrom(List<T> items, int from) {
+        int first = from < 0 || from > items.size() ? 0 : from;
+
+        return items.subList(first, items.size());
     }
 
     // Creates the account summary displayed for one user.
@@ -61,9 +87,8 @@ public class DtoMapper {
                 .toList();
 
         Position position = user.getPositions().get(event.getEventId());
-        boolean finalProfitLossAvailable = event.getStatus() == EventStatus.CLOSED;
         return new UserInvolvementDto(createTradeDtos(userTrades), createHoldingDtos(event, position),
-                position == null ? 0 : position.getTotalCommissionPaid(), finalProfitLossAvailable,
+                position == null ? 0 : position.getTotalCommissionPaid(),
                 position == null ? 0 : position.calcProfitLoss());
     }
 
@@ -73,6 +98,8 @@ public class DtoMapper {
                 user.getPositions().containsKey(event.getEventId()));
     }
 
+    // Builds the account view of one user. Only the transactions from the given index onward are included;
+    // an index outside the list returns all of them.
     AccountDetailsDto createAccountDetails(User user, List<EventParticipationDto> events, int fromTransaction) {
         List<AccountTransaction> transactions = user.getTransactions();
         int firstNewTransaction = fromTransaction < 0 || fromTransaction > transactions.size() ? 0 : fromTransaction;
@@ -97,7 +124,7 @@ public class DtoMapper {
                 execution.getMintedAmount(), execution.getCommissionPaid(), balanceAfter);
     }
 
-    // The existing UI DTO represents LMSR purchases only; OB details will receive their own DTO later.
+    // Only LMSR events keep a trade history, so an Order Book event has no trades to list.
     private List<Trade> getLmsrTrades(MarketEvent event) {
         return event instanceof LmsrMarketEvent lmsrEvent ? lmsrEvent.getTradeHistory() : List.of();
     }
@@ -153,6 +180,7 @@ public class DtoMapper {
                 .count();
     }
 
+    // Lists the holding in every option of the event, valued at the option's current price when one exists.
     private List<OptionHoldingDto> createHoldingDtos(MarketEvent event, Position position) {
         Map<MarketOption, Double> values = optionValues(event);
 
@@ -229,7 +257,6 @@ public class DtoMapper {
         }
     }
 
-
     // Converts trade history to DTOs in reverse order so the newest purchases appear first.
     private List<TradeDto> createTradeDtos(List<Trade> trades) {
         List<TradeDto> tradeDtos = new ArrayList<>();
@@ -243,6 +270,14 @@ public class DtoMapper {
     TradeDto createTradeDto(Trade trade) {
         return new TradeDto(trade.getBuyerName(), trade.getOption().getName(), trade.getQuantity(),
                 trade.getSharesCost(), trade.getCommissionCost());
+    }
+
+    // Converts a chat message into the form sent to the clients.
+    public ChatMessageDto createChatMessage(ChatMessage message) {
+        return new ChatMessageDto(
+                message.getUsername(),
+                message.getText(),
+                message.getTimestamp());
     }
 
     private CommissionPolicyDto toDto(CommissionPolicy policy) {

@@ -5,6 +5,7 @@ public final class UserSummaryDto {
     private final String name;
     private final double balance;
     private final boolean blocked;
+    // Whether the user is the market maker of at least one event.
     private final boolean marketMaker;
 
     public UserSummaryDto(String name, double balance, boolean blocked, boolean marketMaker) {

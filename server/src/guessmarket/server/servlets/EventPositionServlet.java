@@ -2,6 +2,7 @@ package guessmarket.server.servlets;
 
 import com.google.gson.Gson;
 import guessmarket.dto.UserInvolvementDto;
+import guessmarket.dto.VersionedDto;
 import guessmarket.engine.api.MarketManager;
 import guessmarket.engine.exception.request.InvalidRequestException;
 import guessmarket.server.constants.Constants;
@@ -15,6 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+// Returns the logged-in user's trades, holdings and result in one event as JSON. When the event has not
+// changed since the version the client sent, the answer is 204 with no body.
 @WebServlet(
         name = "EventPositionServlet",
         urlPatterns = {"/event-position"})
@@ -28,12 +31,18 @@ public class EventPositionServlet extends HttpServlet {
             return;
         }
 
+        int clientVersion = ServletUtils.parseVersion(request.getParameter(Constants.VERSION));
         MarketManager marketManager = ServletUtils.getMarketManager(getServletContext());
-        UserInvolvementDto position;
+        VersionedDto<UserInvolvementDto> position;
         try {
             int eventId = Integer.parseInt(request.getParameter(Constants.EVENT_ID));
             synchronized (marketManager) {
-                position = marketManager.getUserInvolvement(userName, eventId);
+                int currentVersion = marketManager.getEventChangeCount(eventId);
+                if (currentVersion == clientVersion) {
+                    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                    return;
+                }
+                position = new VersionedDto<>(marketManager.getUserInvolvement(userName, eventId), currentVersion);
             }
         }
         catch (NumberFormatException e) {

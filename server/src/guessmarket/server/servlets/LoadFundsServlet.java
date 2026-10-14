@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+// Adds the requested amount to the logged-in user's balance.
 @WebServlet(
         name = "LoadFundsServlet",
         urlPatterns = {"/load-funds"})

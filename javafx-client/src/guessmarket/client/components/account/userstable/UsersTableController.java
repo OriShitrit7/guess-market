@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+// Shows every user of the system as a card, refreshed from the server.
 public class UsersTableController {
     private static final String USER_CARD_FXML = "user-card.fxml";
     private static final String EMPTY_USERS_TITLE_BEFORE_LOAD = "No users to display";
@@ -38,6 +39,7 @@ public class UsersTableController {
         rebuildUserCards();
     }
 
+    // Starts pulling the users list from the server, once every REFRESH_RATE milliseconds.
     public void startUsersTableRefresher() {
         usersTableRefresher = new UsersTableRefresher(usersList -> Platform.runLater(() -> updateUsers(usersList)));
         timer = new Timer();

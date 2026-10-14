@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 
+// Receives an XML file from the logged-in user and loads its events into the system,
+// with that user as their market maker.
 @WebServlet(
         name = "FileUploadServlet",
         urlPatterns = {"/upload-file"})
@@ -42,7 +44,7 @@ public class FileUploadServlet extends HttpServlet {
         MarketManager marketManager = ServletUtils.getMarketManager(getServletContext());
         try (InputStream content = filePart.getInputStream()) {
             synchronized (marketManager) {
-                marketManager.loadSystemFile(content, userName);
+                marketManager.loadSystemFile(filePart.getSubmittedFileName(), content, userName);
             }
             out.println("File successfully uploaded!");
         }

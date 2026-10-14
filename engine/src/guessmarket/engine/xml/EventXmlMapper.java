@@ -31,6 +31,7 @@ public class EventXmlMapper {
     private static final String ON_CLOSE_VALUE = "on-close";
 
     // Maps every XML event to a model event while preserving its position in the source file.
+    // The first event receives nextEventId, and each following event the next ID.
     public List<MarketEvent> mapEvents(GuessMarket xmlRoot, int nextEventId) throws InvalidFileException {
         List<MarketEvent> mappedEvents = new ArrayList<>();
         List<GMEvent> xmlEvents = extractEvents(xmlRoot); // Require at least one event
@@ -119,22 +120,20 @@ public class EventXmlMapper {
 
         GMLMSR lmsrElement = methodElement.getGMLMSR();
         if (lmsrElement != null) {
-            try {
-                return new LmsrMarketEvent(eventId, eventName, description, options, commission, lmsrElement.getB());
-            } catch (IllegalArgumentException e) {
-                throw new InvalidFileException(FileErrorCode.INVALID_LIQUIDITY, e, eventName, lmsrElement.getB());
+            if (lmsrElement.getB() <= 0) {
+                throw new InvalidFileException(FileErrorCode.INVALID_LIQUIDITY, eventName, lmsrElement.getB());
             }
+            return new LmsrMarketEvent(eventId, eventName, description, options, commission, lmsrElement.getB());
         }
 
         GMOrderBook orderBook = methodElement.getGMOrderBook();
         if (orderBook != null) {
-            try {
-                return new OrderBookMarketEvent(eventId, eventName, description, options, commission,
-                        orderBook.getD(), Boolean.parseBoolean(orderBook.getAllowMint()), orderBook.getInitial());
-            } catch (IllegalArgumentException e) {
-                throw new InvalidFileException(FileErrorCode.INVALID_ORDER_BOOK_CONFIG, e,
+            if (orderBook.getD() <= 0 || orderBook.getInitial() < 0) {
+                throw new InvalidFileException(FileErrorCode.INVALID_ORDER_BOOK_CONFIG,
                         eventName, orderBook.getD(), orderBook.getInitial());
             }
+            return new OrderBookMarketEvent(eventId, eventName, description, options, commission,
+                    orderBook.getD(), Boolean.parseBoolean(orderBook.getAllowMint()), orderBook.getInitial());
         }
         throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, TRADING_METHOD_ELEMENTS);
     }

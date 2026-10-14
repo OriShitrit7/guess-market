@@ -15,6 +15,7 @@ import guessmarket.engine.xml.SystemFileLoader;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -23,9 +24,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-// Manages loaded market events and exposes their operations through data transfer objects.
+// Manages the users and market events of the system and exposes their operations through data transfer objects.
 public class MarketManagerImpl implements MarketManager {
-    private static final Pattern ENGLISH_TEXT = Pattern.compile("[\\x20-\\x7E]+");
+    // Printable ASCII only: English letters, digits, spaces and punctuation.
+    public static final Pattern ENGLISH_TEXT = Pattern.compile("[\\x20-\\x7E]+");
 
     private final Map<Integer, MarketEvent> events = new LinkedHashMap<>();
     private final UsersRegistry users = new UsersRegistry();
@@ -34,10 +36,18 @@ public class MarketManagerImpl implements MarketManager {
     private final DtoMapper dtoMapper = new DtoMapper();
     private int nextEventId = 1;
 
+    // Change counters, so that callers can tell whether data has changed since they last read it.
+    private int eventsChangeCount;
+    private int usersChangeCount;
+    // Event ID to the number of changes in that event. An event that never changed is not in the map.
+    private final Map<Integer, Integer> eventChangeCounts = new HashMap<>();
+
+    // Registers a new user after checking that the name is in English. The registry rejects a taken name.
     @Override
     public void registerUser(String username) {
         validateUserName(username);
         users.addUser(new User(username));
+        usersChangeCount++;
     }
 
     private void validateUserName(String username) {
@@ -46,11 +56,12 @@ public class MarketManagerImpl implements MarketManager {
         }
     }
 
-    // Loads all candidate events before replacing the current state, so a failed load leaves it unchanged.
+    // Loads and validates all the events of the file before adding any of them, so a failed load leaves
+    // the system unchanged.
     @Override
-    public void loadSystemFile(InputStream content, String uploaderName) throws InvalidFileException {
+    public void loadSystemFile(String fileName, InputStream content, String uploaderName) throws InvalidFileException {
         getUserByName(uploaderName); // Confirm that the uploader exists
-        List<MarketEvent> loadedEvents = loader.load(content, nextEventId); // Load and validate the new data
+        List<MarketEvent> loadedEvents = loader.load(fileName, content, nextEventId); // Load and validate the new data
 
         validateNewEventNames(loadedEvents); // Reject names already in the system
 
@@ -59,9 +70,10 @@ public class MarketManagerImpl implements MarketManager {
             events.put(event.getEventId(), event);
         }
         nextEventId += loadedEvents.size();
+        recordEventsListChange();
     }
 
-    // Creates a summary for every event in its original file order.
+    // Creates a summary for every event, in the order the events were added.
     @Override
     public List<EventSummaryDto> getEventSummaries() {
         return events.values().stream()
@@ -69,7 +81,7 @@ public class MarketManagerImpl implements MarketManager {
                 .toList();
     }
 
-    // Creates a complete snapshot of the requested event
+    // Creates a complete snapshot of the requested event.
     @Override
     public EventStateDto getEventState(int eventId) {
         return dtoMapper.createEventState(getEventById(eventId), users.getAllUsers());
@@ -88,10 +100,28 @@ public class MarketManagerImpl implements MarketManager {
     }
 
     @Override
+    public int getEventsChangeCount() {
+        return eventsChangeCount;
+    }
+
+    @Override
+    public int getUsersChangeCount() {
+        return usersChangeCount;
+    }
+
+    @Override
+    public int getEventChangeCount(int eventId) {
+        getEventById(eventId); // Confirm that the event exists
+        return eventChangeCounts.getOrDefault(eventId, 0);
+    }
+
+    // Creates the user's account view, with only the transactions from the given index onward.
+    @Override
     public AccountDetailsDto getAccountDetails(String userName, int fromTransaction) {
         return dtoMapper.createAccountDetails(getUserByName(userName), getUserEvents(userName), fromTransaction);
     }
 
+    // A client sends this count back as the index of the first transaction it has not seen yet.
     @Override
     public int getTransactionCount(String userName) {
         return getUserByName(userName).getTransactions().size();
@@ -106,6 +136,11 @@ public class MarketManagerImpl implements MarketManager {
                 .map(event -> dtoMapper.createEventParticipation(event, user))
                 .filter(participation -> participation.isMarketMaker() || participation.isParticipant())
                 .toList();
+    }
+
+    @Override
+    public EventHistoryDto getEventHistory(int eventId, int tradesFrom, List<Integer> pricesFrom) {
+        return dtoMapper.createEventHistory(getEventById(eventId), tradesFrom, pricesFrom);
     }
 
     // Creates the named user's personal trading and result data for one event.
@@ -127,6 +162,7 @@ public class MarketManagerImpl implements MarketManager {
         settlement.settleOpening(event); // Charge the market maker
         event.open(); // Activate the event
         cancelBuyOrdersOfBlocked(Set.of(userName)); // Clear invalid buy orders after the charge
+        recordEventChange(event);
 
         return dtoMapper.createEventState(event, users.getAllUsers());
     }
@@ -143,6 +179,7 @@ public class MarketManagerImpl implements MarketManager {
 
         settlement.settleClose(event, event.getOptions().get(winningOptionIndex)); // Pay the winners
         event.close(winningOptionIndex); // Record the result and close trading
+        recordEventChange(event);
 
         return dtoMapper.createEventState(event, users.getAllUsers());
     }
@@ -157,17 +194,21 @@ public class MarketManagerImpl implements MarketManager {
         return dtoMapper.createTradeDto(event.quotePurchase(userName, optionIndex, quantity)); // Calculate the quote
     }
 
+    // Validates the amount and adds it to the user's balance. A blocked user may load funds too.
     @Override
     public void loadFunds(String userName, double amount) {
         User user = getUserByName(userName);
+        // Reject amounts that are not valid money values or that would overflow the balance
         if (!Double.isFinite(amount) || amount <= 0 || BigDecimal.valueOf(amount).scale() > 2
                 || !Double.isFinite(user.getBalance() + amount)) {
             throw new InvalidUserRequestException(UserRequestErrorCode.INVALID_LOAD_AMOUNT);
         }
         settlement.settleLoadFunds(userName, amount);
+        usersChangeCount++;
     }
 
-    // Performs and settles an LMSR purchase, then returns the trade and updated event state.
+    // Performs and settles an LMSR purchase, then returns the trade, the updated event state and the
+    // buyer's new balance.
     @Override
     public PurchaseResultDto buyLmsrShares(String userName, int eventId, int optionIndex, int quantity) {
         User user = getActiveUserByName(userName); // Require an active user
@@ -178,8 +219,10 @@ public class MarketManagerImpl implements MarketManager {
         Trade trade = event.buyShares(userName, optionIndex, quantity); // Execute the purchase
         settlement.settlePurchase(event, trade); // Update balances and holdings
         cancelBuyOrdersOfBlocked(Set.of(userName)); // Clear invalid buy orders after the charge
+        recordEventChange(event);
 
-        return new PurchaseResultDto(dtoMapper.createTradeDto(trade), dtoMapper.createLmsrState(event, users.getAllUsers()), user.getBalance());
+        return new PurchaseResultDto(dtoMapper.createTradeDto(trade),
+                dtoMapper.createLmsrState(event, users.getAllUsers()), user.getBalance());
     }
 
     // Plans, settles and commits an Order Book request, then summarizes its execution.
@@ -206,6 +249,7 @@ public class MarketManagerImpl implements MarketManager {
         settlement.registerParticipation(event, userName); // Record participation
 
         cancelBuyOrdersOfBlocked(plan.getParticipantNames()); // Remove blocked users' buy orders
+        recordEventChange(event);
 
         return dtoMapper.createOrderResult(
                 new OrderExecution(action, plan, order.getRemainingQuantity(), commissionPaid), user.getBalance());
@@ -221,6 +265,7 @@ public class MarketManagerImpl implements MarketManager {
         MarketEvent event = buildEvent(nextEventId++, request); // Build the selected event type
         event.setMarketMakerName(creator.getName()); // Assign event ownership
         events.put(event.getEventId(), event); // Add the event without opening it
+        recordEventsListChange();
 
         return dtoMapper.createEventSummary(event);
     }
@@ -245,15 +290,30 @@ public class MarketManagerImpl implements MarketManager {
                 request.getD(), request.isAllowMint(), request.getInitialInvestment());
     }
 
-    // Removes waiting buy orders of users blocked by a completed settlement.
+    // Removes waiting buy orders of users blocked by a completed settlement. The orders may sit in other
+    // events too, so every event that lost an order is counted as changed.
     private void cancelBuyOrdersOfBlocked(Collection<String> userNames) {
         userNames.stream()
                 .map(users::getUserByName)
                 .filter(User::isBlocked)
-                .forEach(user -> events.values().forEach(event -> event.cancelBuyOrdersOf(user.getName())));
+                .forEach(user -> events.values().stream()
+                        .filter(event -> event.cancelBuyOrdersOf(user.getName()))
+                        .forEach(this::recordEventChange));
     }
 
+    // An operation on an event changes the event itself, the events list and the balances of its users.
+    private void recordEventChange(MarketEvent event) {
+        eventChangeCounts.merge(event.getEventId(), 1, Integer::sum);
+        recordEventsListChange();
+    }
 
+    // Adding or changing an event may also change who is a market maker, so the users list changes too.
+    private void recordEventsListChange() {
+        eventsChangeCount++;
+        usersChangeCount++;
+    }
+
+    // Event names are unique in the system, ignoring case.
     private void validateNewEventNames(List<MarketEvent> loadedEvents) throws InvalidFileException {
         Set<String> existingNames = events.values().stream()
                 .map(event -> event.getEventName().toLowerCase(Locale.ROOT))
@@ -266,7 +326,7 @@ public class MarketManagerImpl implements MarketManager {
         }
     }
 
-    // The XSD guards a loaded event; a created one is guarded here.
+    // A loaded event is checked by the file loader; a created one is checked here.
     private void validateNewEvent(NewEventDto request) {
         validateText(request.getEventName(), EventRequestErrorCode.MISSING_EVENT_NAME);
         validateText(request.getDescription(), EventRequestErrorCode.MISSING_EVENT_DESCRIPTION);
@@ -284,6 +344,7 @@ public class MarketManagerImpl implements MarketManager {
         }
     }
 
+    // Checked line by line, so that a description may span several lines.
     private boolean isEnglish(String text) {
         return text.lines().allMatch(line -> line.isEmpty() || ENGLISH_TEXT.matcher(line).matches());
     }
@@ -416,7 +477,7 @@ public class MarketManagerImpl implements MarketManager {
 
     private CommissionPolicy toCommissionPolicy(CommissionPolicyDto policy) {
         if (policy == null) {
-            throw new InvalidEventRequestException(EventRequestErrorCode.COMMISSION_OUT_OF_RANGE);
+            throw new InvalidEventRequestException(EventRequestErrorCode.MISSING_COMMISSION_POLICY);
         }
         return CommissionPolicy.valueOf(policy.name());
     }

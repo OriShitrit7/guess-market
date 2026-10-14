@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+// Creates a new event from the JSON in the request body. The logged-in user becomes its market maker.
 @WebServlet(
         name = "CreateEventServlet",
         urlPatterns = {"/create-event"})

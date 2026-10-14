@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Tracks user's holdings and cumulative financial activity in a single event.
+// Tracks a user's holdings and cumulative financial activity in a single event.
 public class Position {
     private final Map<MarketOption, OptionHolding> holdings = new LinkedHashMap<>();
     private double totalCommissionPaid;
@@ -21,18 +21,6 @@ public class Position {
 
     public double getTotalCommissionPaid() {
         return totalCommissionPaid;
-    }
-
-    public double getTotalPurchaseCost() {
-        return totalPurchaseCost;
-    }
-
-    public double getTotalSaleProceeds() {
-        return totalSaleProceeds;
-    }
-
-    public double getTotalPayoutReceived() {
-        return totalPayoutReceived;
     }
 
     // Calculates the user's net result from purchases, sales, payout and commission.

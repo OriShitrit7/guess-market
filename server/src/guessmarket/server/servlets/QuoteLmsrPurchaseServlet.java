@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+// Prices an LMSR purchase without performing it, so the client can show the cost before the user confirms.
 @WebServlet(
         name = "QuoteLmsrPurchaseServlet",
         urlPatterns = {"/quote-lmsr-purchase"})
@@ -22,7 +23,7 @@ public class QuoteLmsrPurchaseServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/plain;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         String userName = SessionUtils.getUsernameOrSendUnauthorized(request, response);
         if (userName == null) {
             return;
@@ -50,7 +51,6 @@ public class QuoteLmsrPurchaseServlet extends HttpServlet {
             return;
         }
 
-        response.setContentType("application/json;charset=UTF-8");
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(result);
 

@@ -34,9 +34,9 @@ public class OptionOrderBook {
         return option;
     }
 
-    // Drops the waiting buy orders of a user whose account was blocked.
-    public void removeBuyOrdersOf(String userName) {
-        buyOrders.removeIf(order -> order.getUserName().equals(userName));
+    // Drops the waiting buy orders of a user whose account was blocked, and reports whether any were dropped.
+    public boolean removeBuyOrdersOf(String userName) {
+        return buyOrders.removeIf(order -> order.getUserName().equals(userName));
     }
 
     public List<Order> getBuyOrders() {

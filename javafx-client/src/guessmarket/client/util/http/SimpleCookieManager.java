@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 
+// Keeps the cookies the server sends, per host, so that every request carries the user's session.
 public class SimpleCookieManager implements CookieJar {
 
     private final Map<String, Map<String, Cookie>> cookies = new HashMap<>();

@@ -15,7 +15,8 @@ import java.math.BigDecimal;
 import java.util.Timer;
 import java.util.TimerTask;
 
-// Manages user selection, account history and event trading in the Account tab.
+// Holds the Account tab: pulls the logged-in user's account details from the server and hands them
+// to the wallet and to the events panel.
 public class AccountController implements Closeable {
     private static final String ACCOUNT_BLOCKED = "Account Blocked";
     private static final String BLOCKED_MESSAGE = "Your balance is now negative. Your account has been blocked and cannot perform further actions.";
@@ -28,12 +29,25 @@ public class AccountController implements Closeable {
     private TimerTask accountRefresher;
     private boolean blocked;
 
+    // Starts pulling the user's account details and the users list from the server.
     public void setActive() {
         accountRefresher = new AccountRefresher(details -> Platform.runLater(() -> showAccount(details)));
         timer = new Timer();
         timer.schedule(accountRefresher, Constants.REFRESH_RATE, Constants.REFRESH_RATE);
+        timer.schedule(createDisplayedEventRefresher(), Constants.REFRESH_RATE, Constants.REFRESH_RATE);
 
         usersTableComponentController.startUsersTableRefresher();
+    }
+
+    // The displayed event can change without any change in the user's account, for example when another
+    // user trades in it, so it is pulled on its own timer task.
+    private TimerTask createDisplayedEventRefresher() {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(myEventsComponentController::refreshDisplayedEvent);
+            }
+        };
     }
 
     private void showAccount(AccountDetailsDto details) {

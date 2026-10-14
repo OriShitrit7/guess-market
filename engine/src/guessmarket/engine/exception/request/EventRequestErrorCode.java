@@ -15,6 +15,7 @@ public enum EventRequestErrorCode {
     DUPLICATE_OPTION_NAMES("The two options must have different names."),
     WRONG_OPTION_COUNT("An event must have exactly two options."),
     COMMISSION_OUT_OF_RANGE("The commission percent is outside the allowed range."),
+    MISSING_COMMISSION_POLICY("A commission policy must be selected."),
     INVALID_LMSR_B("The LMSR b value must be greater than 0."),
     INVALID_BASE_VALUE("The base value d must be greater than 0."),
     INVALID_INITIAL_INVESTMENT("The initial investment cannot be negative."),

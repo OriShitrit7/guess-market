@@ -1,5 +1,6 @@
 package guessmarket.client.components.account.accountdetails.myevents;
 
+import com.google.gson.reflect.TypeToken;
 import guessmarket.client.components.events.EventsRefresher;
 import guessmarket.client.util.Constants;
 import guessmarket.client.util.http.HttpClientUtil;
@@ -12,6 +13,7 @@ import guessmarket.dto.OrderBookStateDto;
 import guessmarket.dto.TradingMethodTypeDto;
 import guessmarket.dto.UserInvolvementDto;
 import guessmarket.dto.UserSummaryDto;
+import guessmarket.dto.VersionedDto;
 import guessmarket.client.components.account.accountdetails.myevents.lmsrtrade.LmsrTradeController;
 import guessmarket.client.components.account.accountdetails.myevents.orderbooktrade.OrderBookTradeController;
 import guessmarket.client.components.dialogs.Dialogs;
@@ -38,11 +40,14 @@ import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+// Shows the logged-in user's events and the trading panel of the selected one, and opens the
+// Create Event and Trade in New Event dialogs.
 public class MyEventsController {
     private static final String TRADE_IN_EVENT_DIALOG = "/guessmarket/client/components/account/dialogs/tradeinevent/trade-in-event-dialog.fxml";
     private static final String TRADE_IN_NEW_EVENT = "Trade in New Event";
@@ -60,7 +65,11 @@ public class MyEventsController {
     private Integer displayedEventId;
     private boolean displayedEventOrderBook;
     private boolean displayedEventMarketMaker;
+    // Versions of the displayed event's state and of the user's position in it, as last received.
+    private int displayedStateVersion = -1;
+    private int displayedPositionVersion = -1;
     private UserSummaryDto user;
+    // Set while the table is rebuilt, so that the selection listener does not clear the displayed event.
     private boolean refreshingTable;
 
     @FXML
@@ -128,6 +137,7 @@ public class MyEventsController {
         });
     }
 
+    // Refreshes the events table and the displayed event with the data of the latest pull.
     public void update(UserSummaryDto summary, List<EventParticipationDto> participations) {
         user = summary;
         tradeInNewEventButton.setDisable(summary.isBlocked());
@@ -139,7 +149,8 @@ public class MyEventsController {
         restoreEventSelection(displayedEventId); // Restore the event after its table is rebuilt
         refreshingTable = false;
 
-        refreshDisplayedEvent();
+        // The panel shows the user's balance and block state with the event, so it is drawn again on the next pull
+        displayedStateVersion = -1;
     }
 
     private void restoreEventSelection(Integer eventId) {
@@ -150,7 +161,7 @@ public class MyEventsController {
                 .ifPresent(event -> userEventsTable.getSelectionModel().select(event));
     }
 
-    // The selected user creates the event and becomes its market maker.
+    // The logged-in user creates the event and becomes its market maker.
     @FXML
     private void createEventButtonAction() {
         Dialogs.<CreateEventDialogController>show(getClass(), CREATE_EVENT_DIALOG, CREATE_EVENT,
@@ -165,6 +176,7 @@ public class MyEventsController {
         HttpClientUtil.runAsyncOrShowError(request, CREATE_FAILED);
     }
 
+    // Fetches the current event list, and lets the user pick an active event they have not traded in yet.
     @FXML
     private void tradeInNewEventButtonAction() {
         HttpClientUtil.runAsync(Constants.EVENTS_URL, new Callback() {
@@ -182,7 +194,7 @@ public class MyEventsController {
                         Platform.runLater(() -> Dialogs.showError(TRADE_IN_NEW_EVENT, body.trim()));
                         return;
                     }
-                    List<EventSummaryDto> allEvents = EventsRefresher.parseEventSummaries(body);
+                    List<EventSummaryDto> allEvents = EventsRefresher.parseEventSummaries(body).getData();
 
                     Platform.runLater(() -> showTradeInEventDialog(availableEventsFrom(allEvents)));
                 }
@@ -205,7 +217,7 @@ public class MyEventsController {
         userEventsTable.setPrefHeight(tableHeight);
     }
 
-    // An event is available for a first trade only while active and unrelated to the selected user.
+    // An event is available for a first trade only while active and unrelated to the logged-in user.
     private List<EventSummaryDto> availableEventsFrom(List<EventSummaryDto> allEvents) {
         Set<Integer> relatedEventIds = new HashSet<>();
 
@@ -217,6 +229,7 @@ public class MyEventsController {
                 .toList();
     }
 
+    // An event picked in Trade in New Event is not in the table yet, so the table selection is cleared.
     private void showNewEventDetails(EventSummaryDto selectedEvent) {
         userEventsTable.getSelectionModel().clearSelection();
         showEventDetails(selectedEvent.getEventId(), selectedEvent.getMethodType() == TradingMethodTypeDto.ORDER_BOOK, false);
@@ -231,6 +244,8 @@ public class MyEventsController {
         showEventDetails(selectedEvent.getEventId(), selectedEvent.isOrderBook(), selectedEvent.isMarketMaker());
     }
 
+    // Switching to another event clears the panel first, so the previous event's data is not shown
+    // while the new data loads.
     private void showEventDetails(int eventId, boolean orderBook, boolean marketMaker) {
         if (!isDisplayed(eventId)) {
             clearEventDetails();
@@ -249,6 +264,8 @@ public class MyEventsController {
 
     private void clearEventDetails() {
         displayedEventId = null;
+        displayedStateVersion = -1;
+        displayedPositionVersion = -1;
         noEventSelectedState.setVisible(true);
         lmsrTradeComponent.setVisible(false);
         orderBookComponent.setVisible(false);
@@ -261,32 +278,42 @@ public class MyEventsController {
         return displayedEventId != null && displayedEventId == eventId;
     }
 
-    private void refreshDisplayedEvent() {
+    // The event's state and the user's position come from two separate requests, and each one
+    // updates its own part of the panel. The server answers only when the event has changed.
+    public void refreshDisplayedEvent() {
         if (displayedEventId == null) {
             return;
         }
         int eventId = displayedEventId;
 
-        requestEventData(Constants.EVENT_STATE_URL, eventId, json -> showEventState(eventId, json));
-        requestEventData(Constants.EVENT_POSITION_URL, eventId, json -> showEventPosition(eventId, json));
+        requestEventData(Constants.EVENT_STATE_URL, eventId, displayedStateVersion, json -> showEventState(eventId, json));
+        requestEventData(Constants.EVENT_POSITION_URL, eventId, displayedPositionVersion,
+                json -> showEventPosition(eventId, json));
     }
 
-    private void requestEventData(String url, int eventId, Consumer<String> jsonConsumer) {
+    private void requestEventData(String url, int eventId, int version, Consumer<String> jsonConsumer) {
         String finalUrl = HttpUrl.parse(url).newBuilder()
                 .addQueryParameter(Constants.EVENT_ID_PARAMETER, String.valueOf(eventId))
+                .addQueryParameter(Constants.VERSION_PARAMETER, String.valueOf(version))
                 .build().toString();
 
         HttpClientUtil.runAsyncIgnoringErrors(finalUrl, jsonConsumer);
     }
 
+    // A response may arrive after another event was selected; such a response is ignored.
     private void showEventState(int eventId, String json) {
         if (!isDisplayed(eventId)) {
             return;
         }
-        if (displayedEventOrderBook) {
-            orderBookComponentController.showState(Constants.GSON_INSTANCE.fromJson(json, OrderBookStateDto.class), user, displayedEventMarketMaker);
-        } else {
-            lmsrTradeComponentController.showState(Constants.GSON_INSTANCE.fromJson(json, LmsrStateDto.class), user, displayedEventMarketMaker);
+        Class<?> stateClass = displayedEventOrderBook ? OrderBookStateDto.class : LmsrStateDto.class;
+        Type type = TypeToken.getParameterized(VersionedDto.class, stateClass).getType();
+        VersionedDto<?> versioned = Constants.GSON_INSTANCE.fromJson(json, type);
+
+        displayedStateVersion = versioned.getVersion();
+        if (versioned.getData() instanceof OrderBookStateDto orderBookState) {
+            orderBookComponentController.showState(orderBookState, user, displayedEventMarketMaker);
+        } else if (versioned.getData() instanceof LmsrStateDto lmsrState) {
+            lmsrTradeComponentController.showState(lmsrState, user, displayedEventMarketMaker);
         }
     }
 
@@ -294,7 +321,11 @@ public class MyEventsController {
         if (!isDisplayed(eventId)) {
             return;
         }
-        UserInvolvementDto position = Constants.GSON_INSTANCE.fromJson(json, UserInvolvementDto.class);
+        Type type = new TypeToken<VersionedDto<UserInvolvementDto>>() {}.getType();
+        VersionedDto<UserInvolvementDto> versioned = Constants.GSON_INSTANCE.fromJson(json, type);
+        UserInvolvementDto position = versioned.getData();
+
+        displayedPositionVersion = versioned.getVersion();
 
         if (displayedEventOrderBook) {
             orderBookComponentController.showPosition(position);

@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-// Validates business rules that mapped events and users must satisfy before loading.
+// Validates the business rules that the events of a file must satisfy before they are loaded.
 public class MarketValidator {
 
-    // Checks unique IDs, commission, option counts, market makers and initial balances.
+    // Checks that event names are unique within the file, and that every event has a valid commission
+    // and the required number of options.
     public void validate(List<MarketEvent> events) throws InvalidFileException {
         validateUniqueEventNames(events); // Check the rule shared by all events
 
@@ -23,7 +24,7 @@ public class MarketValidator {
         }
     }
 
-    // Tracks the first event using each ID so duplicate errors can name both events.
+    // Names are compared without regard to case.
     private void validateUniqueEventNames(List<MarketEvent> events) throws InvalidFileException {
         Set<String> seenNames = new HashSet<>();
 

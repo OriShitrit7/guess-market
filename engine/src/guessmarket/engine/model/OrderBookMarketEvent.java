@@ -8,11 +8,14 @@ import java.util.stream.IntStream;
 
 // Represents an Order Book event and manages its orders, matching, minting and price history.
 public class OrderBookMarketEvent extends MarketEvent {
+    // An order price must stay at least one cent below the base value.
     private static final double PRICE_MARGIN = 0.01;
+    // Prices are rounded to two decimal places.
     private static final double PRICE_SCALE = 100;
 
     // Base value and payout of one winning share.
     private final int d;
+    // Whether buy orders for opposite options may be paired to create new shares.
     private final boolean mintAllowed;
 
     // Funds provided by the market maker when opening the event.
@@ -38,19 +41,19 @@ public class OrderBookMarketEvent extends MarketEvent {
         return d;
     }
 
-    public boolean isMintAllowed() {
-        return mintAllowed;
-    }
-
     public List<OptionOrderBook> getOptionBooks() {
         return books;
     }
 
-    // Returns completed regular matches in chronological order. Mint trades are not included.
     // Removes the user's waiting buy orders from every option book.
     @Override
-    public void cancelBuyOrdersOf(String userName) {
-        books.forEach(book -> book.removeBuyOrdersOf(userName));
+    public boolean cancelBuyOrdersOf(String userName) {
+        boolean removed = false;
+
+        for (OptionOrderBook book : books) {
+            removed |= book.removeBuyOrdersOf(userName); // Every book is checked, even after a removal
+        }
+        return removed;
     }
 
     @Override
@@ -58,6 +61,7 @@ public class OrderBookMarketEvent extends MarketEvent {
         return TradingMethodType.ORDER_BOOK;
     }
 
+    // The market maker funds the event with the initial investment.
     @Override
     public double calcOpeningCost() {
         return initialInvestment;
@@ -138,6 +142,7 @@ public class OrderBookMarketEvent extends MarketEvent {
         return List.copyOf(mints);
     }
 
+    // Two opposite buy orders can create a pair of shares only when together they cover the base value.
     private boolean checkMintThreshold(double restingPrice, double incomingPrice) {
         return restingPrice + incomingPrice >= d;
     }

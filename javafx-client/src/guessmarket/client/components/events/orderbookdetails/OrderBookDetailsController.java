@@ -88,7 +88,7 @@ public class OrderBookDetailsController {
         clear();
     }
 
-    // Refreshes the event summary, option books and price history from one snapshot.
+    // Refreshes the event summary and option books from a snapshot. The price chart is filled by addPriceHistory.
     public void refresh(OrderBookStateDto state) {
         EventSummaryDto summary = state.getSummary(); // Read the shared event details
 
@@ -104,7 +104,28 @@ public class OrderBookDetailsController {
                 DisplayText.amount(summary.getTotalCommissionCollected()));
 
         showBooks(state); // Show live books or the result for a closed event
-        showPriceHistory(summary, state.getPriceHistory());
+        createPriceSeries(summary.getOptionNames());
+        configurePriceHistoryYAxis(summary.getWinningSharePayout());
+    }
+
+    // Adds the price points executed since the last call to the end of each option's series.
+    public void addPriceHistory(List<List<Double>> newPrices) {
+        List<XYChart.Series<Number, Number>> seriesList = priceHistoryChart.getData();
+
+        for (int optionIndex = 0; optionIndex < seriesList.size() && optionIndex < newPrices.size(); optionIndex++) {
+            List<XYChart.Data<Number, Number>> points = seriesList.get(optionIndex).getData();
+
+            // Trades start at one
+            newPrices.get(optionIndex).forEach(price -> points.add(new XYChart.Data<>(points.size() + 1, price)));
+        }
+        configurePriceHistoryXAxis();
+    }
+
+    // How many price points each option's series holds, so that only newer ones are requested.
+    public List<Integer> getPriceCounts() {
+        return priceHistoryChart.getData().stream()
+                .map(series -> series.getData().size())
+                .toList();
     }
 
     // Resets the panel when no Order Book event is selected.
@@ -160,25 +181,18 @@ public class OrderBookDetailsController {
                 .orElse(1);
     }
 
-    // Rebuilds one price series per option and updates the chart scale.
-    private void showPriceHistory(EventSummaryDto summary, List<List<Double>> history) {
-        List<String> optionNames = summary.getOptionNames();
-
-        priceHistoryChart.getData().clear(); // Remove data from the previous event
-        for (int optionIndex = 0; optionIndex < optionNames.size(); optionIndex++) {
+    // Creates one empty series per option the first time the event is shown. The points arrive through
+    // addPriceHistory.
+    private void createPriceSeries(List<String> optionNames) {
+        if (!priceHistoryChart.getData().isEmpty()) {
+            return;
+        }
+        for (String optionName : optionNames) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
-            series.setName(optionNames.get(optionIndex));
 
-            if (optionIndex < history.size()) {
-                List<Double> optionHistory = history.get(optionIndex);
-
-                for (int tradeIndex = 0; tradeIndex < optionHistory.size(); tradeIndex++) {
-                    series.getData().add(new XYChart.Data<>(tradeIndex + 1, optionHistory.get(tradeIndex))); // Trades start at one
-                }
-            }
+            series.setName(optionName);
             priceHistoryChart.getData().add(series);
         }
-        configurePriceHistoryAxes(summary.getWinningSharePayout(), history);
     }
 
     private void clearPriceHistory() {
@@ -191,10 +205,10 @@ public class OrderBookDetailsController {
         priceHistoryYAxis.setTickUnit(0.25);
     }
 
-    // Scales the trade axis to the longest history and the price axis to the event payout.
-    private void configurePriceHistoryAxes(double maximumPrice, List<List<Double>> history) {
-        int maximumTrade = history.stream()
-                .mapToInt(List::size)
+    // Scales the trade axis to the longest option history.
+    private void configurePriceHistoryXAxis() {
+        int maximumTrade = getPriceCounts().stream()
+                .mapToInt(Integer::intValue)
                 .max()
                 .orElse(0);
         int upperTradeBound = Math.max(1, maximumTrade);
@@ -202,6 +216,10 @@ public class OrderBookDetailsController {
         priceHistoryXAxis.setLowerBound(0);
         priceHistoryXAxis.setUpperBound(upperTradeBound);
         priceHistoryXAxis.setTickUnit(Math.max(1, Math.ceil(upperTradeBound / 6.0)));
+    }
+
+    // Scales the price axis to what one winning share pays.
+    private void configurePriceHistoryYAxis(double maximumPrice) {
         priceHistoryYAxis.setLowerBound(0);
         priceHistoryYAxis.setUpperBound(maximumPrice);
         priceHistoryYAxis.setTickUnit(maximumPrice / 4);

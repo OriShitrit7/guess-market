@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+// Buys shares in an LMSR event for the logged-in user and returns the purchase result as JSON.
 @WebServlet(
         name = "BuyLmsrSharesServlet",
         urlPatterns = {"/buy-lmsr-shares"})
@@ -22,7 +23,7 @@ public class BuyLmsrSharesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/plain;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         String userName = SessionUtils.getUsernameOrSendUnauthorized(request, response);
         if (userName == null) {
             return;
@@ -50,7 +51,6 @@ public class BuyLmsrSharesServlet extends HttpServlet {
             return;
         }
 
-        response.setContentType("application/json;charset=UTF-8");
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(result);
 

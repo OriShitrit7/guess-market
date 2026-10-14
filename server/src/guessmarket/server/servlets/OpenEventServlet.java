@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+// Opens an event that has not started yet. Only its market maker may open it, and pays the opening cost.
 @WebServlet(
         name = "OpenEventServlet",
         urlPatterns = {"/open-event"})

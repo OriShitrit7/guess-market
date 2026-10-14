@@ -14,6 +14,7 @@ public final class OrderResultDto {
     // Amount paid for minted shares, before commission.
     private final double mintedAmount;
     private final double totalCommissionPaid;
+    // The submitting user's balance once the order was settled.
     private final double balanceAfter;
 
     public OrderResultDto(OrderActionDto action, int matchedQuantity, int mintedQuantity,

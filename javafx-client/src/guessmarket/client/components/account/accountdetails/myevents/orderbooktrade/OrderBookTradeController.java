@@ -141,6 +141,8 @@ public class OrderBookTradeController {
         clear();
     }
 
+    // Shows the event's details, order books, the user's waiting orders and action buttons. The user's state decides which actions
+    // are available.
     public void showState(OrderBookStateDto state, UserSummaryDto user, boolean marketMaker) {
         this.state = state;
         this.user = user;
@@ -152,6 +154,7 @@ public class OrderBookTradeController {
         showResultCard();
     }
 
+    // Shows the user's own activity in the event.
     public void showPosition(UserInvolvementDto position) {
         this.position = position;
 
@@ -378,7 +381,8 @@ public class OrderBookTradeController {
                 .forEach(order -> rows.add(new OrderTableRow(book.getOptionName(), side, order)));
     }
 
-    // Swaps the trading card for the result card once the event is resolved.
+    // Swaps the trading card for the result card once the event is resolved. It waits until both the
+    // event state and the user's position have arrived.
     private void showResultCard() {
         if (state == null || position == null) {
             return;

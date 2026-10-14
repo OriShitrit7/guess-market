@@ -13,22 +13,32 @@ import org.xml.sax.SAXParseException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 
 // Loads system data from XML and coordinates file checks, mapping and validation.
 public class SystemFileLoader {
     private static final String JAXB_GENERATED_PACKAGE = "guessmarket.engine.xml.generated";
+    private static final String XML_EXTENSION = ".xml";
 
     private final EventXmlMapper mapper = new EventXmlMapper();
     private final MarketValidator validator = new MarketValidator();
 
-    // Returns the loaded events after all mapped data pass validation.
-    public List<MarketEvent> load(InputStream content, int nextEventId) throws InvalidFileException {
+    // Reads the events of an XML file and returns them once they pass validation.
+    // Event IDs are assigned in file order, starting at nextEventId.
+    public List<MarketEvent> load(String fileName, InputStream content, int nextEventId) throws InvalidFileException {
+        validateXmlExtension(fileName); // Check the file type
         GuessMarket xmlRoot = deserializeFrom(content); // Read the JAXB structure
         List<MarketEvent> events = mapper.mapEvents(xmlRoot, nextEventId); // Build event models
 
         validator.validate(events); // Validate cross-object business rules
 
         return events;
+    }
+
+    private void validateXmlExtension(String fileName) throws InvalidFileException {
+        if (fileName == null || !fileName.toLowerCase(Locale.ROOT).endsWith(XML_EXTENSION)) {
+            throw new InvalidFileException(FileErrorCode.NOT_XML_FILE, fileName);
+        }
     }
 
     // Uses JAXB to convert the XML document into the generated object structure.

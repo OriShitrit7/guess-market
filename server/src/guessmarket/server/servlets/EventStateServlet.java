@@ -2,6 +2,7 @@ package guessmarket.server.servlets;
 
 import com.google.gson.Gson;
 import guessmarket.dto.EventStateDto;
+import guessmarket.dto.VersionedDto;
 import guessmarket.engine.api.MarketManager;
 import guessmarket.engine.exception.request.InvalidEventRequestException;
 import guessmarket.server.constants.Constants;
@@ -15,6 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+// Returns the full state of the event given by the eventId parameter as JSON. When the event has not changed
+// since the version the client sent, the answer is 204 with no body.
 @WebServlet(
         name = "EventStateServlet",
         urlPatterns = {"/event-state"})
@@ -27,12 +30,18 @@ public class EventStateServlet extends HttpServlet {
             return;
         }
 
+        int clientVersion = ServletUtils.parseVersion(request.getParameter(Constants.VERSION));
         MarketManager marketManager = ServletUtils.getMarketManager(getServletContext());
-        EventStateDto eventState;
+        VersionedDto<EventStateDto> eventState;
         try {
             int eventId = Integer.parseInt(request.getParameter(Constants.EVENT_ID));
             synchronized (marketManager) {
-                eventState = marketManager.getEventState(eventId);
+                int currentVersion = marketManager.getEventChangeCount(eventId);
+                if (currentVersion == clientVersion) {
+                    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                    return;
+                }
+                eventState = new VersionedDto<>(marketManager.getEventState(eventId), currentVersion);
             }
         }
         catch (NumberFormatException e) {

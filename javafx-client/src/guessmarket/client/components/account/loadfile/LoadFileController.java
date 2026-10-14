@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+// Lets the logged-in user upload an XML file to the server, and reports whether its events were loaded.
 public class LoadFileController {
     @FXML private Button loadFileButton;
     @FXML private Label filePathLabel;

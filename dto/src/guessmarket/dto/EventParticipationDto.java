@@ -4,6 +4,7 @@ package guessmarket.dto;
 public final class EventParticipationDto {
     private final EventSummaryDto event;
     private final boolean marketMaker;
+    // True when the user has a position in the event, even one that holds only waiting orders.
     private final boolean participant;
 
     public EventParticipationDto(EventSummaryDto event, boolean marketMaker, boolean participant) {

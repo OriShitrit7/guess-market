@@ -13,7 +13,7 @@ public class User {
 
     private final String name;
     private double balance = INITIAL_BALANCE;
-    // Becomes true after the balance first drops below zero.
+    // Set when a withdrawal leaves the balance negative. Loading enough funds releases it.
     private boolean blocked;
 
     private final Map<Integer, Position> positions = new LinkedHashMap<>();
@@ -50,12 +50,12 @@ public class User {
         return position == null ? 0 : position.getPositionQuantityByOption(option);
     }
 
-    // Adds money and records the updated balance.
+    // Adds money to the balance. Recording the account transaction is left to the caller.
     public void deposit(double amount) {
         balance += amount; // Update the account
     }
 
-    // Removes money, records the balance and blocks the user after an overdraft.
+    // Removes money and blocks the user when the balance becomes negative.
     public void withdraw(double amount) {
         balance -= amount; // Update the account
 
@@ -64,6 +64,7 @@ public class User {
         }
     }
 
+    // Lifts the block once the balance is no longer negative.
     public void releaseBlockIfSolvent() {
         if (balance >= 0) {
             blocked = false;
@@ -94,6 +95,7 @@ public class User {
         positionFor(eventId);
     }
 
+    // Adds a line to the account history, with the balance at that moment. A zero amount is not recorded.
     public void recordTransaction(AccountTransactionType type, double amount) {
         if (amount == 0) {
             return;

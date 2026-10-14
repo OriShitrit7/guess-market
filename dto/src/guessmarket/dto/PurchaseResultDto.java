@@ -1,6 +1,6 @@
 package guessmarket.dto;
 
-// Groups a completed LMSR purchase with the event state immediately after it.
+// Groups a completed LMSR purchase with the event state and the buyer's balance immediately after it.
 public final class PurchaseResultDto {
     private final TradeDto trade;
     private final LmsrStateDto stateAfterPurchase;

@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Locale;
 
+// Submits a buy or sell order to an Order Book event for the logged-in user,
+// and returns how the order was executed as JSON.
 @WebServlet(
         name = "SubmitOrderServlet",
         urlPatterns = {"/submit-order"})
@@ -24,7 +26,7 @@ public class SubmitOrderServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/plain;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         String userName = SessionUtils.getUsernameOrSendUnauthorized(request, response);
         if (userName == null) {
             return;
@@ -54,7 +56,6 @@ public class SubmitOrderServlet extends HttpServlet {
             return;
         }
 
-        response.setContentType("application/json;charset=UTF-8");
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(result);
 
@@ -64,6 +65,7 @@ public class SubmitOrderServlet extends HttpServlet {
         }
     }
 
+    // An unknown action becomes null, so that the engine rejects it with its own message.
     private OrderActionDto parseAction(String action) {
         try {
             return OrderActionDto.valueOf(action.trim().toUpperCase(Locale.ROOT));

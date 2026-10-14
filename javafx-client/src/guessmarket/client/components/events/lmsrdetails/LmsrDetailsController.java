@@ -1,5 +1,6 @@
 package guessmarket.client.components.events.lmsrdetails;
 
+import guessmarket.dto.EventHistoryDto;
 import guessmarket.dto.EventStatusDto;
 import guessmarket.dto.EventSummaryDto;
 import guessmarket.dto.LmsrStateDto;
@@ -128,16 +129,42 @@ public class LmsrDetailsController {
         clear();
     }
 
-    // Refreshes every section of the panel from one event trading snapshot.
+    // Refreshes the event details from a snapshot. The trades and the price chart are filled by addHistory.
     public void refresh(LmsrStateDto state) {
         EventSummaryDto summary = state.getSummary(); // Read the shared event details
 
         showEventSummary(summary); // Update the event header
         showOptions(state.getOptionStates());
-        showPriceHistory(summary.getOptionNames(), state.getSharePriceHistory());
+        createPriceSeries(summary.getOptionNames());
         showResult(summary, state.getOptionStates()); // Replace option cards with the result when closed
+    }
 
-        trades.setAll(state.getTradeHistory().stream().map(EventTradeTableRow::new).toList()); // Refresh trade history
+    // Adds what was added to the event's history since the last call: new trades go to the top of the
+    // table, since the newest trade is shown first, and new price points go to the end of the chart.
+    public void addHistory(EventHistoryDto history) {
+        trades.addAll(0, history.getNewTrades().reversed().stream().map(EventTradeTableRow::new).toList());
+
+        List<XYChart.Series<Number, Number>> seriesList = priceHistoryChart.getData();
+        List<List<Double>> newPrices = history.getNewPrices();
+
+        for (int optionIndex = 0; optionIndex < seriesList.size() && optionIndex < newPrices.size(); optionIndex++) {
+            List<XYChart.Data<Number, Number>> points = seriesList.get(optionIndex).getData();
+
+            newPrices.get(optionIndex).forEach(price -> points.add(new XYChart.Data<>(points.size(), price)));
+        }
+        configurePriceHistoryXAxis();
+    }
+
+    // How many trades the table holds, so that only newer ones are requested.
+    public int getTradeCount() {
+        return trades.size();
+    }
+
+    // How many price points each option's series holds, so that only newer ones are requested.
+    public List<Integer> getPriceCounts() {
+        return priceHistoryChart.getData().stream()
+                .map(series -> series.getData().size())
+                .toList();
     }
 
     // Resets the panel when no LMSR event is selected.
@@ -217,24 +244,18 @@ public class LmsrDetailsController {
         secondOptionSharesLabel.setText("0");
     }
 
-    // Rebuilds one chart series per option using the trade sequence as the horizontal axis.
-    private void showPriceHistory(List<String> optionNames, List<List<Double>> history) {
-        priceHistoryChart.getData().clear(); // Remove data from the previous event
-
-        for (int optionIndex = 0; optionIndex < optionNames.size(); optionIndex++) {
-            XYChart.Series<Number, Number> series = new XYChart.Series<>();
-            series.setName(optionNames.get(optionIndex));
-
-            if (optionIndex < history.size()) {
-                List<Double> optionHistory = history.get(optionIndex);
-
-                for (int tradeNumber = 0; tradeNumber < optionHistory.size(); tradeNumber++) {
-                    series.getData().add(new XYChart.Data<>(tradeNumber, optionHistory.get(tradeNumber)));
-                }
-            }
-            priceHistoryChart.getData().add(series); // Keep a series even when it has no history
+    // Creates one empty series per option the first time the event is shown. The trade sequence is the
+    // horizontal axis, and the points arrive through addHistory.
+    private void createPriceSeries(List<String> optionNames) {
+        if (!priceHistoryChart.getData().isEmpty()) {
+            return;
         }
-        configurePriceHistoryXAxis(history);
+        for (String optionName : optionNames) {
+            XYChart.Series<Number, Number> series = new XYChart.Series<>();
+
+            series.setName(optionName);
+            priceHistoryChart.getData().add(series);
+        }
     }
 
     private void clearPriceHistory() {
@@ -245,9 +266,9 @@ public class LmsrDetailsController {
     }
 
     // Scales the horizontal axis to the longest option history with readable tick spacing.
-    private void configurePriceHistoryXAxis(List<List<Double>> history) {
-        int maximumTrade = history.stream()
-                .mapToInt(optionHistory -> optionHistory.size() - 1)
+    private void configurePriceHistoryXAxis() {
+        int maximumTrade = getPriceCounts().stream()
+                .mapToInt(count -> count - 1)
                 .max()
                 .orElse(0);
         int upperBound = Math.max(1, maximumTrade);

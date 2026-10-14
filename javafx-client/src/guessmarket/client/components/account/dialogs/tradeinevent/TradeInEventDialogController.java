@@ -40,7 +40,7 @@ public class TradeInEventDialogController {
                 .bind(eventsTable.getSelectionModel().selectedItemProperty().isNull()); // Require an event selection
     }
 
-    // Replaces the table contents with events available to the selected user.
+    // Replaces the table contents with events available to the logged-in user.
     public void setEvents(List<EventSummaryDto> availableEvents) {
         events.setAll(availableEvents);
     }

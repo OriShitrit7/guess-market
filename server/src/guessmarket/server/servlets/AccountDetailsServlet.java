@@ -7,7 +7,6 @@ import guessmarket.engine.api.MarketManager;
 import guessmarket.server.constants.Constants;
 import guessmarket.server.utils.ServletUtils;
 import guessmarket.server.utils.SessionUtils;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +15,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+// Returns the logged-in user's account details as JSON. The transactionsVersion parameter is the number of
+// transactions the client already has, so only newer ones are sent. The user's events depend on the events
+// list, so the eventsVersion parameter is checked too, and when neither has changed the answer is 204.
+// The inner version of the response is the transaction count and the outer one the events version.
 @WebServlet(
         name = "AccountDetailsServlet",
         urlPatterns = {"/account-details"})
@@ -39,11 +42,19 @@ public class AccountDetailsServlet extends HttpServlet {
             return;
         }
 
+        int eventsVersion = ServletUtils.parseVersion(request.getParameter(Constants.EVENTS_VERSION));
         MarketManager marketManager = ServletUtils.getMarketManager(getServletContext());
-        VersionedDto<AccountDetailsDto> accountDetails;
+        VersionedDto<VersionedDto<AccountDetailsDto>> accountDetails;
         synchronized (marketManager) {
-            accountDetails = new VersionedDto<>(marketManager.getAccountDetails(userName, transactionsVersion),
-                    marketManager.getTransactionCount(userName));
+            int transactionCount = marketManager.getTransactionCount(userName);
+            int eventsChangeCount = marketManager.getEventsChangeCount();
+            if (transactionCount == transactionsVersion && eventsChangeCount == eventsVersion) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                return;
+            }
+            VersionedDto<AccountDetailsDto> details = new VersionedDto<>(
+                    marketManager.getAccountDetails(userName, transactionsVersion), transactionCount);
+            accountDetails = new VersionedDto<>(details, eventsChangeCount);
         }
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(accountDetails);
@@ -52,4 +63,5 @@ public class AccountDetailsServlet extends HttpServlet {
             out.print(jsonResponse);
             out.flush();
         }
-    }}
+    }
+}

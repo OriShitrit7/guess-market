@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 
 import java.util.List;
 
-// Presents a closed event's result and its financial outcome for the selected user.
+// Presents a closed event's result and its financial outcome for the logged-in user.
 public class ResultCardController {
     private static final String NO_WINNER = "-";
     private static final String EMPTY_TEXT = "";
@@ -32,7 +32,7 @@ public class ResultCardController {
     @FXML
     private Label profitLossLabel;
 
-    // Shows how a closed event ended for the selected user.
+    // Shows how a closed event ended for the logged-in user.
     public void refresh(String winnerName, double winningSharePayout, List<OptionHoldingDto> holdings,
                         double profitLoss) {
         winnerLabel.setText(winnerName == null ? NO_WINNER : winnerName);

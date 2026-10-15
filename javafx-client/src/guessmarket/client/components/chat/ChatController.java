@@ -13,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.skin.VirtualFlow;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -83,10 +84,16 @@ public class ChatController implements Closeable {
             colorIndexes.putIfAbsent(message.getUsername().toLowerCase(Locale.ROOT), colorIndexes.size());
         }
         messages.addAll(result.getData());
-        // Scrolls only after the list has laid out the new cells. Scrolling at once, before their heights are
-        // known, sometimes left the earlier messages undrawn until the next update.
-        Platform.runLater(() -> chatListView.scrollTo(messages.size() - 1));
+        Platform.runLater(this::scrollToNewestMessage); // After the list has laid out the new cells
         displayedVersion = result.getVersion();
+    }
+
+    // Scrolls only as far as needed to show the newest message. ListView.scrollTo places it at the top of
+    // the list instead, which sometimes left the earlier messages undrawn until the next update.
+    private void scrollToNewestMessage() {
+        if (chatListView.lookup(".virtual-flow") instanceof VirtualFlow<?> flow && !messages.isEmpty()) {
+            flow.scrollTo(messages.size() - 1);
+        }
     }
 
     @FXML

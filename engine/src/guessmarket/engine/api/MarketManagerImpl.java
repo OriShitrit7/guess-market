@@ -18,11 +18,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 // Manages the users and market events of the system and exposes their operations through data transfer objects.
 public class MarketManagerImpl implements MarketManager {
@@ -315,20 +313,23 @@ public class MarketManagerImpl implements MarketManager {
 
     // Event names are unique in the system, ignoring case.
     private void validateNewEventNames(List<MarketEvent> loadedEvents) throws InvalidFileException {
-        Set<String> existingNames = events.values().stream()
-                .map(event -> event.getEventName().toLowerCase(Locale.ROOT))
-                .collect(Collectors.toSet());
-
         for (MarketEvent event : loadedEvents) {
-            if (existingNames.contains(event.getEventName().toLowerCase(Locale.ROOT))) {
+            if (isEventNameTaken(event.getEventName())) {
                 throw new InvalidFileException(FileErrorCode.EVENT_NAME_ALREADY_EXISTS, event.getEventName());
             }
         }
     }
 
+    private boolean isEventNameTaken(String eventName) {
+        return events.values().stream().anyMatch(event -> event.getEventName().equalsIgnoreCase(eventName.trim()));
+    }
+
     // A loaded event is checked by the file loader; a created one is checked here.
     private void validateNewEvent(NewEventDto request) {
         validateText(request.getEventName(), EventRequestErrorCode.MISSING_EVENT_NAME);
+        if (isEventNameTaken(request.getEventName())) {
+            throw new InvalidEventRequestException(EventRequestErrorCode.EVENT_NAME_TAKEN);
+        }
         validateText(request.getDescription(), EventRequestErrorCode.MISSING_EVENT_DESCRIPTION);
         validateOptionNames(request.getOptionNames());
         validateCommissionPercent(request.getCommissionPercent());
@@ -344,9 +345,10 @@ public class MarketManagerImpl implements MarketManager {
         }
     }
 
-    // Checked line by line, so that a description may span several lines.
-    private boolean isEnglish(String text) {
-        return text.lines().allMatch(line -> line.isEmpty() || ENGLISH_TEXT.matcher(line).matches());
+    // Checked line by line, so that a description may span several lines. Spaces and tabs around each line
+    // are ignored, since a description in a file is often indented. The file loader uses it too.
+    public static boolean isEnglish(String text) {
+        return text.lines().map(String::strip).allMatch(line -> line.isEmpty() || ENGLISH_TEXT.matcher(line).matches());
     }
 
     private void validateOptionNames(List<String> optionNames) {

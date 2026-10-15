@@ -23,7 +23,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Timer;
 
 // Displays shared chat messages and sends new messages for the logged-in user.
@@ -35,6 +38,9 @@ public class ChatController implements Closeable {
     @FXML private Button sendButton;
 
     private final ObservableList<ChatMessageDto> messages = FXCollections.observableArrayList();
+    // Each sender's color number, in the order the senders first wrote. Every client receives the same history
+    // in the same order, so a sender has the same color in every client.
+    private final Map<String, Integer> colorIndexes = new HashMap<>();
     private Timer timer;
     private ChatRefresher chatRefresher;
     private int displayedVersion;
@@ -50,7 +56,7 @@ public class ChatController implements Closeable {
 
     // Sets the user whose own messages are highlighted. Called before polling starts.
     public void setUserName(String userName) {
-        chatListView.setCellFactory(_ -> new ChatMessageCell(userName));
+        chatListView.setCellFactory(_ -> new ChatMessageCell(userName, colorIndexes));
     }
 
     // Keeps the refresher's version when switching away from and back to the Chat tab.
@@ -71,9 +77,15 @@ public class ChatController implements Closeable {
     private void showMessages(VersionedDto<List<ChatMessageDto>> result) {
         if (result.getVersion() < displayedVersion) { // The server restarted, so its messages replace the old ones
             messages.clear();
+            colorIndexes.clear();
+        }
+        for (ChatMessageDto message : result.getData()) {
+            colorIndexes.putIfAbsent(message.getUsername().toLowerCase(Locale.ROOT), colorIndexes.size());
         }
         messages.addAll(result.getData());
-        chatListView.scrollTo(messages.size() - 1);
+        // Scrolls only after the list has laid out the new cells. Scrolling at once, before their heights are
+        // known, sometimes left the earlier messages undrawn until the next update.
+        Platform.runLater(() -> chatListView.scrollTo(messages.size() - 1));
         displayedVersion = result.getVersion();
     }
 
@@ -94,7 +106,7 @@ public class ChatController implements Closeable {
         HttpClientUtil.runAsync(request, new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Platform.runLater(() -> finishSending(text, "Something went wrong: " + e.getMessage()));
+                Platform.runLater(() -> finishSending(text, Constants.SERVER_UNREACHABLE));
             }
 
             @Override
@@ -108,7 +120,7 @@ public class ChatController implements Closeable {
                         Platform.runLater(() -> finishSending(text, error));
                     }
                 } catch (IOException e) {
-                    Platform.runLater(() -> finishSending(text, "Something went wrong: " + e.getMessage()));
+                    Platform.runLater(() -> finishSending(text, Constants.SERVER_UNREACHABLE));
                 }
             }
         });

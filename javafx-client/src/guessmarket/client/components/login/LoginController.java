@@ -65,7 +65,7 @@ public class LoginController {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Platform.runLater(() -> {
-                    errorMessageProperty.set("Something went wrong: " + e.getMessage());
+                    errorMessageProperty.set(Constants.SERVER_UNREACHABLE);
                     loginInProgress.set(false);
                 });
             }

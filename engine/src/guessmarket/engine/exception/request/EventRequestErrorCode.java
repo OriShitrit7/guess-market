@@ -9,6 +9,7 @@ public enum EventRequestErrorCode {
     INVALID_ORDER_ACTION("An order action must be selected."),
     INVALID_ORDER_PRICE("The order price must be greater than 0 and no greater than d - 0.01."),
     MISSING_EVENT_NAME("An event name is required."),
+    EVENT_NAME_TAKEN("An event with this name already exists. Event names must be unique (case insensitive)."),
     MISSING_EVENT_DESCRIPTION("An event description is required."),
     MISSING_OPTION_NAME("Both options must be named."),
     TEXT_NOT_ENGLISH("The event name, description and option names must be in English: letters, digits, spaces and punctuation only."),

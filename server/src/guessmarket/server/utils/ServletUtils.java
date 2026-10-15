@@ -2,7 +2,7 @@ package guessmarket.server.utils;
 
 import guessmarket.engine.api.MarketManager;
 import guessmarket.engine.api.MarketManagerImpl;
-import guessmarket.engine.chat.ChatManager;
+import guessmarket.engine.api.ChatManager;
 import guessmarket.server.constants.Constants;
 import jakarta.servlet.ServletContext;
 

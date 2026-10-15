@@ -69,7 +69,7 @@ public class LoadFileController {
         HttpClientUtil.runAsync(request, new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Platform.runLater(() -> onUploadFinished(false, "Something went wrong: " + e.getMessage(), file));
+                Platform.runLater(() -> onUploadFinished(false, Constants.SERVER_UNREACHABLE, file));
             }
 
             @Override

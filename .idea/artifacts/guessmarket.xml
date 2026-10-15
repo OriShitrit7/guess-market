@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="guessmarket">
+    <output-path>$PROJECT_DIR$/out/artifacts/submission</output-path>
+    <root id="archive" name="guessmarket.war">
+      <element id="artifact" artifact-name="server:Web exploded" />
+    </root>
+  </artifact>
+</component>

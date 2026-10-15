@@ -1,6 +1,7 @@
 package guessmarket.client.util.http;
 
 import guessmarket.client.components.dialogs.Dialogs;
+import guessmarket.client.util.Constants;
 import javafx.application.Platform;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -79,7 +80,7 @@ public class HttpClientUtil {
         runAsync(request, new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Platform.runLater(() -> Dialogs.showError(errorTitle, "Something went wrong: " + e.getMessage()));
+                Platform.runLater(() -> Dialogs.showError(errorTitle, Constants.SERVER_UNREACHABLE));
             }
 
             @Override

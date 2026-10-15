@@ -3,7 +3,7 @@ package guessmarket.server.servlets;
 import com.google.gson.Gson;
 import guessmarket.dto.ChatMessageDto;
 import guessmarket.dto.VersionedDto;
-import guessmarket.engine.chat.ChatManager;
+import guessmarket.engine.api.ChatManager;
 import guessmarket.server.constants.Constants;
 import guessmarket.server.utils.ServletUtils;
 import guessmarket.server.utils.SessionUtils;

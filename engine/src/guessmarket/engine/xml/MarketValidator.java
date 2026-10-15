@@ -1,9 +1,11 @@
 package guessmarket.engine.xml;
 
+import guessmarket.engine.api.MarketManagerImpl;
 import guessmarket.engine.exception.file.FileErrorCode;
 import guessmarket.engine.exception.file.InvalidFileException;
 import guessmarket.engine.model.CommissionConfig;
 import guessmarket.engine.model.MarketEvent;
+import guessmarket.engine.model.MarketOption;
 
 import java.util.HashSet;
 import java.util.List;
@@ -13,14 +15,16 @@ import java.util.Set;
 // Validates the business rules that the events of a file must satisfy before they are loaded.
 public class MarketValidator {
 
-    // Checks that event names are unique within the file, and that every event has a valid commission
-    // and the required number of options.
+    // Checks that event names are unique within the file, and that every event has a valid commission,
+    // the required number of options with different names, and text in English.
     public void validate(List<MarketEvent> events) throws InvalidFileException {
         validateUniqueEventNames(events); // Check the rule shared by all events
 
         for (MarketEvent event : events) { // Validate each event
             validateCommission(event);
             validateOptionCount(event);
+            validateOptionNames(event);
+            validateEnglishText(event);
         }
     }
 
@@ -48,6 +52,26 @@ public class MarketValidator {
         if (event.getOptionCount() != MarketEvent.REQUIRED_OPTION_COUNT) {
             throw new InvalidFileException(FileErrorCode.WRONG_OPTION_COUNT,
                     event.getEventName(), event.getOptionCount(), MarketEvent.REQUIRED_OPTION_COUNT);
+        }
+    }
+
+    // Names are compared without regard to case, as in Create Event.
+    private void validateOptionNames(MarketEvent event) throws InvalidFileException {
+        List<MarketOption> options = event.getOptions();
+
+        if (options.getFirst().getName().equalsIgnoreCase(options.getLast().getName())) {
+            throw new InvalidFileException(FileErrorCode.DUPLICATE_OPTION_NAMES, event.getEventName());
+        }
+    }
+
+    // The same rule as in Create Event: the event name, the description and the option names.
+    private void validateEnglishText(MarketEvent event) throws InvalidFileException {
+        boolean english = MarketManagerImpl.isEnglish(event.getEventName())
+                && MarketManagerImpl.isEnglish(event.getDescription())
+                && event.getOptions().stream().allMatch(option -> MarketManagerImpl.isEnglish(option.getName()));
+
+        if (!english) {
+            throw new InvalidFileException(FileErrorCode.TEXT_NOT_ENGLISH, event.getEventName());
         }
     }
 }

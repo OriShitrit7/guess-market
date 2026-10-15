@@ -182,7 +182,7 @@ public class MyEventsController {
         HttpClientUtil.runAsync(Constants.EVENTS_URL, new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Platform.runLater(() -> Dialogs.showError(TRADE_IN_NEW_EVENT, "Something went wrong: " + e.getMessage()));
+                Platform.runLater(() -> Dialogs.showError(TRADE_IN_NEW_EVENT, Constants.SERVER_UNREACHABLE));
             }
 
             @Override

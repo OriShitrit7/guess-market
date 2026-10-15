@@ -1,8 +1,7 @@
-package guessmarket.engine.chat;
+package guessmarket.engine.api;
 
 import guessmarket.dto.ChatMessageDto;
-import guessmarket.engine.api.DtoMapper;
-import guessmarket.engine.api.MarketManagerImpl;
+import guessmarket.engine.model.ChatMessage;
 import guessmarket.engine.exception.request.ChatRequestErrorCode;
 import guessmarket.engine.exception.request.InvalidChatRequestException;
 

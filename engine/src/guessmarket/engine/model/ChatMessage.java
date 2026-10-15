@@ -1,4 +1,4 @@
-package guessmarket.engine.chat;
+package guessmarket.engine.model;
 
 // One message of the shared chat: who sent it, its text and when it was received.
 public class ChatMessage {

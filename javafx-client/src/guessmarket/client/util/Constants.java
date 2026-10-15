@@ -17,6 +17,9 @@ public abstract class Constants {
     // css locations
     public static final String APP_CSS = "/guessmarket/client/components/main/app.css";
 
+    // Shown whenever a request cannot reach the server, for example when it is not running
+    public static final String SERVER_UNREACHABLE = "Cannot reach the server. Please make sure it is running and try again.";
+
     // Server resources locations
     public static final String BASE_DOMAIN = "localhost";
     private static final String BASE_URL = "http://" + BASE_DOMAIN + ":8080";

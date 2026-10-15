@@ -12,6 +12,7 @@ import guessmarket.engine.xml.generated.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 // Converts JAXB event data into model events and reports missing or unsupported XML values.
 public class EventXmlMapper {
@@ -86,7 +87,7 @@ public class EventXmlMapper {
 
         String policyValue = commissionElement.getType().trim();
 
-        CommissionPolicy policy = switch (policyValue) {
+        CommissionPolicy policy = switch (policyValue.toLowerCase(Locale.ROOT)) { // Values are case insensitive
             case ON_PURCHASE_VALUE -> CommissionPolicy.ON_PURCHASE;
             case ON_CLOSE_VALUE -> CommissionPolicy.ON_CLOSE;
             default -> throw new InvalidFileException(FileErrorCode.UNKNOWN_COMMISSION_TYPE, eventName, policyValue);
@@ -119,6 +120,10 @@ public class EventXmlMapper {
         }
 
         GMLMSR lmsrElement = methodElement.getGMLMSR();
+        GMOrderBook orderBook = methodElement.getGMOrderBook();
+        if (lmsrElement != null && orderBook != null) {
+            throw new InvalidFileException(FileErrorCode.MULTIPLE_TRADING_METHODS, eventName);
+        }
         if (lmsrElement != null) {
             if (lmsrElement.getB() <= 0) {
                 throw new InvalidFileException(FileErrorCode.INVALID_LIQUIDITY, eventName, lmsrElement.getB());
@@ -126,16 +131,25 @@ public class EventXmlMapper {
             return new LmsrMarketEvent(eventId, eventName, description, options, commission, lmsrElement.getB());
         }
 
-        GMOrderBook orderBook = methodElement.getGMOrderBook();
         if (orderBook != null) {
             if (orderBook.getD() <= 0 || orderBook.getInitial() < 0) {
                 throw new InvalidFileException(FileErrorCode.INVALID_ORDER_BOOK_CONFIG,
                         eventName, orderBook.getD(), orderBook.getInitial());
             }
             return new OrderBookMarketEvent(eventId, eventName, description, options, commission,
-                    orderBook.getD(), Boolean.parseBoolean(orderBook.getAllowMint()), orderBook.getInitial());
+                    orderBook.getD(), mapAllowMint(orderBook.getAllowMint(), eventName), orderBook.getInitial());
         }
         throw new InvalidFileException(FileErrorCode.MISSING_ELEMENT, eventName, TRADING_METHOD_ELEMENTS);
+    }
+
+    // Accepts only 'true' or 'false', since any other value would otherwise be read as false.
+    private boolean mapAllowMint(String rawValue, String eventName) throws InvalidFileException {
+        String value = rawValue == null ? "" : rawValue.trim();
+
+        if (!value.equalsIgnoreCase(Boolean.TRUE.toString()) && !value.equalsIgnoreCase(Boolean.FALSE.toString())) {
+            throw new InvalidFileException(FileErrorCode.INVALID_ALLOW_MINT, eventName, value);
+        }
+        return Boolean.parseBoolean(value);
     }
 
     // Rejects an element that is absent from the file or carries no readable text.

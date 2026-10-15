@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Map;
 
 // Shows one chat message: a colored circle with the sender's initial, the sender's name and the time,
 // and the text below them. Messages sent by the logged-in user are highlighted.
@@ -26,6 +27,7 @@ public class ChatMessageCell extends ListCell<ChatMessageDto> {
     private static final String OWN_MESSAGE_STYLE_CLASS = "own-message";
 
     private final String userName;
+    private final Map<String, Integer> colorIndexes;
     private final Circle avatarCircle = new Circle(AVATAR_RADIUS);
     private final Label initialLabel = new Label();
     private final Label nameLabel = new Label();
@@ -33,8 +35,10 @@ public class ChatMessageCell extends ListCell<ChatMessageDto> {
     private final Label textLabel = new Label();
     private final HBox content = createContent();
 
-    public ChatMessageCell(String userName) {
+    // colorIndexes holds each sender's color number, keyed by the sender's name in lower case.
+    public ChatMessageCell(String userName, Map<String, Integer> colorIndexes) {
         this.userName = userName;
+        this.colorIndexes = colorIndexes;
         setPrefWidth(0); // The cell takes the list's width, so long messages wrap instead of scrolling sideways
     }
 
@@ -77,8 +81,8 @@ public class ChatMessageCell extends ListCell<ChatMessageDto> {
         setGraphic(content);
     }
 
-    // Derived from the name, so every user keeps the same color in every client.
+    // After the last color, the colors start over from the first.
     private String avatarColorOf(String sender) {
-        return AVATAR_COLORS[Math.floorMod(sender.toLowerCase(Locale.ROOT).hashCode(), AVATAR_COLORS.length)];
+        return AVATAR_COLORS[colorIndexes.getOrDefault(sender.toLowerCase(Locale.ROOT), 0) % AVATAR_COLORS.length];
     }
 }

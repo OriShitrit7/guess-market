@@ -8,6 +8,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.ValidationEvent;
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
@@ -46,6 +47,8 @@ public class SystemFileLoader {
         try {
             JAXBContext context = JAXBContext.newInstance(JAXB_GENERATED_PACKAGE); // Load generated JAXB classes
             Unmarshaller unmarshaller = context.createUnmarshaller();
+            // Stops at the first invalid value, such as text where a number is expected, instead of reading it as 0
+            unmarshaller.setEventHandler(event -> event.getSeverity() == ValidationEvent.WARNING);
             Object root = unmarshaller.unmarshal(content);
 
             if (!(root instanceof GuessMarket guessMarket)) {
@@ -68,6 +71,9 @@ public class SystemFileLoader {
         if (cause instanceof SAXParseException parseError) {
             return new InvalidFileException(FileErrorCode.MALFORMED_XML_AT_LOCATION, parseError,
                     parseError.getLineNumber(), parseError.getColumnNumber(), parseError.getMessage()); // Include the XML location
+        }
+        if (cause instanceof NumberFormatException) {
+            return new InvalidFileException(FileErrorCode.INVALID_NUMBER, cause, cause.getMessage());
         }
         if (cause instanceof IOException) {
             return new InvalidFileException(FileErrorCode.FILE_READ_FAILED, cause); // Preserve the read failure

@@ -1,7 +1,7 @@
 package guessmarket.engine.api;
 
 import guessmarket.dto.*;
-import guessmarket.engine.chat.ChatMessage;
+import guessmarket.engine.model.ChatMessage;
 import guessmarket.engine.model.*;
 import guessmarket.engine.orderbook.OptionOrderBook;
 import guessmarket.engine.orderbook.Order;

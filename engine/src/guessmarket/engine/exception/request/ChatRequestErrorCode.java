@@ -1,6 +1,6 @@
 package guessmarket.engine.exception.request;
 
-import guessmarket.engine.chat.ChatManager;
+import guessmarket.engine.api.ChatManager;
 
 public enum ChatRequestErrorCode {
     EMPTY_MESSAGE("Please enter a message."),

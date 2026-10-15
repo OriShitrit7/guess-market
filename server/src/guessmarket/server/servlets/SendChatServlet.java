@@ -1,6 +1,6 @@
 package guessmarket.server.servlets;
 
-import guessmarket.engine.chat.ChatManager;
+import guessmarket.engine.api.ChatManager;
 import guessmarket.engine.exception.request.InvalidChatRequestException;
 import guessmarket.server.constants.Constants;
 import guessmarket.server.utils.ServletUtils;
